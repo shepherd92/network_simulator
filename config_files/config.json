@@ -2,7 +2,7 @@
     "general": {
         "log_level": "INFO",
         "enable_profiling": false,
-        "num_of_processes": 1,
+        "num_of_processes": 6,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
             "output": "../output"
@@ -11,7 +11,7 @@
     "data_set": {
         "type": "ARXIV",
         "analysis": {
-            "enable": true,
+            "enable": false,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
@@ -30,14 +30,13 @@
     },
     "model": {
         "type": "AGE_DEPENDENT_RANDOM_SIMPLEX",
-        "max_dimension": 2,
         "fitting": {
             "enable": false
         },
         "testing": {
             "enable": true,
             "test_against_data_set": false,
-            "num_of_simulations": 1000
+            "num_of_simulations": 100
         },
         "analysis": {
             "enable": true,

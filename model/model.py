@@ -8,8 +8,6 @@ from enum import Enum, auto
 from multiprocessing import Pool
 from typing import Any
 
-from tqdm import tqdm
-
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
@@ -71,6 +69,10 @@ class Model:
         )
         return scalar_property_distributions
 
+    def generate_network(self, seed: int | None = None) -> Network:
+        """Build a network of the model."""
+        raise NotImplementedError
+
     def _simulate_base_properties(
         self,
         base_network_properties: list[BaseNetworkProperty],
@@ -107,7 +109,7 @@ class Model:
 
         return scalar_property_distributions
 
-    def generate_properties(self, base_properties: list[BaseNetworkProperty], seed: int) -> list[Any]:
+    def _generate_properties(self, base_properties: list[BaseNetworkProperty], seed: int) -> list[Any]:
         """Build a single network of the model and return its summary."""
         network: Network | None = None
         property_values: list[Any] = []
@@ -121,11 +123,9 @@ class Model:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)
 
-        return property_values
+        print('.', end='', flush=True)
 
-    def generate_network(self, seed: int | None = None) -> Network:
-        """Build a network of the model."""
-        raise NotImplementedError
+        return property_values
 
     def _calc_typical_property_distribution(self, property_type: BaseNetworkProperty.Type) -> EmpiricalDistribution:
         """Generate typical properties of the given type."""
@@ -147,10 +147,10 @@ class Model:
         """Simulate networks using multiple processes calculating a list of base properties."""
         with Pool(num_of_processes) as pool:
             # pylint: disable-next=no-member
-            all_networks_base_network_properties: list[list[Any]] = tqdm(pool.istarmap(  # type: ignore
-                self.generate_properties,
-                list(zip([base_network_properties] * num_of_simulations, range(num_of_simulations)))
-            ), total=num_of_simulations)
+            all_networks_base_network_properties: list[list[Any]] = pool.starmap(  # type: ignore
+                self._generate_properties,
+                list(zip([base_network_properties] * num_of_simulations, range(num_of_simulations))),
+            )
         return all_networks_base_network_properties
 
     def _simulate_single_process(
@@ -159,8 +159,8 @@ class Model:
         num_of_simulations: int
     ) -> list[list[Any]]:
         all_networks_base_network_properties = [
-            self.generate_properties(base_network_properties, seed)
-            for seed in tqdm(range(num_of_simulations), total=num_of_simulations)
+            self._generate_properties(base_network_properties, seed)
+            for seed in range(num_of_simulations)
         ]
         return all_networks_base_network_properties
 

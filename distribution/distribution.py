@@ -86,6 +86,14 @@ class Distribution:
         """Calculate the inverse CDF at the given values."""
         raise NotImplementedError
 
+    def calc_confidence_interval(self, confidence: float) -> list[float]:
+        """Calculcte the confidence interval of the distribution."""
+        assert confidence < 1., f'The confidence level is {confidence} but it must be less than 1.'
+        lower_quantile = 0.5 * (1. - confidence)
+        upper_quantile = 1. - lower_quantile
+        confidence_interval = self.calc_quantiles(np.array([lower_quantile, upper_quantile]))
+        return confidence_interval.tolist()
+
     def kolmogorov_smirnov(self, other: Distribution, x_values: npt.NDArray[np.float_]) -> float:
         """Calculate the Kolmogorov-Smirnov statistic of two degree distributions."""
         if not self.valid or not other.valid:

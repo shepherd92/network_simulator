@@ -113,6 +113,9 @@ class AgeDependentRandomSimplexModel(Model):
         random_number_generator = np.random.default_rng(seed)
         node_ids = np.array(range(self.parameters.num_nodes))
 
+        # condition on default vs non-default profile function for higher performance
+        is_default_profile_function = np.isclose(self.parameters.alpha, 0.5)
+
         connection_list: list[np.ndarray] = []
         for source_node_id, source_birth_time, source_position in zip(
             node_ids.tolist(), birth_times.tolist(), positions.tolist()
@@ -128,11 +131,16 @@ class AgeDependentRandomSimplexModel(Model):
             profile_function_argument = distances_d_x_birth_times / \
                 (self.parameters.beta * birth_time_ratios**self.parameters.gamma)
 
-            connection_probabilities = self._profile_function(profile_function_argument)
-            adjacency_matrix_row = (
-                random_number_generator.random(size=connection_probabilities.shape) <
-                connection_probabilities
-            )
+            if is_default_profile_function:
+                # use the default profile function, deterministic
+                adjacency_matrix_row = profile_function_argument <= 0.5
+            else:
+                # use the general profile function
+                connection_probabilities = self._profile_function(profile_function_argument)
+                adjacency_matrix_row = (
+                    random_number_generator.random(size=connection_probabilities.shape) <
+                    connection_probabilities
+                )
             target_node_ids: npt.NDArray[np.float_] = np.c_[np.where(adjacency_matrix_row)]
             connections_from_source_node = np.c_[
                 np.full((target_node_ids.shape), source_node_id),
@@ -177,7 +185,7 @@ class AgeDependentRandomSimplexModel(Model):
 
         return distance_matrix
 
-    @ staticmethod
+    @staticmethod
     def _distances(position_pairs: np.ndarray) -> float:
 
         dimensions = position_pairs.shape[1] // 2
@@ -186,7 +194,7 @@ class AgeDependentRandomSimplexModel(Model):
         distances_by_dimension_inside = np.abs(position_pairs[:, :dimensions] - position_pairs[:, dimensions:])
 
         # if the distance in one dimension is greater than the half of the size of the torus,
-        # then it is better to go around the edge, when the distance in that direction is
+        # then it is better to go around the edge, and the distance in that direction is
         # 1 - distance_inside
         distances_by_dimension = np.where(
             distances_by_dimension_inside < 0.5,

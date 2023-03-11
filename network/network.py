@@ -6,6 +6,7 @@ from __future__ import annotations
 from collections import defaultdict
 from itertools import combinations
 from logging import debug
+from math import comb
 from typing import Any
 
 import networkx as nx
@@ -279,12 +280,37 @@ class Network:
         assert neighbor_dimension > simplex_dimension
 
         if simplex_dimension == 0 and neighbor_dimension == 1:
+            # ordinry degrees are faster to extract from the networkx package
             simplex_degrees = self.graph.degree()
+            degree_sequence = sorted((degree for _, degree in simplex_degrees), reverse=True)
         else:
-            simplex_degrees = self._calc_degrees(simplex_dimension, neighbor_dimension)
+            degree_sequence = self._calc_degree_sequence(simplex_dimension, neighbor_dimension)
 
-        degree_sequence = sorted((degree for _, degree in simplex_degrees), reverse=True)
         return EmpiricalDistribution(degree_sequence)
+
+    def _calc_degree_sequence(
+        self,
+        simplex_dimension: int,
+        neighbor_dimension: int
+    ) -> list[int]:
+
+        assert neighbor_dimension > simplex_dimension, \
+            f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
+
+        # extract facets with dimension higher or equal to neighbor dimension
+        facets = filter(lambda facet: len(facet) > neighbor_dimension, self.extract_facets())
+
+        degree_sequence: list[int] = []
+        for facet in facets:
+            facet_dimension = len(facet) - 1
+            num_of_simplices_in_facet = comb(facet_dimension + 1, simplex_dimension + 1)
+            num_of_neighbors_in_facet = comb(
+                facet_dimension - simplex_dimension,
+                neighbor_dimension - simplex_dimension
+            )
+            degree_sequence += [num_of_neighbors_in_facet] * num_of_simplices_in_facet
+
+        return degree_sequence
 
     def _calc_degrees(
         self,

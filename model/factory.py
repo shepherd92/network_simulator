@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""This module provides factory methods for creating network models."""
 
 from model.model import Model
 from model.graph_models.erdos_renyi import ErdosRenyiModel
@@ -21,8 +22,7 @@ from config_files.model_config.age_dependent_random_simplex_config import AGE_DE
 
 
 def create_model(model_type: Model.Type) -> Model:
-    """Factory method for building the specified model."""
-
+    """Build the specified model using this factory method."""
     model = Model()
     if model_type == Model.Type.ERDOS_RENYI:
         model = ErdosRenyiModel()
@@ -46,7 +46,6 @@ def create_model(model_type: Model.Type) -> Model:
 
 def load_default_parameters(model_type: Model.Type) -> Model.Parameters:
     """Load parameters for the specified model."""
-
     parameters: Model.Parameters = Model.Parameters()
     if model_type == Model.Type.ERDOS_RENYI:
         parameters = ERDOS_RENYI_MODEL_PARAMETERS

@@ -48,6 +48,7 @@ class StableDistribution(TheoreticalDistribution):
                 scale=sigma
             )
             return result
+
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         self._parameters = pconv(*levy_stable._fitstart(value_sequence))  # pylint: disable=protected-access
 

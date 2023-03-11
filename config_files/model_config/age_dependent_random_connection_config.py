@@ -18,7 +18,7 @@ AGE_DEPENDENT_RANDOM_CONNECTION_MODEL_PARAMETERS = AgeDependentRandomConnectionM
     num_nodes=1000,
     torus_dimension=1,
     alpha=0.5,
-    beta=10.0,
+    beta=1.0,
     gamma=0.5,
 )
 
@@ -40,11 +40,11 @@ class AgeDependentRandomConnectionParameterOptions(ModelParameterOptions):
         beta_guess = (1. - gamma_guess) * edge_density
 
         self.options = (
-            #                            name,           initial guess,   lb,        ub, integer, optimize,  step)
-            ParameterOption('max_dimension',  data_set.max_dimension,  0,        10,   True,    False,  1.),
-            ParameterOption('num_nodes',            num_of_nodes,  0,         0,   True,    False,  1.),
-            ParameterOption('torus_dimension',                       1,  1,         5,   True,    False,  1.),
-            ParameterOption('alpha',                     0.5,  0.5,  np.infty,   False,    False,  1e-3),
-            ParameterOption('beta',              beta_guess,  0.,  np.infty,   False,    True,  1e-1),
-            ParameterOption('gamma',             gamma_guess,  0.,       1.0,   False,    False,  1e-3),
+            #               name,              initial guess,          lb,          ub,  integer,  optimize,  step)
+            ParameterOption('max_dimension',   data_set.max_dimension,  0,          10,     True,     False,    1.),
+            ParameterOption('num_nodes',       num_of_nodes,            0,           0,     True,     False,    1.),
+            ParameterOption('torus_dimension', 1,                       1,           5,     True,     False,    1.),
+            ParameterOption('alpha',           0.5,                     0.5,  np.infty,    False,     False,  1e-3),
+            ParameterOption('beta',            beta_guess,              0.,   np.infty,    False,      True,  1e-1),
+            ParameterOption('gamma',           gamma_guess,             0.,        1.0,    False,     False,  1e-3),
         )

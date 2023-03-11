@@ -6,6 +6,7 @@ from typing import NamedTuple
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -106,6 +107,38 @@ class DistributionApproximation:
         ss_tot = np.sum((probability_plot_points[:, 1] - probability_plot_points[:, 1].mean())**2)
         probability_plot_r_value = 1 - ss_res / ss_tot
         return probability_plot_r_value
+
+    def get_pdfs(self) -> pd.DataFrame:
+        """Get the pdfs of the two distributions."""
+        num_of_points = 1000
+        x_values = np.linspace(
+            self.empirical.domain.min_,
+            self.empirical.domain.max_,
+            num_of_points,
+            endpoint=True
+        )
+        empirical_pdf = self.empirical.pdf(x_values)
+        theoretical_pdf = self.theoretical.pdf(x_values)
+        pdfs = pd.DataFrame(
+            np.c_[empirical_pdf, theoretical_pdf],
+            columns=['empirical', 'theoretical'],
+            index=x_values,
+        )
+        return pdfs
+
+    def get_confidence_intervals(self, confidence_levels: list[float]) -> pd.DataFrame:
+        """Get confidence intervals for the specified confidence levels."""
+        confidence_intervals = [
+            self.empirical.calc_confidence_interval(confidence_level) +
+            self.theoretical.calc_confidence_interval(confidence_level)
+            for confidence_level in confidence_levels
+        ]
+        confidence_intervals_df = pd.DataFrame(
+            confidence_intervals,
+            columns=['empirical_lower', 'empirical_upper', 'theoretical_lower', 'theoretical_upper'],
+            index=confidence_levels
+        )
+        return confidence_intervals_df
 
     @property
     def empirical(self) -> EmpiricalDistribution:

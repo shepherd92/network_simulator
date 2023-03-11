@@ -80,7 +80,6 @@ class Configuration:
         """Model configuration."""
 
         type_: Model.Type = Model.Type.INVALID
-        max_dimension: int = 0
         fitting: ModelFitting = ModelFitting()
         network_testing: ModelTesting = ModelTesting()
         analysis: ModelAnalysis = ModelAnalysis()
@@ -120,7 +119,6 @@ class Configuration:
 
         self.model = Configuration.Model(
             type_=Model.Type[str(params['model']['type'])],
-            max_dimension=int(params['model']['max_dimension']),
             fitting=ModelFitting(
                 enable=bool(params['model']['fitting']['enable']),
             ),

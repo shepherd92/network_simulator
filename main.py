@@ -110,6 +110,20 @@ def main(configuration: Configuration) -> None:
 
             scalar_property_reports.append(scalar_property_report)
 
+        for scalar_network_property_report in scalar_property_reports:
+            pdfs = scalar_network_property_report.distributions.get_pdfs()
+            pdfs.to_csv(
+                configuration.general.directories.output / f'{scalar_network_property_report.params.name}_pdfs.csv',
+                float_format='%.4f'
+            )
+
+            confidence_levels = [0.9, 0.95, 0.99]
+            confidence_intervals = \
+                scalar_network_property_report.distributions.get_confidence_intervals(confidence_levels)
+            confidence_intervals.to_csv(
+                configuration.general.directories.output /
+                f'{scalar_network_property_report.params.name}_confidence_intervals.csv', float_format='%.4f')
+
         model_network_report_figure = create_model_test_report(scalar_property_reports)
         file_name = configuration.general.directories.output / f'{model_type.name.lower()}_report.png'
         model_network_report_figure.savefig(file_name)
