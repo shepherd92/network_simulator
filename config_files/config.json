@@ -1,0 +1,62 @@
+{
+    "general": {
+        "log_level": "INFO",
+        "enable_profiling": false,
+        "num_of_processes": 1,
+        "directories": {
+            "root": "/home/au725389/save/research/tda/code/",
+            "output": "../output"
+        }
+    },
+    "data_set": {
+        "type": "ARXIV",
+        "analysis": {
+            "enable": true,
+            "properties": [
+                "NUM_OF_NODES",
+                "NUM_OF_EDGES",
+                "MAX_DEGREE",
+                "NUM_OF_CONNECTED_COMPONENTS",
+                "DIMENSION",
+                "NUM_OF_SIMPLICES",
+                "INTERACTION_DIMENSION_DISTRIBUTION",
+                "FACET_DIMENSION_DISTRIBUTION",
+                "DEGREE_DISTRIBUTION",
+                "IN_DEGREE_DISTRIBUTION",
+                "OUT_DEGREE_DISTRIBUTION",
+                "HIGHER_ORDER_DEGREE_DISTRIBUTIONS"
+            ]
+        }
+    },
+    "model": {
+        "type": "AGE_DEPENDENT_RANDOM_SIMPLEX",
+        "max_dimension": 2,
+        "fitting": {
+            "enable": false
+        },
+        "testing": {
+            "enable": true,
+            "test_against_data_set": false,
+            "num_of_simulations": 1000
+        },
+        "analysis": {
+            "enable": true,
+            "typical_network_only": false,
+            "component_index_from_largest": -1,
+            "properties": [
+                "NUM_OF_NODES",
+                "NUM_OF_EDGES",
+                "MAX_DEGREE",
+                "NUM_OF_CONNECTED_COMPONENTS",
+                "DIMENSION",
+                "NUM_OF_SIMPLICES",
+                "INTERACTION_DIMENSION_DISTRIBUTION",
+                "FACET_DIMENSION_DISTRIBUTION",
+                "DEGREE_DISTRIBUTION",
+                "IN_DEGREE_DISTRIBUTION",
+                "OUT_DEGREE_DISTRIBUTION",
+                "HIGHER_ORDER_DEGREE_DISTRIBUTIONS"
+            ]
+        }
+    }
+}

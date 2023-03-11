@@ -1,0 +1,6 @@
+.vscode
+.env
+__pycache__
+backup
+sandbox
+implementation_in_progress
