@@ -14,11 +14,11 @@ class DataSet(Network):
     class Type(Enum):
         """Represent the available data set types."""
 
-        BIANCONI: int = auto()
-        NATURE: int = auto()
-        ARXIV: int = auto()
-        TEST: int = auto()
-        INVALID: int = auto()
+        BIANCONI = auto()
+        NATURE = auto()
+        ARXIV = auto()
+        TEST = auto()
+        INVALID = auto()
 
     @dataclass
     class Parameters:

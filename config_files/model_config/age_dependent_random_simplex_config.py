@@ -15,8 +15,8 @@ from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
-    max_dimension=3,
-    num_nodes=100000,
+    max_dimension=2,
+    num_nodes=1000,
     torus_dimension=1,
     alpha=0.5,
     beta=1.0,
@@ -37,7 +37,10 @@ class AgeDependentRandomSimplexParameterOptions(ModelParameterOptions):
         )
         approximation = DistributionApproximation(in_degree_distribution, TheoreticalDistribution.Type.POWER_LAW)
         assert isinstance(approximation.theoretical, PowerLawDistribution)
-        approximation.fit()
+        approximation.fit(PowerLawDistribution.FittingParameters(
+            PowerLawDistribution.Parameters(),
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN
+        ))
         gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 

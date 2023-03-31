@@ -17,12 +17,13 @@ import networkx as nx
 import numpy as np
 from scipy.spatial import ConvexHull
 
+from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
-    plot_empirical_distribution_pdf_with_info,
-    plot_value_list,
+    plot_empirical_distribution_histogram_with_info,
+    plot_value_counts,
     approximate_and_plot_pdf,
     print_not_calculated,
     print_info
@@ -103,19 +104,28 @@ def analyze_network(
     _plot_base_property(
         summary.get(BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION, None),
         'Simplex dimension distribution',
-        plot_empirical_distribution_pdf_with_info,
+        partial(
+            plot_empirical_distribution_histogram_with_info,
+            histogram_type=EmpiricalDistribution.HistogramType.INTEGERS
+        ),
         figure.add_subplot(axes_grid[subfigure_row_index, 0])
     )
     _plot_base_property(
         summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION, None),
         'Facet dimension distribution',
-        plot_empirical_distribution_pdf_with_info,
+        partial(
+            plot_empirical_distribution_histogram_with_info,
+            histogram_type=EmpiricalDistribution.HistogramType.INTEGERS
+        ),
         figure.add_subplot(axes_grid[subfigure_row_index, 1])
     )
     _plot_base_property(
         summary.get(BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION, None),
         'Interaction dimension distribution',
-        plot_empirical_distribution_pdf_with_info,
+        partial(
+            plot_empirical_distribution_histogram_with_info,
+            histogram_type=EmpiricalDistribution.HistogramType.INTEGERS
+        ),
         figure.add_subplot(axes_grid[subfigure_row_index, 2])
     )
     subfigure_row_index += 1
@@ -123,7 +133,7 @@ def analyze_network(
     _plot_base_property(
         summary.get(BaseNetworkProperty.Type.BETTI_NUMBERS, None),
         'Betti Numbers',
-        plot_value_list,
+        plot_value_counts,
         figure.add_subplot(axes_grid[subfigure_row_index, 0])
     )
     _plot_base_property(
@@ -241,4 +251,4 @@ def _plot_base_property(
         print_not_calculated(axes)
         return
 
-    plotter(property_value, axes)
+    plotter(property_value, axes=axes)

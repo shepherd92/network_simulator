@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Base class for theoretical distributions."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, astuple
 from enum import Enum, auto
 from logging import warning
@@ -17,6 +19,7 @@ class TheoreticalDistribution(Distribution):
     class Type(Enum):
         """Type of the theoretical distribution."""
 
+        UNIFORM: int = auto()
         POISSON: int = auto()
         POWER_LAW: int = auto()
         NORMAL: int = auto()
@@ -27,27 +30,51 @@ class TheoreticalDistribution(Distribution):
     class Parameters:
         """Represent the parameters of the distribution."""
 
+    @dataclass
+    class FittingParameters:
+        """Parameters of how the fitting should be done."""
+
+        fixed_parameters: TheoreticalDistribution.Parameters
+        fitting_method: TheoreticalDistribution.FittingMethod
+
+    class FittingMethod(Enum):
+        """Method used for fitting the uniform distribution."""
+
     def __init__(self) -> None:
         """Create a default theoretical distribution."""
         super().__init__()
         self._parameters = TheoreticalDistribution.Parameters()
 
-    def fit(self, empirical_distribution: EmpiricalDistribution) -> None:
+    def fit(self, empirical_distribution: EmpiricalDistribution, fitting_parameters: FittingParameters) -> None:
         """Fit the parameters of the probability distribution."""
-        value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
-
         if len(empirical_distribution.value_sequence) < 2:
-            warning(f'Empirical degree distribution contains {len(value_sequence)} in the domain.')
+            warning(
+                f'Empirical degree distribution contains {len(empirical_distribution.value_sequence)} in the domain.')
             self._valid = False  # pylint: disable=attribute-defined-outside-init
             return
 
-        self._estimate_parameters(empirical_distribution)
+        self._fit_domain(empirical_distribution, fitting_parameters)
+        if not self.domain.valid:
+            return
+
+        self._fit_parameters(empirical_distribution, fitting_parameters)
         self._valid = not any(  # pylint: disable=attribute-defined-outside-init
             np.isnan(x)
             for x in astuple(self._parameters)
         ) and self.domain.valid
 
-    def _estimate_parameters(self, empirical_distribution: EmpiricalDistribution) -> None:
+    def _fit_domain(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        fitting_parameters: FittingParameters
+    ) -> None:
+        raise NotImplementedError
+
+    def _fit_parameters(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        fitting_parameters: FittingParameters
+    ) -> None:
         raise NotImplementedError
 
     @property

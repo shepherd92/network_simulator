@@ -38,7 +38,8 @@ class Distribution:
         @property
         def valid(self) -> bool:
             """Return if the domain is valid."""
-            return not (np.isnan(self.min_) or np.isnan(self.max_))
+            nan_endpoints = np.isnan(self.min_) or np.isnan(self.max_)
+            return not nan_endpoints and self.length >= 0
 
         def __str__(self) -> str:
             """Return string representation for reporting."""
@@ -124,11 +125,11 @@ class Distribution:
         p_values = 2 * np.nanmin(np.c_[self.cdf(test_values), 1 - self.cdf(test_values)], axis=1)
         return p_values
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
         """Return the PDF of the distribution evaluted at the given x_values."""
         raise NotImplementedError
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         pdf_in_domain = self._pdf_in_domain(x_values)
         return pdf_in_domain.cumsum()

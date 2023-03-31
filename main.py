@@ -42,10 +42,11 @@ def main(configuration: Configuration) -> None:
 
     if configuration.data_set.analysis.enable:
 
+        (configuration.general.directories.output / 'data').mkdir(parents=True, exist_ok=True)
         analyze_network(
             data_set,
             configuration.data_set.analysis.properties_to_calculate,
-            configuration.general.directories.output /
+            configuration.general.directories.output / 'data' /
             f'{data_set_type.name.lower()}_report.png',
         )
 
@@ -92,7 +93,7 @@ def main(configuration: Configuration) -> None:
                 distribution,
                 property_params.theoretical_approximation_type
             )
-            distribution_pair.fit()
+            distribution_pair.fit(property_params.fitting_parameters)
 
             if configuration.model.network_testing.test_against_data_set:
                 data_set_value = data_set.calc_scalar_property(property_params)
@@ -110,23 +111,25 @@ def main(configuration: Configuration) -> None:
 
             scalar_property_reports.append(scalar_property_report)
 
+        model_test_save_dir = (configuration.general.directories.output / 'model_test')
+        model_test_save_dir.mkdir(parents=True, exist_ok=True)
+
         for scalar_network_property_report in scalar_property_reports:
+            scalar_property_save_dir = model_test_save_dir / scalar_network_property_report.params.name
+            scalar_property_save_dir.mkdir(parents=True, exist_ok=True)
+
             pdfs = scalar_network_property_report.distributions.get_pdfs()
-            pdfs.to_csv(
-                configuration.general.directories.output / f'{scalar_network_property_report.params.name}_pdfs.csv',
-                float_format='%.4f'
-            )
+            pdfs.to_csv(scalar_property_save_dir / 'pdfs.csv', float_format='%.9f')
+            value_sequence = scalar_network_property_report.distributions.empirical.value_sequence
+            np.savetxt(scalar_property_save_dir / 'value_sequence.csv', value_sequence, delimiter=',')
 
             confidence_levels = [0.9, 0.95, 0.99]
             confidence_intervals = \
                 scalar_network_property_report.distributions.get_confidence_intervals(confidence_levels)
-            confidence_intervals.to_csv(
-                configuration.general.directories.output /
-                f'{scalar_network_property_report.params.name}_confidence_intervals.csv', float_format='%.4f')
+            confidence_intervals.to_csv(scalar_property_save_dir / 'confidence_intervals.csv', float_format='%.4f')
 
         model_network_report_figure = create_model_test_report(scalar_property_reports)
-        file_name = configuration.general.directories.output / f'{model_type.name.lower()}_report.png'
-        model_network_report_figure.savefig(file_name)
+        model_network_report_figure.savefig(model_test_save_dir / f'{model_type.name.lower()}_report.png')
         model_network_report_figure.clf()
 
         info('Network testing finished.')

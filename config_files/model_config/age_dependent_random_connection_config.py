@@ -35,7 +35,10 @@ class AgeDependentRandomConnectionParameterOptions(ModelParameterOptions):
         )
         approximation = DistributionApproximation(in_degree_distribution, TheoreticalDistribution.Type.POWER_LAW)
         assert isinstance(approximation.theoretical, PowerLawDistribution)
-        approximation.fit()
+        approximation.fit(PowerLawDistribution.FittingParameters(
+            PowerLawDistribution.Parameters(),
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN
+        ))
         gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
         beta_guess = (1. - gamma_guess) * edge_density
 

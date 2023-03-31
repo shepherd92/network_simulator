@@ -5,6 +5,7 @@ from logging import info, warning
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from scipy.optimize import minimize, OptimizeResult
 
@@ -95,7 +96,7 @@ class ModelOptimizer:
 
     @staticmethod
     def _objective_function(
-        guessed_parameters: np.ndarray,
+        guessed_parameters: npt.NDArray[np.float_],
         model: Model,
         target_property_params: list[DerivedNetworkProperty],
         target_values: list[float | int],

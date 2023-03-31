@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Theoretical approximation of an empirical distribution."""
 
-from dataclasses import dataclass
 from typing import NamedTuple
 
 import numpy as np
@@ -13,7 +12,6 @@ from distribution.theoretical.theoretical_distribution import TheoreticalDistrib
 from distribution.factory import create_theoretical_distribution
 
 
-@dataclass
 class DistributionApproximation:
     """Encloses an empirical degree distribution and its approximation."""
 
@@ -35,12 +33,13 @@ class DistributionApproximation:
 
     def __init__(self, empirical: EmpiricalDistribution, theoretical_type: TheoreticalDistribution.Type) -> None:
         """Construct an empirical theoretical distribution pair."""
+        self._type = theoretical_type
         self._empirical = empirical
         self._theoretical = create_theoretical_distribution(theoretical_type)
 
-    def fit(self):
+    def fit(self, fitting_parameters: TheoreticalDistribution.FittingParameters) -> None:
         """Fit the theoretical distribution to the emirical distribution."""
-        self.theoretical.fit(self.empirical)
+        self.theoretical.fit(self.empirical, fitting_parameters)
 
     def run_test(self, point_value: float = np.nan) -> TestResult:
         """Run statistical tests."""
@@ -49,7 +48,7 @@ class DistributionApproximation:
 
         kolmogorov_smirnov = self.theoretical.kolmogorov_smirnov(
             self.empirical,
-            self.empirical.natural_x_values
+            np.unique(self.empirical.value_sequence)
         )
         probability_plot_r_value = self.calculate_probability_plot_r_value()
 
@@ -78,7 +77,7 @@ class DistributionApproximation:
 
     def generate_qq_plot_points(self) -> npt.NDArray[np.float_]:
         """Return the points of the probability points."""
-        number_of_quantiles = len(self.empirical.natural_x_values)
+        number_of_quantiles = len(np.unique(self.empirical.value_sequence))
         quantiles_to_calculate = np.linspace(0., 1., number_of_quantiles, endpoint=True)
         theoretical_quantiles = self.theoretical.calc_quantiles(quantiles_to_calculate)
         empirical_quantiles = self.empirical.calc_quantiles(quantiles_to_calculate)
@@ -139,6 +138,11 @@ class DistributionApproximation:
             index=confidence_levels
         )
         return confidence_intervals_df
+
+    @property
+    def type(self) -> TheoreticalDistribution.Type:
+        """Return the theoretical approximation type."""
+        return self._type
 
     @property
     def empirical(self) -> EmpiricalDistribution:

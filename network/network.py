@@ -9,8 +9,10 @@ from logging import debug
 from math import comb
 from typing import Any
 
-import networkx as nx
 from gudhi.simplex_tree import SimplexTree
+import networkx as nx
+import numpy as np
+import numpy.typing as npt
 
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
@@ -330,7 +332,7 @@ class Network:
 
         return higher_order_degrees
 
-    def _calculate_betti_numbers(self) -> list[int]:
+    def _calculate_betti_numbers(self) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
         if not self.is_persistence_computed:
             self._compute_persistence()
@@ -339,12 +341,14 @@ class Network:
             betti_numbers = self.simplicial_complex.betti_numbers()
         else:
             betti_numbers = [self.graph.number_of_nodes()]
-        betti_number_list: list[int] = [0] * (self.max_dimension)
+
+        betti_number_array = np.zeros((self.max_dimension, 2))
+        betti_number_array[:, 0] = range(self.max_dimension)
 
         for dimension, betti_number in enumerate(betti_numbers):
-            betti_number_list[dimension] = betti_number
+            betti_number_array[dimension, 1] = betti_number
 
-        return betti_number_list
+        return betti_number_array
 
     @staticmethod
     def _calc_dimension_distribution(simplices: list[list[int]]) -> EmpiricalDistribution:

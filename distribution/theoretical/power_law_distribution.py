@@ -19,21 +19,28 @@ class PowerLawDistribution(TheoreticalDistribution):
     """Power law theoretical distribution."""
 
     @dataclass
-    class Parameters:
+    class Parameters(TheoreticalDistribution.Parameters):
         """Parameters of the power law distribution."""
 
         exponent: float = np.nan
 
-    class FittingMethod(Enum):
-        """Describe the possible fitting methods."""
+    @dataclass
+    class FittingParameters(TheoreticalDistribution.FittingParameters):
+        """Parameters of how the fitting should be done."""
 
-        LINEAR_REGRESSION: int = auto()
-        MAXIMUM_LIKELIHOOD: int = auto()
+        fixed_parameters: PowerLawDistribution.Parameters
+        fitting_method: PowerLawDistribution.FittingMethod
+
+    class FittingMethod(Enum):
+        """Method used for fitting the power law distribution."""
+
+        LINEAR_REGRESSION = auto()
+        MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN = auto()
+        MAXIMUM_LIKELIHOOD_MLE_DOMAIN = auto()
 
     def __init__(self) -> None:
         """Create a default power law distribution."""
         super().__init__()
-        self._domain = Distribution.Domain(1., np.inf)
         self._parameters = PowerLawDistribution.Parameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
@@ -43,15 +50,49 @@ class PowerLawDistribution(TheoreticalDistribution):
         quantiles = self.domain.min_ * (1. - quantiles_to_calculate)**(1. / (1 - self._parameters.exponent))
         return quantiles
 
-    def _estimate_parameters(self, empirical_distribution: EmpiricalDistribution) -> None:
+    def _fit_domain(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        fitting_parameters: FittingParameters
+    ) -> None:
+        if fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
+            PowerLawDistribution.FittingMethod.LINEAR_REGRESSION,
+        ]:
+            self._determine_domain_quantiles(empirical_distribution)
+        elif fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN,
+        ]:
+            self._determine_domain_mle(empirical_distribution)
+        else:
+            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+
+    def _fit_parameters(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        fitting_parameters: FittingParameters
+    ) -> None:
         """Calculate the power law exponent of the distribution.
 
         Notations are consistent with the methods described in
         Power-Law Distributions in Empirical Data
         see: https://arxiv.org/pdf/0706.1062.pdf
         """
-        self._determine_domain_linear_regression(empirical_distribution)
-        self._parameters = self._estimate_exponent_mle(empirical_distribution)
+        if not np.isnan(fitting_parameters.fixed_parameters.exponent):
+            self._parameters = fitting_parameters
+            return
+
+        if fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN,
+        ]:
+            self._parameters.exponent = self._estimate_exponent_mle(empirical_distribution)
+        elif fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.LINEAR_REGRESSION,
+        ]:
+            self._parameters.exponent = self._estimate_exponent_linear_regression(empirical_distribution)
+        else:
+            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
 
     def _determine_domain_mle(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the domain at which the power-law holds.
@@ -76,33 +117,34 @@ class PowerLawDistribution(TheoreticalDistribution):
 
         self._domain.min_ = np.round(ks_statistics[np.nanargmin([ks_statistics[:, 1]]), 0])
 
-    def _determine_domain_linear_regression(self, empirical_distribution: EmpiricalDistribution) -> None:
+    def _determine_domain_quantiles(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the minimum degree from which the power-law holds."""
         min_quantile = 0.5
+        max_quantile = 1.0
         self._domain.min_ = empirical_distribution.domain.max_ ** min_quantile
+        self._domain.max_ = empirical_distribution.domain.max_ ** max_quantile
 
-    def _estimate_exponent_mle(self, empirical_distribution: EmpiricalDistribution) -> PowerLawDistribution.Parameters:
-        """Estimate the power law exponent."""
-        if not self.domain.valid:
-            return PowerLawDistribution.Parameters()
+    def _estimate_exponent_mle(self, empirical_distribution: EmpiricalDistribution) -> Parameters:
+        """Estimate the power law  with maximum likelihood estimation.
 
+        Notations are consistent with the methods described in
+        Power-Law Distributions in Empirical Data
+        see: https://arxiv.org/pdf/0706.1062.pdf
+        """
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         if len(value_sequence) == 0:
             warning(f'Value sequence is empty in domain [{self.domain.min_}, {self.domain.max_}].')
             return PowerLawDistribution.Parameters(np.nan)
 
         estimate = 1. + len(value_sequence) / (sum(np.log(value_sequence / (self.domain.min_ - 0.5))))
-        return PowerLawDistribution.Parameters(estimate)
+        return estimate
 
     def _estimate_exponent_linear_regression(
         self,
         empirical_distribution: EmpiricalDistribution
-    ) -> PowerLawDistribution.Parameters:
+    ) -> float:
         """Estimate the power law exponent."""
-        if not self.domain.valid:
-            return PowerLawDistribution.Parameters(np.nan)
-
-        x_values = empirical_distribution.natural_x_values
+        x_values = np.unique(empirical_distribution.get_value_sequence)
         pdf = empirical_distribution.pdf(x_values)
         x_values = x_values[pdf > 0.]
         pdf = pdf[pdf > 1e-9]
@@ -114,10 +156,10 @@ class PowerLawDistribution(TheoreticalDistribution):
 
         coefficients = np.polyfit(np.log(x_values), np.log(pdf), 1)
 
-        return PowerLawDistribution.Parameters(- coefficients[0])
+        return - coefficients[0]
 
     def _objective_function(self, empirical_distribution: EmpiricalDistribution, guess: int) -> float:
-        x_values = empirical_distribution.natural_x_values
+        x_values = np.unique(empirical_distribution.value_sequence)
         if max(x_values) <= guess:
             return np.nan
 

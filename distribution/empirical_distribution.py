@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Represent an empirical distribution based on sample values."""
 
+from __future__ import annotations
+
+from enum import Enum, auto
 from typing import Callable
 
 import numpy as np
@@ -12,6 +15,13 @@ from distribution.distribution import Distribution
 
 class EmpiricalDistribution(Distribution):
     """Represents an empirical distribution."""
+
+    class HistogramType(Enum):
+        """Define the method to be used for creating a histogram."""
+
+        LINEAR: int = auto()
+        INTEGERS: int = auto()
+        LOGARITHMIC: int = auto()
 
     def __init__(self, value_sequence: list[int | float]) -> None:
         """Calculate degree distribution of the network up to a certain maximum degree."""
@@ -52,6 +62,31 @@ class EmpiricalDistribution(Distribution):
 
         return np.quantile(self.value_sequence, quantiles_to_calculate)
 
+    def standardize(self) -> EmpiricalDistribution:
+        """Return the standardized empirical distribution."""
+        value_sequence = self.value_sequence
+        mu = self.mean
+        std = self.std_dev
+        standardized_value_sequence = (value_sequence - mu) / std
+        standardized_distribution = EmpiricalDistribution(standardized_value_sequence)
+        return standardized_distribution
+
+    def calc_histogram(self, type_: HistogramType) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+        """Return the histogram of the value sequence."""
+        if type_ == EmpiricalDistribution.HistogramType.LINEAR:
+            return self._calc_histogram_lin()
+        if type_ == EmpiricalDistribution.HistogramType.INTEGERS:
+            return self._calc_histogram_integers()
+        if type_ == EmpiricalDistribution.HistogramType.LOGARITHMIC:
+            return self._calc_histogram_log()
+
+    def calc_value_counts(self) -> npt.NDArray[np.int_]:
+        """Calculate how many times each value appears in the value sequence."""
+        values, counts = np.unique(self.value_sequence, return_counts=True)
+        value_counts = np.c_[values, counts]
+        sorted_value_counts = value_counts[value_counts[:, 0].argsort()]
+        return sorted_value_counts
+
     def test_normality(self) -> float:
         """Execute a standard normality test on the data and return the resulting p value."""
         return kstest(self.value_sequence, 'norm').pvalue
@@ -77,6 +112,29 @@ class EmpiricalDistribution(Distribution):
         result = np.zeros_like(x_values, dtype=np.float_)
         result[np.isclose(self.value_sequence[0], x_values)] = np.inf
         return result
+
+    def _calc_histogram_lin(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+        """Return the histogram of the value sequence."""
+        return np.histogram(self.value_sequence, bins='auto', density=True)
+
+    def _calc_histogram_integers(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+        """Return the histogram of the value sequence."""
+        min_value = int(np.floor(self.value_sequence.min()))
+        max_value = int(np.ceil(self.value_sequence.max()))
+        bins = np.arange(min_value, max_value + 2) - 0.5
+        return np.histogram(self.value_sequence, bins=bins, density=True)
+
+    def _calc_histogram_log(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+        """Return the histogram of the value sequence."""
+        # truncate values so that the minimum is at least 1
+        values = self.value_sequence[self.value_sequence >= 1.]
+
+        if len(values) == 0:
+            return np.histogram([])
+        num_of_bins = int(np.ceil(np.sqrt(len(values))))
+        bins = np.geomspace(values.min(), values.max(), num_of_bins)
+
+        return np.histogram(values, bins=bins, density=True)
 
     @property
     def natural_x_values(self) -> npt.NDArray[np.float_ | np.int_]:
@@ -115,7 +173,11 @@ class EmpiricalDistribution(Distribution):
     @property
     def value_sequence(self) -> npt.NDArray[np.int_ | np.float_]:
         """Return the value sequence of the distribution."""
-        return self._value_sequence
+        value_sequence_in_domain = self._value_sequence[
+            (self._value_sequence >= self.domain.min_) &
+            (self._value_sequence <= self.domain.max_)
+        ]
+        return value_sequence_in_domain
 
     @value_sequence.setter
     def value_sequence(self, value_sequence: npt.NDArray[np.int_ | np.float_]) -> None:
@@ -135,4 +197,8 @@ class EmpiricalDistribution(Distribution):
 
     def __str__(self) -> str:
         """Return string representation for reporting."""
-        return f'Empirical Domain: {self.domain}'
+        return '\n'.join([
+            f'Empirical Domain: {self.domain}',
+            f'Empirical Mean: {self.mean:.4f}',
+            f'Empirical Std: {self.std_dev:.4f}',
+        ])
