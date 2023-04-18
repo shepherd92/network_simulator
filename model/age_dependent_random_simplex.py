@@ -13,7 +13,8 @@ from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from model.model import Model
-from network.network import Network
+from network.finite_network import FiniteNetwork
+from network.infinite_network import InfiniteNetwork
 from network.property import BaseNetworkProperty
 
 
@@ -25,6 +26,7 @@ class AgeDependentRandomSimplexModel(Model):
         """Contain all necessary parameters to construct an AgeDependentRandomSimplexModel."""
 
         torus_dimension: int = 0
+        torus_size: float = 0.5  # the total size of the torus
         alpha: float = 0.5  # parameter of the profile function
         beta: float = 0.1  # edge density is beta / (1 - gamma)
         gamma: float = 0.5  # power law exponent is 1 + 1 / gamma
@@ -55,7 +57,7 @@ class AgeDependentRandomSimplexModel(Model):
         self._parameters.beta = beta_guess
         self._parameters.gamma = gamma_guess
 
-    def generate_network(self, seed: int | None = None) -> Network:
+    def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
         assert isinstance(self.parameters, AgeDependentRandomSimplexModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
@@ -63,18 +65,81 @@ class AgeDependentRandomSimplexModel(Model):
         node_ids = np.array(range(self.parameters.num_nodes))
         random_number_generator = np.random.default_rng(seed)
 
-        interarrival_times: np.ndarray = random_number_generator.exponential(size=self.parameters.num_nodes)
+        birth_times = random_number_generator.random(size=self.parameters.num_nodes)
+
+        interarrival_times: npt.NDArray[np.float_] = random_number_generator.exponential(size=self.parameters.num_nodes)
+        time = interarrival_times.sum()
+        self.parameters.torus_size = time
+
+        positions = random_number_generator.uniform(
+            - time / 2, time / 2,
+            size=(self.parameters.num_nodes, self.parameters.torus_dimension)
+        )
+
+        connections = self._generate_connections(birth_times, positions, seed)
+
+        network = FiniteNetwork(self.parameters.max_dimension)
+        network.digraph.add_nodes_from(node_ids)
+        network.digraph.add_edges_from(connections)
+        network.graph = network.digraph.to_undirected()
+        network.generate_clique_complex_from_graph()
+
+        return network
+
+    def generate_finite_network_original(self, seed: int | None = None) -> FiniteNetwork:
+        """Build a network of the model."""
+        assert isinstance(self.parameters, AgeDependentRandomSimplexModel.Parameters), \
+            f'Wrong model parameter type {type(self.parameters)}'
+
+        node_ids = np.array(range(self.parameters.num_nodes))
+        random_number_generator = np.random.default_rng(seed)
+
+        interarrival_times: npt.NDArray[np.float_] = random_number_generator.exponential(size=self.parameters.num_nodes)
         birth_times = interarrival_times.cumsum()
         positions = random_number_generator.random(
             size=(self.parameters.num_nodes, self.parameters.torus_dimension)
         )
 
-        if self.parameters.num_nodes <= 1000:
-            connections = self._generate_connections_vectorized(birth_times, positions, seed)
-        else:
-            connections = self._generate_connections_not_vectorized(birth_times, positions, seed)
+        connections = self._generate_connections(birth_times, positions, seed)
 
-        network = Network(self.parameters.max_dimension)
+        network = FiniteNetwork(self.parameters.max_dimension)
+        network.digraph.add_nodes_from(node_ids)
+        network.digraph.add_edges_from(connections)
+        network.graph = network.digraph.to_undirected()
+        network.generate_clique_complex_from_graph()
+
+        return network
+
+    def generate_infinite_network(self, seed: int | None = None) -> InfiniteNetwork:
+        """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
+        assert self.parameters.torus_dimension == 1, \
+            f'Torus dimension must be 1, but it is {self.parameters.torus_dimension}'
+        random_number_generator = np.random.default_rng(seed)
+
+        b = self.parameters.beta
+        g = self.parameters.gamma
+
+        u = random_number_generator.uniform(0., 1.)  # birth time of oldest node
+        self.parameters.torus_size = b / u
+        # Z = b / g * (u**(-g) - 1)  # expected number of points to be generated
+        # N = random_number_generator.poisson(Z)  # number of points to be generted
+
+        N = int(np.round(b * (1/u - 1)))  # total area of the rectangle
+        birth_times = np.r_[np.array([u]), random_number_generator.uniform(u, 1., size=N)]
+        positions = np.r_[
+            np.zeros((1, self.parameters.torus_dimension)),
+            random_number_generator.uniform(-b/u, +b/u, size=(N, self.parameters.torus_dimension))
+        ]
+
+        # vertices closer to the origin than 1/2 * beta * u^(-gamma) * v^(gamma - 1) are connected to  the origin
+        mask = np.linalg.norm(positions, axis=1) < 0.5 * b * u**(-g) * birth_times**(g - 1)
+        birth_times_connected_to_o = birth_times[mask]
+        positions_connected_to_o = positions[mask]
+
+        node_ids = np.array(range(len(birth_times_connected_to_o)))
+        connections = self._generate_connections(birth_times_connected_to_o, positions_connected_to_o, seed)
+
+        network = InfiniteNetwork(self.parameters.max_dimension)
         network.digraph.add_nodes_from(node_ids)
         network.digraph.add_edges_from(connections)
         network.graph = network.digraph.to_undirected()
@@ -86,16 +151,29 @@ class AgeDependentRandomSimplexModel(Model):
         """Convert a tuple to ModelParamters. Used for model optimization."""
         self.parameters = AgeDependentRandomSimplexModel.Parameters(*parameters_tuple)
 
+    def _generate_connections(
+        self,
+        birth_times: npt.NDArray[np.float_],
+        positions: npt.NDArray[np.float_],
+        seed: int | None
+    ) -> npt.NDArray[np.float_]:
+        if self.parameters.num_nodes <= 1000:
+            connections = self._generate_connections_vectorized(birth_times, positions, seed)
+        else:
+            connections = self._generate_connections_not_vectorized(birth_times, positions, seed)
+
+        return connections
+
     def _generate_connections_vectorized(
         self,
-        birth_times: np.ndarray,
-        positions: np.ndarray,
+        birth_times: npt.NDArray[np.float_],
+        positions: npt.NDArray[np.float_],
         seed: int | None
-    ) -> np.ndarray:
+    ) -> npt.NDArray[np.float_]:
 
         random_number_generator = np.random.default_rng(seed)
 
-        distance_matrix = AgeDependentRandomSimplexModel._calc_torus_distance_matrix(positions)
+        distance_matrix = self._calc_torus_distance_matrix(positions)
         connection_probabilities = self._calc_connection_probabilities(birth_times, distance_matrix)
         random_numbers = random_number_generator.random(size=connection_probabilities.shape)
         adjacency_matrix = (random_numbers < connection_probabilities)
@@ -105,10 +183,10 @@ class AgeDependentRandomSimplexModel(Model):
 
     def _generate_connections_not_vectorized(
         self,
-        birth_times: np.ndarray,
-        positions: np.ndarray,
+        birth_times: npt.NDArray[np.float_],
+        positions: npt.NDArray[np.float_],
         seed
-    ) -> np.ndarray:
+    ) -> npt.NDArray[np.float_]:
         """Calculate connections for large graphs (consumes lower memory)."""
         random_number_generator = np.random.default_rng(seed)
         node_ids = np.array(range(self.parameters.num_nodes))
@@ -124,7 +202,7 @@ class AgeDependentRandomSimplexModel(Model):
             birth_time_ratios = source_birth_time / target_birth_times
 
             target_positions = positions[:source_node_id]
-            distances = AgeDependentRandomSimplexModel._distances(
+            distances = self._distances(
                 np.c_[np.full(source_node_id, source_position), target_positions]
             )
             distances_d_x_birth_times = distances**self.parameters.torus_dimension * source_birth_time
@@ -152,25 +230,7 @@ class AgeDependentRandomSimplexModel(Model):
 
         return connections
 
-    def _generate_typical_in_degree(self) -> int:
-        beta = self.parameters.beta
-        gamma = self.parameters.gamma
-        origin_birth_time = np.random.uniform()
-        network_size = 1. / origin_birth_time
-        birth_times = np.random.uniform(0., 1., int(network_size))
-        birth_times_of_younger_nodes = birth_times[birth_times > origin_birth_time]
-        num_of_younger_nodes = len(birth_times_of_younger_nodes)
-        positions = np.random.uniform(-network_size / 2., +network_size / 2., num_of_younger_nodes)
-
-        profile_function_arguments = birth_times_of_younger_nodes * np.abs(positions) / \
-            (beta * (birth_times_of_younger_nodes / origin_birth_time)**gamma)
-        in_connections = self._profile_function(profile_function_arguments)
-        in_degree = in_connections.sum()
-
-        return in_degree
-
-    @staticmethod
-    def _calc_torus_distance_matrix(positions: np.ndarray) -> np.ndarray:
+    def _calc_torus_distance_matrix(self, positions: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
 
         num_of_nodes = len(positions)
 
@@ -180,26 +240,26 @@ class AgeDependentRandomSimplexModel(Model):
         all_position_pairs = np.c_[source_node_positions, target_node_positions]
 
         # calculate distances between all pairs
-        distances = AgeDependentRandomSimplexModel._distances(all_position_pairs)
+        distances = self._distances(all_position_pairs)
         distance_matrix = distances.reshape((num_of_nodes, num_of_nodes))
 
         return distance_matrix
 
-    @staticmethod
-    def _distances(position_pairs: np.ndarray) -> float:
-
-        dimensions = position_pairs.shape[1] // 2
+    def _distances(self, position_pairs: npt.NDArray[np.float_]) -> float:
 
         # calculate the distances by dimension inside the boundaries without going around the edges
-        distances_by_dimension_inside = np.abs(position_pairs[:, :dimensions] - position_pairs[:, dimensions:])
+        distances_by_dimension_inside = np.abs(
+            position_pairs[:, :self.parameters.torus_dimension] -
+            position_pairs[:, self.parameters.torus_dimension:]
+        )
 
         # if the distance in one dimension is greater than the half of the size of the torus,
         # then it is better to go around the edge, and the distance in that direction is
-        # 1 - distance_inside
+        # torus_size - distance_inside
         distances_by_dimension = np.where(
-            distances_by_dimension_inside < 0.5,
+            distances_by_dimension_inside < 0.5 * self.parameters.torus_size,
             distances_by_dimension_inside,
-            1 - distances_by_dimension_inside
+            self.parameters.torus_size - distances_by_dimension_inside
         )
 
         # the final distances are the length of the difference vectors
@@ -209,11 +269,11 @@ class AgeDependentRandomSimplexModel(Model):
 
     def _calc_connection_probabilities(
         self,
-        birth_times: np.ndarray,
-        distance_matrix: np.ndarray
-    ) -> np.ndarray:
+        birth_times: npt.NDArray[np.float_],
+        distance_matrix: npt.NDArray[np.float_]
+    ) -> npt.NDArray[np.float_]:
         """Calculate the matrix of connection probabilities."""
-        num_nodes = self.parameters.num_nodes
+        num_nodes = len(birth_times)
         source_node_birth_times = np.repeat(birth_times, repeats=num_nodes, axis=0)
         target_node_birth_times = np.tile(birth_times, reps=(num_nodes))
         all_birth_time_pairs = np.c_[source_node_birth_times, target_node_birth_times]
@@ -233,7 +293,7 @@ class AgeDependentRandomSimplexModel(Model):
 
         return connection_probabilities
 
-    def _profile_function(self, argument: np.ndarray) -> np.ndarray:
+    def _profile_function(self, argument: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         result = np.zeros_like(argument)
         result[argument <= self.parameters.alpha] = 1. / (2. * self.parameters.alpha)
         return result

@@ -106,6 +106,9 @@ class StableDistribution(TheoreticalDistribution):
         fixed_parameters: StableDistribution.Parameters
     ) -> Parameters:
 
+        value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
+        fixed_parameters.location = value_sequence.mean()
+
         fit_levy_fixed_parameters_args: dict[str, float] = {}
         if not np.isnan(fixed_parameters.alpha):
             fit_levy_fixed_parameters_args['alpha'] = fixed_parameters.alpha
@@ -116,7 +119,6 @@ class StableDistribution(TheoreticalDistribution):
         if not np.isnan(fixed_parameters.scale):
             fit_levy_fixed_parameters_args['sigma'] = fixed_parameters.scale
 
-        value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         fitted_parameters = fit_levy(value_sequence, **fit_levy_fixed_parameters_args)[0].x
 
         current_parameter_index = 0

@@ -5,10 +5,10 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 
-from network.network import Network
+from network.finite_network import FiniteNetwork
 
 
-class DataSet(Network):
+class DataSet(FiniteNetwork):
     """Base class representing a data set."""
 
     class Type(Enum):

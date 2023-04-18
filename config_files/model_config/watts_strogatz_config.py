@@ -2,7 +2,7 @@
 """Configuration of the Watts Strogatz model."""
 
 from data_set.data_set import DataSet
-from model.graph_models.watts_strogatz import WattsStrogatzModel
+from model.watts_strogatz import WattsStrogatzModel
 from network.property import BaseNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 

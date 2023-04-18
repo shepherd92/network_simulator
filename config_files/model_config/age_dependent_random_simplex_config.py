@@ -9,7 +9,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
-from model.simplicial_complex_models.age_dependent_random_simplex import AgeDependentRandomSimplexModel
+from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
 from network.property import BaseNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 

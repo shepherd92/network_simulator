@@ -19,7 +19,7 @@ from scipy.spatial import ConvexHull
 
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-from network.network import Network
+from network.finite_network import FiniteNetwork
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
     plot_empirical_distribution_histogram_with_info,
@@ -31,7 +31,7 @@ from reports.plotting_helper import (
 
 
 def analyze_network(
-    network: Network,
+    network: FiniteNetwork,
     calculated_properties: list[BaseNetworkProperty.Type],
     path: Path
 ) -> None:
@@ -157,7 +157,7 @@ def analyze_network(
     info('Network analysis finished.')
 
 
-def _plot_simplicial_complex(network: Network, axes: plt.Axes) -> None:
+def _plot_simplicial_complex(network: FiniteNetwork, axes: plt.Axes) -> None:
 
     def get_face_color(simplex: set[int]):
         simplex_colors = {

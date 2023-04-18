@@ -13,7 +13,7 @@ import numpy as np
 
 from data_set.data_set import DataSet
 from model.model import Model
-from network.network import Network
+from network.finite_network import FiniteNetwork
 from network.property import BaseNetworkProperty
 
 
@@ -44,7 +44,7 @@ class NetworkGeometryWithFlavorModel(Model):
         # pylint: enable=attribute-defined-outside-init
         self._parameters.simplex_dimension = data_set.max_dimension
 
-    def generate_network(self, _: int | None = None) -> Network:
+    def generate_finite_network(self, _: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
         assert isinstance(self.parameters, NetworkGeometryWithFlavorModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
@@ -137,7 +137,7 @@ class NetworkGeometryWithFlavorModel(Model):
                 new_faces_first_index:new_faces_first_index + len(new_faces)
             ] = unnormalized_probabilities_of_new_faces
 
-        network = Network(self.parameters.max_dimension)
+        network = FiniteNetwork(self.parameters.max_dimension)
         network.interactions = [set(simplex) for simplex in simplices]
         network.add_simplices(simplices)
         network.generate_graph_from_simplicial_complex()

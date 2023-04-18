@@ -2,7 +2,7 @@
 """Configuration of the Price model."""
 
 from data_set.data_set import DataSet
-from model.graph_models.price import PriceModel
+from model.price import PriceModel
 from network.property import BaseNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 

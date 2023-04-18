@@ -137,7 +137,7 @@ def main(configuration: Configuration) -> None:
     if configuration.model.analysis.enable:
         info('Model analysis started.')
 
-        typical_network = model.generate_network()
+        typical_network = model.generate_finite_network()
         analyze_network(
             typical_network,
             configuration.model.analysis.properties_to_calculate,

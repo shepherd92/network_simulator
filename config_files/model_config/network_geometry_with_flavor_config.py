@@ -2,7 +2,7 @@
 """Configuration of the Network Geometry With Flavor model."""
 
 from data_set.data_set import DataSet
-from model.simplicial_complex_models.network_geometry_with_flavor import NetworkGeometryWithFlavorModel
+from model.network_geometry_with_flavor import NetworkGeometryWithFlavorModel
 from network.property import BaseNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 

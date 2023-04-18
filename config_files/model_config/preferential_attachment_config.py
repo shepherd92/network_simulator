@@ -2,7 +2,7 @@
 """Configuration of the Preferential Attachment model."""
 
 from data_set.data_set import DataSet
-from model.graph_models.preferential_attachment import PreferentialAttachmentModel
+from model.preferential_attachment import PreferentialAttachmentModel
 from network.property import BaseNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 

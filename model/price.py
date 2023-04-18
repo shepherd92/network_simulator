@@ -9,7 +9,7 @@ import numpy as np
 
 from data_set.data_set import DataSet
 from model.model import Model
-from network.network import Network
+from network.finite_network import FiniteNetwork
 from network.property import BaseNetworkProperty
 
 
@@ -37,7 +37,7 @@ class PriceModel(Model):
         self._parameters.num_nodes = num_of_nodes
         # pylint: enable=attribute-defined-outside-init
 
-    def generate_network(self, _: int | None = None) -> Network:
+    def generate_finite_network(self, _: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
         assert isinstance(self.parameters, PriceModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
@@ -61,7 +61,7 @@ class PriceModel(Model):
             corrected_in_degrees[chosen_node_ids] += 1
             edges.extend(list(zip(list(chosen_node_ids), [node_id] * len(chosen_node_ids))))
 
-        network = Network(self.parameters.max_dimension)
+        network = FiniteNetwork(self.parameters.max_dimension)
         network.graph.add_nodes_from(node_ids)
         network.graph.add_edges_from(edges)
         network.digraph = network.graph.to_directed()

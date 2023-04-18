@@ -30,7 +30,9 @@ class BaseNetworkProperty:
         DEGREE_DISTRIBUTION: int = auto()
         IN_DEGREE_DISTRIBUTION: int = auto()
         OUT_DEGREE_DISTRIBUTION: int = auto()
-        HIGHER_ORDER_DEGREE_DISTRIBUTIONS: int = auto()
+        HIGHER_ORDER_DEGREE_DISTRIBUTION_1: int = auto()
+        HIGHER_ORDER_DEGREE_DISTRIBUTION_2: int = auto()
+        HIGHER_ORDER_DEGREE_DISTRIBUTION_3: int = auto()
         BETTI_NUMBERS: int = auto()
         PERSISTENCE: int = auto()
 

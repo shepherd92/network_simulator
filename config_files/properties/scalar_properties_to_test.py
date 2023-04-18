@@ -50,11 +50,11 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
         fitting_parameters=StableDistribution.FittingParameters(
             StableDistribution.Parameters(alpha=1 / GAMMA, beta=1., location=np.nan, scale=np.nan),
-            StableDistribution.FittingMethod.MLE_LEVY,
+            StableDistribution.FittingMethod.MLE_SCIPY,
         ),
     ),
     DerivedNetworkProperty(
-        name='vertex_degree_exponent',
+        name='vertex_degree_exponent_finite',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
             BaseNetworkProperty.CalculationMethod.NETWORK,
@@ -67,16 +67,43 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         calculator=_get_power_law_exponent
     ),
     DerivedNetworkProperty(
-        name='edge_degree_exponent',
+        name='vertex_degree_exponent_infinite',
         source_base_property=BaseNetworkProperty(
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTIONS,
+            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=NormalDistribution.FittingParameters(
             NormalDistribution.Parameters(),
             NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
         ),
-        calculator=lambda distributions: _get_power_law_exponent(distributions[1])
+        calculator=_get_power_law_exponent
+    ),
+    DerivedNetworkProperty(
+        name='edge_degree_exponent_finite',
+        source_base_property=BaseNetworkProperty(
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            BaseNetworkProperty.CalculationMethod.NETWORK,
+        ),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            NormalDistribution.Parameters(),
+            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
+        ),
+        calculator=lambda distribution: _get_power_law_exponent(distribution)
+    ),
+    DerivedNetworkProperty(
+        name='edge_degree_exponent_infinite',
+        source_base_property=BaseNetworkProperty(
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+        ),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            NormalDistribution.Parameters(),
+            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
+        ),
+        calculator=lambda distribution: _get_power_law_exponent(distribution)
     ),
     DerivedNetworkProperty(
         name='betti_number_0_normal',
@@ -94,7 +121,7 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
         fitting_parameters=StableDistribution.FittingParameters(
             StableDistribution.Parameters(),
-            StableDistribution.FittingMethod.MLE_LEVY,
+            StableDistribution.FittingMethod.MLE_SCIPY,
         ),
         calculator=lambda betti_numbers: betti_numbers[0, 1],
     ),
@@ -114,7 +141,7 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
         fitting_parameters=StableDistribution.FittingParameters(
             StableDistribution.Parameters(),
-            StableDistribution.FittingMethod.MLE_LEVY,
+            StableDistribution.FittingMethod.MLE_SCIPY,
         ),
         calculator=lambda betti_numbers: betti_numbers[1, 1],
     ),

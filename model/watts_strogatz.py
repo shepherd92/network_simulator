@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-"""This module represents the preferential attachment network model.
+"""This module represents the Watts-Strogatz network model."""
 
-"Emergence of scaling in random networks"
-"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -11,22 +9,23 @@ import networkx as nx
 
 from data_set.data_set import DataSet
 from model.model import Model
-from network.network import Network
+from network.finite_network import FiniteNetwork
 from network.property import BaseNetworkProperty
 
 
-class PreferentialAttachmentModel(Model):
-    """Preferential attachment model."""
+class WattsStrogatzModel(Model):
+    """Class representing a Watts-Strogatz model."""
 
     @dataclass
     class Parameters(Model.Parameters):
-        """Contain all necessary parameters to construct a PreferentialAttachmentModel."""
+        """Contain all necessary parameters to construct an WattsStrogatzModel."""
 
         edges_of_new_node: int = 0
+        rewiring_probability: float = 0.
 
     def __init__(self) -> None:
         """Create a network model with default parameters."""
-        self._parameters = PreferentialAttachmentModel.Parameters()
+        self._parameters = WattsStrogatzModel.Parameters()
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
@@ -44,29 +43,31 @@ class PreferentialAttachmentModel(Model):
         # pylint: enable=attribute-defined-outside-init
         self._parameters.edges_of_new_node = edges_of_new_node_guess
 
-    def generate_network(self, seed: int | None = None) -> Network:
+    def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
-        assert isinstance(self.parameters, PreferentialAttachmentModel.Parameters), \
+        assert isinstance(self.parameters, WattsStrogatzModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
 
-        graph: nx.Graph = nx.barabasi_albert_graph(
+        graph: nx.Graph = nx.watts_strogatz_graph(
             self.parameters.num_nodes,
             self.parameters.edges_of_new_node,
+            self.parameters.rewiring_probability,
             seed=seed
         )
 
-        network = Network(self.parameters.max_dimension)
+        network = FiniteNetwork(self.parameters.max_dimension)
         network.graph = graph
         network.digraph = graph.to_directed()
         network.generate_simplicial_complex_from_graph()
+        network.interactions = graph.edges
 
         return network
 
     @property
-    def parameters(self) -> PreferentialAttachmentModel.Parameters:
+    def parameters(self) -> WattsStrogatzModel.Parameters:
         """Return the parameters of the network model."""
         return self._parameters
 
     @parameters.setter
-    def parameters(self, value: PreferentialAttachmentModel.Parameters) -> None:
+    def parameters(self, value: WattsStrogatzModel.Parameters) -> None:
         self._parameters = value

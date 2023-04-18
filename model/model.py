@@ -10,7 +10,8 @@ from typing import Any
 
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
-from network.network import Network
+from network.finite_network import FiniteNetwork
+from network.infinite_network import InfiniteNetwork
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 import tools.istarmap  # pylint: disable=unused-import # noqa: F401
 
@@ -25,7 +26,6 @@ class Model:
         WATTS_STROGATZ = auto()
         PREFERENTIAL_ATTACHMENT = auto()
         PRICE = auto()
-        AGE_DEPENDENT_RANDOM_CONNECTION = auto()
         NETWORK_GEOMETRY_WITH_FLAVOR = auto()
         AGE_DEPENDENT_RANDOM_SIMPLEX = auto()
         INVALID = auto()
@@ -69,8 +69,12 @@ class Model:
         )
         return scalar_property_distributions
 
-    def generate_network(self, seed: int | None = None) -> Network:
+    def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
+        raise NotImplementedError
+
+    def generate_infinite_network(self, seed: int) -> InfiniteNetwork:
+        """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         raise NotImplementedError
 
     def _simulate_base_properties(
@@ -109,35 +113,6 @@ class Model:
 
         return scalar_property_distributions
 
-    def _generate_properties(self, base_properties: list[BaseNetworkProperty], seed: int) -> list[Any]:
-        """Build a single network of the model and return its summary."""
-        network: Network | None = None
-        property_values: list[Any] = []
-        for property_ in base_properties:
-            if property_.calculation_method == BaseNetworkProperty.CalculationMethod.NETWORK:
-                network = self.generate_network(seed) if network is None else network
-                property_value = network.calc_base_property(property_.property_type)
-            elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
-                property_value = self._calc_typical_property_distribution(property_.property_type)
-            else:
-                raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
-            property_values.append(property_value)
-
-        print('.', end='', flush=True)
-
-        return property_values
-
-    def _calc_typical_property_distribution(self, property_type: BaseNetworkProperty.Type) -> EmpiricalDistribution:
-        """Generate typical properties of the given type."""
-        num_of_objects = self.parameters.num_nodes
-        generated_values: list[float | int] = [
-            self._generate_typical_property(property_type)
-            for _ in range(num_of_objects)
-        ]
-
-        distribution = EmpiricalDistribution(generated_values)
-        return distribution
-
     def _simulate_multiple_processes(
         self,
         base_network_properties: list[BaseNetworkProperty],
@@ -164,13 +139,41 @@ class Model:
         ]
         return all_networks_base_network_properties
 
-    def _generate_typical_property(self, property_type: BaseNetworkProperty.Type) -> float | int:
-        if property_type == BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION:
-            return self._generate_typical_in_degree()
-        raise NotImplementedError(f'Unknown typical property {property_type}.')
+    def _generate_properties(self, base_properties: list[BaseNetworkProperty], seed: int) -> list[Any]:
+        """Build a single network of the model and return its summary."""
+        network: FiniteNetwork | None = None
+        property_values: list[Any] = []
+        for property_ in base_properties:
+            if property_.calculation_method == BaseNetworkProperty.CalculationMethod.NETWORK:
+                network = self.generate_finite_network(seed) if network is None else network
+                property_value = network.calc_base_property(property_.property_type)
+            elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
+                property_value = self._calc_typical_property_distribution(property_.property_type, seed)
+            else:
+                raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
+            property_values.append(property_value)
 
-    def _generate_typical_in_degree(self) -> int:
-        raise NotImplementedError
+        print('.', end='', flush=True)
+
+        return property_values
+
+    def _calc_typical_property_distribution(
+        self,
+        property_type: BaseNetworkProperty.Type,
+        seed: int
+    ) -> EmpiricalDistribution:
+        """Generate typical properties of the given type."""
+        num_of_objects = self.parameters.num_nodes
+
+        generated_values: list[Any] = []
+        while len(generated_values) < num_of_objects:
+            infinite_network = self.generate_infinite_network(seed)
+            next_typical_property_set = infinite_network.calc_base_property_value_set(property_type)
+            generated_values.extend(next_typical_property_set)
+            seed += 1
+
+        distribution = EmpiricalDistribution(generated_values)
+        return distribution
 
     @property
     def parameters(self) -> Model.Parameters:

@@ -12,7 +12,7 @@ from typing import NamedTuple
 
 from model.model import Model
 from data_set.data_set import DataSet
-from network.network import BaseNetworkProperty
+from network.property import BaseNetworkProperty
 
 
 class Directories(NamedTuple):

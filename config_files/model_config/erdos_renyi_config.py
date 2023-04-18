@@ -2,7 +2,7 @@
 """Configuration of the Erdos - Renyi model."""
 
 from data_set.data_set import DataSet
-from model.graph_models.erdos_renyi import ErdosRenyiModel
+from model.erdos_renyi import ErdosRenyiModel
 from network.property import BaseNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 
