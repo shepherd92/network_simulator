@@ -23,7 +23,7 @@ from model.factory import create_model, load_default_parameters
 from network.property import ScalarNetworkPropertyReport
 from optimizer.model_optimizer import ModelOptimizer
 from optimizer.factory import create_parameter_options
-from reports.network_analysis import analyze_network
+from reports.network_analysis import analyze_finite_network, analyze_infinite_network
 from reports.model_analysis import create_model_test_report
 from tools.debugger import debugger_is_active
 
@@ -43,11 +43,10 @@ def main(configuration: Configuration) -> None:
     if configuration.data_set.analysis.enable:
 
         (configuration.general.directories.output / 'data').mkdir(parents=True, exist_ok=True)
-        analyze_network(
+        analyze_finite_network(
             data_set,
             configuration.data_set.analysis.properties_to_calculate,
-            configuration.general.directories.output / 'data' /
-            f'{data_set_type.name.lower()}_report.png',
+            configuration.general.directories.output / 'data'
         )
 
     model: Model = create_model(model_type)
@@ -137,12 +136,20 @@ def main(configuration: Configuration) -> None:
     if configuration.model.analysis.enable:
         info('Model analysis started.')
 
-        typical_network = model.generate_finite_network()
-        analyze_network(
-            typical_network,
+        model_analysis_save_dir = (configuration.general.directories.output / 'model_analysis')
+        model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
+
+        typical_finite_network = model.generate_finite_network()
+        analyze_finite_network(
+            typical_finite_network,
             configuration.model.analysis.properties_to_calculate,
-            configuration.general.directories.output /
-            f'{model_type.name.lower()}_typical_network.png',
+            model_analysis_save_dir,
+        )
+        typical_infinite_network = model.generate_infinite_network()
+        analyze_infinite_network(
+            typical_infinite_network,
+            configuration.model.analysis.properties_to_calculate,
+            model_analysis_save_dir,
         )
 
         info('Model analysis finished.')
@@ -181,7 +188,9 @@ def main_wrapper(params: argparse.Namespace) -> None:
         filename=configuration.general.directories.output / 'log.txt',
         filemode='w',
         encoding='utf-8',
-        level=getattr(logging, configuration.general.log_level)
+        level=getattr(logging, configuration.general.log_level),
+        format='%(asctime)s %(levelname)-8s %(filename)s.%(funcName)s%(lineno)d - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
     )
     logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
     logging.getLogger('PIL.PngImagePlugin').setLevel(logging.WARNING)

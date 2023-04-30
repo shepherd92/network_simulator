@@ -138,7 +138,8 @@ class NetworkGeometryWithFlavorModel(Model):
             ] = unnormalized_probabilities_of_new_faces
 
         network = FiniteNetwork(self.parameters.max_dimension)
-        network.interactions = [set(simplex) for simplex in simplices]
+        network._interactions = simplices
+        network._facets = []
         network.add_simplices(simplices)
         network.generate_graph_from_simplicial_complex()
 

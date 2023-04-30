@@ -22,11 +22,12 @@ class TestDataSet(DataSet):
         simplices = [
             [3, 4, 5, 6],
             [2, 3, 4],
-            [1, 2], [1, 7], [2, 7],
+            [1, 2], [2, 3], [1, 7], [2, 7],
             [0]
         ]
         # pylint: disable-next=attribute-defined-outside-init
-        self.interactions = [set(simplex) for simplex in simplices]
+        self._interactions = simplices
+        self._facets = []
         self.add_simplices(simplices)
 
     def _build_graph(self) -> None:

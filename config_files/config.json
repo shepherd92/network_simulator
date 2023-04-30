@@ -1,6 +1,6 @@
 {
     "general": {
-        "log_level": "INFO",
+        "log_level": "DEBUG",
         "enable_profiling": false,
         "num_of_processes": 1,
         "directories": {
@@ -11,7 +11,7 @@
     "data_set": {
         "type": "ARXIV",
         "analysis": {
-            "enable": false,
+            "enable": true,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
@@ -20,7 +20,6 @@
                 "DIMENSION",
                 "NUM_OF_SIMPLICES",
                 "INTERACTION_DIMENSION_DISTRIBUTION",
-                "FACET_DIMENSION_DISTRIBUTION",
                 "DEGREE_DISTRIBUTION",
                 "IN_DEGREE_DISTRIBUTION",
                 "OUT_DEGREE_DISTRIBUTION",
@@ -36,13 +35,12 @@
             "enable": false
         },
         "testing": {
-            "enable": true,
+            "enable": false,
             "test_against_data_set": false,
             "num_of_simulations": 100
         },
         "analysis": {
             "enable": false,
-            "typical_network_only": false,
             "component_index_from_largest": -1,
             "properties": [
                 "NUM_OF_NODES",
@@ -52,7 +50,6 @@
                 "DIMENSION",
                 "NUM_OF_SIMPLICES",
                 "INTERACTION_DIMENSION_DISTRIBUTION",
-                "FACET_DIMENSION_DISTRIBUTION",
                 "DEGREE_DISTRIBUTION",
                 "IN_DEGREE_DISTRIBUTION",
                 "OUT_DEGREE_DISTRIBUTION",

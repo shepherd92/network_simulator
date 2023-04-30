@@ -2,19 +2,27 @@
 """Helper functions for plotting."""
 
 from enum import Enum, auto
-from logging import warning
+from logging import warning, debug
+from operator import itemgetter
+from pathlib import Path
 from typing import Any
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.offsetbox import AnchoredText
+from matplotlib.collections import PolyCollection
+import networkx as nx
 import numpy as np
 import numpy.typing as npt
-from matplotlib.offsetbox import AnchoredText
-import matplotlib.pyplot as plt
+from scipy.spatial import ConvexHull
 
 from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import create_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+from network.finite_network import FiniteNetwork
 
 
 class PaddingSide(Enum):
@@ -24,6 +32,76 @@ class PaddingSide(Enum):
     LEFT: int = auto()
     RIGHT: int = auto()
     BOTH: int = auto()
+
+
+def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
+    """Save a particular axes as a separate figure."""
+    figure = plt.figure()
+    figure.axes.append(axes)
+    figure.savefig(file_path)
+
+
+def plot_finite_network(network: FiniteNetwork, axes: plt.Axes) -> None:
+    """Plot a simplicial complex on the given axis."""
+
+    def get_face_color(simplex: set[int]):
+
+        MINIMUM_DIMENSION = 2
+        MAXIMUM_DIMENSION = 5
+
+        color_map = plt.get_cmap('viridis')
+        norm = mpl.colors.Normalize(vmin=MINIMUM_DIMENSION, vmax=MAXIMUM_DIMENSION)
+        scalar_map = cm.ScalarMappable(norm=norm, cmap=color_map)
+
+        dimension = len(simplex) - 1
+        face_color = scalar_map.to_rgba(dimension)
+        return face_color
+
+    if network.graph.number_of_nodes() <= 1000:
+        graphviz_method = 'neato'  # best for a few nodes
+    else:
+        graphviz_method = 'sfdp'  # scalable method
+    node_positions = nx.nx_agraph.graphviz_layout(network.graph, prog=graphviz_method)
+
+    all_facets = network._interactions
+    # remove facets with dimension 0 and 1 (points and edges)
+    facets_to_plot = sorted([facet for facet in all_facets if len(facet) - 1 > 1], key=len, reverse=True)
+
+    debug(f'Number of facets to plot: {len(facets_to_plot)}')
+
+    simplex_node_positions = [
+        list(itemgetter(*facet)(node_positions))
+        for facet in facets_to_plot
+    ]
+    convex_hulls = [
+        ConvexHull(simplex_node_pos, qhull_options='QJ Pp')
+        for simplex_node_pos in simplex_node_positions
+    ]
+
+    polygon_coordinates = [
+        np.array([
+            node_positions[node_index]
+            for node_index in convex_hull.vertices
+        ])
+        for convex_hull, node_positions in zip(convex_hulls, simplex_node_positions)
+    ]
+    face_colors = list(map(get_face_color, facets_to_plot))
+
+    polygon_collection = PolyCollection(
+        polygon_coordinates,
+        facecolors=face_colors,
+        edgecolors=('black',),
+        linewidths=(0.01,),
+        alpha=(0.3,),
+    )
+
+    axes.add_collection(polygon_collection)
+
+    nx.draw_networkx_edges(network.graph, node_positions, ax=axes, edge_color='black', width=0.01, alpha=0.3)
+    nx.draw_networkx_nodes(network.graph, node_positions, ax=axes, node_color='black', node_size=0.1)
+
+    axes.set_title("Simplicial Complex")
+    axes.set_axis_off()
 
 
 def approximate_and_plot_pdf(

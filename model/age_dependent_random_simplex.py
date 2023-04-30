@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 import numpy.typing as npt
+from tqdm import tqdm
 
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
@@ -195,9 +196,9 @@ class AgeDependentRandomSimplexModel(Model):
         is_default_profile_function = np.isclose(self.parameters.alpha, 0.5)
 
         connection_list: list[np.ndarray] = []
-        for source_node_id, source_birth_time, source_position in zip(
+        for source_node_id, source_birth_time, source_position in tqdm(zip(
             node_ids.tolist(), birth_times.tolist(), positions.tolist()
-        ):
+        ), desc='Generating connections:', delay=10):
             target_birth_times = birth_times[:source_node_id]
             birth_time_ratios = source_birth_time / target_birth_times
 

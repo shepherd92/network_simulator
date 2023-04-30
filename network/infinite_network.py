@@ -16,7 +16,8 @@ class InfiniteNetwork(Network):
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
         simplicial_complex = SimplexTree()
-        self._interactions: list[set[int]] = []
+        self._interactions: list[list[int]] = []
+        self._facets: list[list[int]] = []
 
         for node in self.graph.nodes:
             simplicial_complex.insert((node,))
@@ -76,7 +77,7 @@ class InfiniteNetwork(Network):
 
         # extract facets with dimension (len(facet) - 1) higher or equal to neighbor dimension
         # assumption: every facet contains vertex 0
-        facets = filter(lambda facet: len(facet) - 1 >= neighbor_dimension, self.extract_facets())
+        facets = filter(lambda facet: len(facet) - 1 >= neighbor_dimension, self.facets)
 
         degree_sequence: list[int] = []
         for facet in facets:

@@ -3,7 +3,6 @@
 
 from functools import partial
 from logging import debug, info
-from operator import itemgetter
 from pathlib import Path
 from typing import Any, Callable
 
@@ -11,32 +10,30 @@ from gudhi.persistence_graphical_tools import (
     plot_persistence_barcode,
     plot_persistence_diagram,
 )
-from matplotlib.collections import PolyCollection
 import matplotlib.pyplot as plt
-import networkx as nx
-import numpy as np
-from scipy.spatial import ConvexHull
 
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.finite_network import FiniteNetwork
+from network.infinite_network import InfiniteNetwork
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
-    plot_empirical_distribution_histogram_with_info,
-    plot_value_counts,
     approximate_and_plot_pdf,
+    plot_empirical_distribution_histogram_with_info,
+    plot_finite_network,
+    plot_value_counts,
     print_not_calculated,
-    print_info
+    print_info,
 )
 
 
-def analyze_network(
+def analyze_finite_network(
     network: FiniteNetwork,
     calculated_properties: list[BaseNetworkProperty.Type],
-    path: Path
+    save_directory: Path
 ) -> None:
-    """Generate exploratory analysis of the provided network."""
-    info('Network analysis started.')
+    """Generate exploratory analysis of the provided finite network."""
+    info('Finite network analysis started.')
 
     plt.rcParams["text.usetex"] = False
 
@@ -55,7 +52,8 @@ def analyze_network(
     debug('Plotting simplicial complex started.')
     network_to_plot = network_to_analyze.get_component(0)
     simplicial_complex_axes = figure.add_subplot(axes_grid[0:axes_grid_width, 0:axes_grid_width])
-    _plot_simplicial_complex(network_to_plot, simplicial_complex_axes)
+    plot_finite_network(network_to_plot, simplicial_complex_axes)
+    figure.savefig(save_directory / 'network.png')
     print_info([network], simplicial_complex_axes)
     debug('Plotting simplicial complex finished.')
 
@@ -82,19 +80,19 @@ def analyze_network(
     subfigure_row_index += 1
 
     _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTIONS, {}).get(1, None),
+        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1, None),
         'Higher-Order Degree Distribution - Dimension 1',
         partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
         figure.add_subplot(axes_grid[subfigure_row_index, 0])
     )
     _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTIONS, {}).get(2, None),
+        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2, None),
         'Higher-Order Degree Distribution - Dimension 2',
         partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
         figure.add_subplot(axes_grid[subfigure_row_index, 1])
     )
     _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTIONS, {}).get(3, None),
+        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3, None),
         'Higher-Order Degree Distribution - Dimension 3',
         partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
         figure.add_subplot(axes_grid[subfigure_row_index, 2])
@@ -151,76 +149,20 @@ def analyze_network(
     subfigure_row_index += 1
 
     figure.tight_layout()
-    figure.savefig(path)
+    figure.savefig(save_directory / 'whole_report.png')
     figure.clf()
 
-    info('Network analysis finished.')
+    info('Finite network analysis finished.')
 
 
-def _plot_simplicial_complex(network: FiniteNetwork, axes: plt.Axes) -> None:
-
-    def get_face_color(simplex: set[int]):
-        simplex_colors = {
-            0: 'black',
-            1: 'black',
-            2: plt.cm.Blues(0.6),
-            3: plt.cm.Purples(0.6),
-            4: plt.cm.Oranges(0.6),
-            5: plt.cm.Reds(0.6),
-        }
-
-        max_dimension_can_be_colored = list(simplex_colors)[-1]
-        dimension = len(simplex) - 1
-        face_color = simplex_colors[dimension] \
-            if dimension <= max_dimension_can_be_colored \
-            else simplex_colors[max_dimension_can_be_colored]
-        return face_color
-
-    if network.graph.number_of_nodes() <= 1000:
-        graphviz_method = 'neato'  # best for a few nodes
-    else:
-        graphviz_method = 'sfdp'  # scalable method
-    node_positions = nx.nx_agraph.graphviz_layout(network.graph, prog=graphviz_method)
-
-    all_facets = network.extract_facets()
-    # remove facets with dimension 0 and 1 (points and edges)
-    facets_to_plot = sorted([facet for facet in all_facets if len(facet) - 1 > 1], key=len)
-
-    debug(f'Number of facets to plot: {len(facets_to_plot)}')
-
-    simplex_node_positions = [
-        list(itemgetter(*facet)(node_positions))
-        for facet in facets_to_plot
-    ]
-    convex_hulls = [
-        ConvexHull(simplex_node_pos, qhull_options='QJ Pp')
-        for simplex_node_pos in simplex_node_positions
-    ]
-
-    polygon_coordinates = [
-        np.array([
-            node_positions[node_index]
-            for node_index in convex_hull.vertices
-        ])
-        for convex_hull, node_positions in zip(convex_hulls, simplex_node_positions)
-    ]
-    face_colors = list(map(get_face_color, facets_to_plot))
-
-    polygon_collection = PolyCollection(
-        polygon_coordinates,
-        facecolors=face_colors,
-        edgecolors=('black',),
-        linewidths=(0.01,),
-        alpha=(0.3,),
-    )
-
-    axes.add_collection(polygon_collection)
-
-    nx.draw_networkx_edges(network.graph, node_positions, ax=axes, edge_color='black', width=0.01, alpha=0.3)
-    nx.draw_networkx_nodes(network.graph, node_positions, ax=axes, node_color='black', node_size=0.1)
-
-    axes.set_title("Simplicial Complex")
-    axes.set_axis_off()
+def analyze_infinite_network(
+    network: InfiniteNetwork,
+    calculated_properties: list[BaseNetworkProperty.Type],
+    save_directory: Path
+) -> None:
+    """Analyze the given infinite network."""
+    a = 1
+    pass
 
 
 def _generate_descriptive_report(summary: dict[BaseNetworkProperty.Type, Any]) -> None:

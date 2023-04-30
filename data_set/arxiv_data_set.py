@@ -4,6 +4,7 @@
 from dataclasses import dataclass
 from logging import debug
 
+import networkx as nx
 import pandas as pd
 
 from data_set.data_set import DataSet
@@ -18,8 +19,8 @@ class ArxivDataSet(DataSet):
         """Represent the necessary properties to load a dataset."""
 
         date_interval: tuple[pd.Timestamp, pd.Timestamp]
-        field: ArxivField
-        primary_category: ArxivSubCategory
+        fields: list[ArxivField]
+        primary_categories: list[ArxivSubCategory]
 
     def __init__(self, data_set_properties: Parameters) -> None:
         """Create data set without loading data."""
@@ -32,12 +33,14 @@ class ArxivDataSet(DataSet):
         """Load data from the disk for further processing."""
         # the dataset contains large integers as node ids
         # we first create a table that maps these integers as strings to smaller internal node ids
+        debug('Reading data file...')
         all_documents = pd.read_csv(
             self._data_set_properties.location / 'documents.csv',
             index_col=0,
             parse_dates=['update_time', 'publish_time'],
             low_memory=False
         )
+        debug('done')
         all_documents['categories'] = all_documents['categories'].apply(eval)
         all_documents['authors'] = all_documents['authors'].apply(eval)
 
@@ -50,15 +53,18 @@ class ArxivDataSet(DataSet):
             (all_documents['authors'].map(len) <= self._data_set_properties.max_simplex_dimension)
         ]
 
-        if self._data_set_properties.field != ArxivField.INVALID:
+        if ArxivField.INVALID not in self._data_set_properties.fields:
             filtered_documents = filtered_documents[
-                filtered_documents['field'] == self._data_set_properties.field.value
+                filtered_documents['field'].isin([field.value for field in self._data_set_properties.fields])
             ]
 
-        if self._data_set_properties.primary_category != ArxivSubCategory.INVALID:
+        if ArxivSubCategory.INVALID not in self._data_set_properties.primary_categories:
             filtered_documents = filtered_documents[
-                filtered_documents['primary_category'] == self._data_set_properties.primary_category.value
+                filtered_documents['primary_category'].isin([
+                    category.value for category in self._data_set_properties.primary_categories
+                ])
             ]
+
         assert len(filtered_documents) > 0, 'No data is available with the specified properties.'
 
         self._documents = filtered_documents
@@ -86,17 +92,18 @@ class ArxivDataSet(DataSet):
         """Build a simplicial complex based on the loaded data."""
         assert not self._documents.empty, 'Data is not loaded.'
 
-        for simplex in self.documents['authors']:
-            self.add_simplex(simplex)
+        debug('Building simplicial complex...')
+
+        self.add_simplices(self.documents['authors'])
 
         # pylint: disable-next=attribute-defined-outside-init
-        self.interactions = [
-            set(simplex)
+        self._interactions = [
+            list(simplex)
             for simplex in self.documents['authors']
             if len(simplex) != 0
         ]
 
-        debug('Simplicial complex built.')
+        debug('done.')
 
     def _build_graph(self) -> None:
         """Build a simple networkx graph."""
@@ -120,11 +127,26 @@ class ArxivDataSet(DataSet):
 
         component_index = self._data_set_properties.component_index_from_largest
         component = f'component_{component_index}' if component_index != -1 else 'whole'
+
+        if ArxivField.INVALID in self._data_set_properties.fields:
+            field_names = 'Not filtered'
+        else:
+            field_names = [field.name for field in self._data_set_properties.fields]
+
+        if ArxivSubCategory.INVALID in self._data_set_properties.primary_categories:
+            categories = 'Not filtered'
+        else:
+            categories = [category.name for category in self._data_set_properties.primary_categories]
+
         return '\n'.join([
             'Name: Arxiv',
-            f'Field: {self._data_set_properties.field.name}',
-            f'Category: {self._data_set_properties.primary_category.name}',
-            f'Date Interval: {date_interval},'
+            f'Fields: {field_names}',
+            f'Category: {categories}',
+            f'Number of vertices: {self._simplicial_complex.num_vertices()}',
+            f'Number of documents: {len(self._interactions)}',
+            f'Number of simplices: {self._simplicial_complex.num_simplices()}',
+            f'Date Interval: {date_interval},',
             f'Max Dimension: {self._data_set_properties.max_dimension}',
-            f'Component: {component}'
+            f'Number of components: {len(list(nx.connected_components(self._graph)))}',
+            f'Component: {component}',
         ])

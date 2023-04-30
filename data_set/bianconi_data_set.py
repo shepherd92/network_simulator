@@ -65,7 +65,7 @@ class BianconiDataSet(DataSet):
             self.add_simplex(triangle[:3], filtration=triangle[-1])
 
         # pylint: disable-next=attribute-defined-outside-init
-        self.interactions = \
+        self._interactions = \
             list(map(set, self._data['nodes'].values)) + \
             list(map(set, self._data['edges'].iloc[:, :2].values)) + \
             list(map(set, self._data['triangles'].iloc[:, :3].values))

@@ -11,6 +11,7 @@ from gudhi.simplex_tree import SimplexTree
 import networkx as nx
 import numpy as np
 import numpy.typing as npt
+from tqdm import tqdm
 
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
@@ -28,12 +29,13 @@ class FiniteNetwork(Network):
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
         simplicial_complex = SimplexTree()
-        for node in self.graph.nodes:
+        for node in tqdm(self.graph.nodes, desc='Inserting nodes from graph to simplical complex', delay=10):
             simplicial_complex.insert((node,))
-        for edge in self.graph.edges:
+        for edge in tqdm(self.graph.edges, desc='Inserting edges from graph to simplical complex', delay=10):
             simplicial_complex.insert(edge)
 
-        self.interactions = self.graph.edges
+        self._interactions = self.graph.edges
+        self._facets = self.graph.edges
         self.simplicial_complex = simplicial_complex
 
     def add_simplex(self, simplex: list[int], filtration: float = 0.) -> None:
@@ -50,9 +52,9 @@ class FiniteNetwork(Network):
         for face in skeleton:
             self.simplicial_complex.insert(face, filtration)
 
-    def get_component(self, component_index: int) -> Network:
+    def get_component(self, component_index: int) -> FiniteNetwork:
         """Reduce the network to the specified component only."""
-        reduced_network = Network(self.max_dimension)
+        reduced_network = FiniteNetwork(self.max_dimension)
 
         if component_index != -1:
             components = sorted(nx.connected_components(self._graph), key=len, reverse=True)
@@ -95,6 +97,8 @@ class FiniteNetwork(Network):
 
     def calc_base_property(self, property_type: BaseNetworkProperty.Type) -> Any:
         """Return a base property of the network."""
+        debug(f'Calculating {property_type.name}...')
+
         if property_type == BaseNetworkProperty.Type.NUM_OF_NODES:
             property_value = self.graph.number_of_nodes()
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
@@ -139,6 +143,8 @@ class FiniteNetwork(Network):
                 f'Requested property type {property_type} is not available.'
             )
 
+        debug('finished.')
+
         return property_value
 
     def _calculate_average_degree(self) -> float:
@@ -175,7 +181,7 @@ class FiniteNetwork(Network):
 
         if simplex_dimension >= self.max_dimension:
             # simplex_dimension is at most max_dimension - 1 as higher dimensions make no sense
-            return EmpiricalDistribution()
+            return EmpiricalDistribution([])
 
         neighbor_dimension = simplex_dimension + 1 if neighbor_dimension is None else neighbor_dimension
         assert neighbor_dimension > simplex_dimension
@@ -213,10 +219,14 @@ class FiniteNetwork(Network):
             f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
 
         # extract facets with dimension higher or equal to neighbor dimension
-        facets = filter(lambda facet: len(facet) - 1 >= neighbor_dimension, self.extract_facets())
+        facets = filter(lambda facet: len(facet) - 1 >= neighbor_dimension, self.facets)
 
         degree_sequence: list[int] = []
-        for facet in facets:
+        for facet in tqdm(
+            facets,
+            desc=f'Calculating degree sequence ({simplex_dimension} - {neighbor_dimension})...',
+            delay=10
+        ):
             facet_dimension = len(facet) - 1
             num_of_simplices_in_facet = comb(facet_dimension + 1, simplex_dimension + 1)
             num_of_neighbors_in_facet = comb(

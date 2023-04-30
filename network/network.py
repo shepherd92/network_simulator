@@ -8,7 +8,9 @@ from itertools import combinations
 
 from gudhi.simplex_tree import SimplexTree
 import networkx as nx
+from tqdm import tqdm
 
+from cpp_critical_sections.build.cpp_critical_sections import extract_facets
 from distribution.empirical_distribution import EmpiricalDistribution
 
 
@@ -17,7 +19,8 @@ class Network:
 
     def __init__(self, max_dimension: int) -> None:
         """Construct an empty network."""
-        self._interactions: list[set[int]] = []
+        self._interactions: list[list[int]] = []
+        self._facets: list[list[int]] = []
         self._simplicial_complex = SimplexTree()
         self._graph = nx.Graph()
         self._digraph = nx.DiGraph()
@@ -33,20 +36,21 @@ class Network:
         cliques = list(nx.find_cliques(self.graph))
         self.simplicial_complex = SimplexTree()
         self.add_simplices(cliques)
-        self.interactions = [set(clique) for clique in cliques]
+        self._interactions = cliques
+        self._facets = cliques
 
     def filter_simplicial_complex_from_graph(self) -> None:
-        """Filter those simplices from the simplicial complex that are not present in the graph."""
+        """Filter out those simplices from the simplicial complex that are not present in the graph."""
         simplicial_complex = SimplexTree()
-        for simplex in self.simplices:
+        for simplex in tqdm(self.simplices, desc='Filtering simplices in the graph', delay=10):
             if all(node in self.graph.nodes for node in simplex):
                 # if the first node is in the graph, the whole simplex is there as well
                 simplicial_complex.insert(simplex)
         self.simplicial_complex = simplicial_complex
 
         graph_nodes_set = set(self.graph.nodes)
-        interactions: list[set[int]] = [
-            interaction & graph_nodes_set
+        interactions: list[list[int]] = [
+            list[set(interaction) & graph_nodes_set]
             for interaction in self.interactions
         ]
         # filter out empty lists
@@ -70,7 +74,7 @@ class Network:
 
     def add_simplices(self, simplices: list[list[int]]) -> None:
         """Insert a simplex to the simplicial complex."""
-        for simplex in simplices:
+        for simplex in tqdm(simplices, desc='Adding simplices', delay=10):
             self.add_simplex(simplex)
 
     def add_simplex(self, simplex: list[int], filtration: float = 0.) -> None:
@@ -80,25 +84,23 @@ class Network:
         """
         raise NotImplementedError
 
-    def extract_facets(self) -> list[set[int]]:
-        """Return the facets of the simplicial complex."""
-        facets = list(filter(
-            lambda interaction: not any(
-                interaction < other_interaction
-                for other_interaction in self.interactions
-            ), self.interactions
-        ))
-
-        return facets
-
     def get_simplices_by_dimension(self) -> dict[int, list[list[int]]]:
         """Return all simplices by their dimension."""
         result: dict[int, list[list[int]]] = defaultdict(list)
-        for simplex in self.simplices:
+        for simplex in tqdm(self.simplices, desc='Extracting simplices by dimension', delay=10):
             dimension = len(simplex) - 1
             result[dimension].append(list(sorted(simplex)))
 
         return result
+
+    def _extract_facets(self) -> list[list[int]]:
+        """Return the facets of the simplicial complex."""
+        assert isinstance(self._interactions[0], list), f'Interactions are not lists, but {type(self._interactions[0])}'
+
+        print(f'Extracting facets from {len(self._interactions)} interactions.')
+        facets: list[list[int]] = extract_facets(self._interactions)
+
+        return facets
 
     def _calculate_simplex_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the estimated number of simplices for each dimension as a list.
@@ -110,13 +112,12 @@ class Network:
 
     def _calculate_facet_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of facets for each dimension as a list."""
-        facets = self.extract_facets()
-        facet_dimension_distribution = self._calc_dimension_distribution(facets)
+        facet_dimension_distribution = self._calc_dimension_distribution(self.facets)
         return facet_dimension_distribution
 
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each dimension as a list."""
-        interaction_dimension_distribution = self._calc_dimension_distribution(self.interactions)
+        interaction_dimension_distribution = self._calc_dimension_distribution(self._interactions)
         return interaction_dimension_distribution
 
     def _get_simplex_skeleton_for_max_dimension(self, simplex: list[int]) -> list[list[int]]:
@@ -138,7 +139,7 @@ class Network:
     ) -> list[tuple[set[int], int]]:
 
         higher_order_degrees: list[tuple[set[int], int]] = []
-        for simplex in self.simplices:
+        for simplex in tqdm(self.simplices, desc='Calculating higher-order degrees', delay=10):
             if len(simplex) - 1 == simplex_dimension:
                 cofaces = [
                     face
@@ -201,3 +202,10 @@ class Network:
     @digraph.setter
     def digraph(self, value: nx.DiGraph) -> None:
         self._digraph = value
+
+    @property
+    def facets(self) -> list[set[int]]:
+        """Get the simplices associated to the network."""
+        if not self._facets:
+            self._facets = self._extract_facets()
+        return self._facets

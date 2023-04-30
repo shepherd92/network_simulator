@@ -75,11 +75,12 @@ class NatureDataSet(DataSet):
             self.add_simplex(simplex)
 
         # pylint: disable-next=attribute-defined-outside-init
-        self.interactions = [
-            set(simplex)
+        self._interactions = [
+            list(simplex)
             for simplex in self.documents['author_ids']
             if len(simplex) != 0
         ]
+        self._facets = []
 
         debug('Simplicial complex built.')
 

@@ -11,7 +11,6 @@ import numpy as np
 import numpy.typing as npt
 from scipy.optimize import OptimizeResult, minimize
 from scipy.stats import levy_stable
-from levy import fit_levy
 
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -42,7 +41,6 @@ class StableDistribution(TheoreticalDistribution):
 
         QUICK_FIT = auto()
         MLE_SCIPY = auto()
-        MLE_LEVY = auto()
         OPTIMIZATION = auto()
 
     def __init__(self) -> None:
@@ -63,7 +61,6 @@ class StableDistribution(TheoreticalDistribution):
         fitting_parameters: FittingParameters
     ) -> None:
         if fitting_parameters.fitting_method in [
-            StableDistribution.FittingMethod.MLE_LEVY,
             StableDistribution.FittingMethod.MLE_SCIPY,
             StableDistribution.FittingMethod.QUICK_FIT,
             StableDistribution.FittingMethod.OPTIMIZATION,
@@ -77,12 +74,7 @@ class StableDistribution(TheoreticalDistribution):
         empirical_distribution: EmpiricalDistribution,
         fitting_parameters: FittingParameters
     ) -> None:
-        if fitting_parameters.fitting_method == StableDistribution.FittingMethod.MLE_LEVY:
-            self._parameters = self._estimate_parameters_mle_levy(
-                empirical_distribution,
-                fitting_parameters.fixed_parameters
-            )
-        elif fitting_parameters.fitting_method == StableDistribution.FittingMethod.MLE_SCIPY:
+        if fitting_parameters.fitting_method == StableDistribution.FittingMethod.MLE_SCIPY:
             warning(f'{fitting_parameters.fitting_method} cannot handle fixed parameters.')
             self._parameters = self._estimate_parameters_mle_scipy(
                 empirical_distribution,
@@ -99,54 +91,6 @@ class StableDistribution(TheoreticalDistribution):
             )
         else:
             assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
-
-    def _estimate_parameters_mle_levy(
-        self,
-        empirical_distribution: EmpiricalDistribution,
-        fixed_parameters: StableDistribution.Parameters
-    ) -> Parameters:
-
-        value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
-        fixed_parameters.location = value_sequence.mean()
-
-        fit_levy_fixed_parameters_args: dict[str, float] = {}
-        if not np.isnan(fixed_parameters.alpha):
-            fit_levy_fixed_parameters_args['alpha'] = fixed_parameters.alpha
-        if not np.isnan(fixed_parameters.beta):
-            fit_levy_fixed_parameters_args['beta'] = fixed_parameters.beta
-        if not np.isnan(fixed_parameters.location):
-            fit_levy_fixed_parameters_args['mu'] = fixed_parameters.location
-        if not np.isnan(fixed_parameters.scale):
-            fit_levy_fixed_parameters_args['sigma'] = fixed_parameters.scale
-
-        fitted_parameters = fit_levy(value_sequence, **fit_levy_fixed_parameters_args)[0].x
-
-        current_parameter_index = 0
-        if not np.isnan(fixed_parameters.alpha):
-            alpha = fixed_parameters.alpha
-        else:
-            alpha = fitted_parameters[current_parameter_index]
-            current_parameter_index += 1
-
-        if not np.isnan(fixed_parameters.beta):
-            beta = fixed_parameters.beta
-        else:
-            beta = fitted_parameters[current_parameter_index]
-            current_parameter_index += 1
-
-        if not np.isnan(fixed_parameters.location):
-            location = fixed_parameters.location
-        else:
-            location = fitted_parameters[current_parameter_index]
-            current_parameter_index += 1
-
-        if not np.isnan(fixed_parameters.scale):
-            scale = fixed_parameters.scale
-        else:
-            scale = fitted_parameters[current_parameter_index]
-            current_parameter_index += 1
-
-        return StableDistribution.Parameters(alpha, beta, location, scale)
 
     def _estimate_parameters_mle_scipy(
         self,
