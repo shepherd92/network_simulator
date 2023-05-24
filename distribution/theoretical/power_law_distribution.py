@@ -119,7 +119,7 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def _determine_domain_quantiles(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the minimum degree from which the power-law holds."""
-        min_quantile = 0.5
+        min_quantile = 0.67
         max_quantile = 1.0
         self._domain.min_ = empirical_distribution.domain.max_ ** min_quantile
         self._domain.max_ = empirical_distribution.domain.max_ ** max_quantile

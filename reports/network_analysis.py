@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 """This module is responsible for analyzing a simplicial complex."""
 
-from functools import partial
+from json import dump
 from logging import debug, info
 from pathlib import Path
 from typing import Any, Callable
 
-from gudhi.persistence_graphical_tools import (
-    plot_persistence_barcode,
-    plot_persistence_diagram,
-)
 import matplotlib.pyplot as plt
+import numpy as np
+import numpy.typing as npt
+import pandas as pd
 
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -18,12 +17,15 @@ from network.finite_network import FiniteNetwork
 from network.infinite_network import InfiniteNetwork
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
-    approximate_and_plot_pdf,
+    approximate_distribution,
+    check_calculated,
+    plot_distribution_approximation,
     plot_empirical_distribution_histogram_with_info,
     plot_finite_network,
+    plot_persistence_barcode_,
+    plot_persistence_diagram_,
     plot_value_counts,
     print_not_calculated,
-    print_info,
 )
 
 
@@ -37,115 +39,91 @@ def analyze_finite_network(
 
     plt.rcParams["text.usetex"] = False
 
-    axes_grid_height = 7
+    network_to_analyze = network
+    _plot_giant_component(network_to_analyze, save_directory / 'network.png')
+    summary = network_to_analyze.calc_network_summary(calculated_properties)
+
+    axes_grid_height = 4
     axes_grid_width = 3
 
-    figure = plt.figure("Network Analysis", figsize=(axes_grid_width * 10, axes_grid_height * 10))
+    network_info = network.get_info_as_dict()
+    with open(save_directory / 'info.json', 'w') as fp:
+        dump(network_info, fp)
+
+    figure = plt.figure('Network Analysis', figsize=(axes_grid_width * 10, axes_grid_height * 10))
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
+    subfigure_row_index = 0
 
-    network_to_analyze = network
-
-    debug('Summary calculation started.')
-    summary = network_to_analyze.calc_network_summary(calculated_properties)
-    debug('Summary calculation finished.')
-
-    debug('Plotting simplicial complex started.')
-    network_to_plot = network_to_analyze.get_component(0)
-    simplicial_complex_axes = figure.add_subplot(axes_grid[0:axes_grid_width, 0:axes_grid_width])
-    plot_finite_network(network_to_plot, simplicial_complex_axes)
-    figure.savefig(save_directory / 'network.png')
-    print_info([network], simplicial_complex_axes)
-    debug('Plotting simplicial complex finished.')
-
-    subfigure_row_index = axes_grid_width
-
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.DEGREE_DISTRIBUTION, None),
-        'Total Degree Distribution',
-        partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
-        figure.add_subplot(axes_grid[subfigure_row_index, 0])
+    _report_total_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.DEGREE_DISTRIBUTION),
+        figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION, None),
-        'In Degree Distribution',
-        partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
-        figure.add_subplot(axes_grid[subfigure_row_index, 1])
+    _report_in_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION),
+        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION, None),
-        'Out Degree Distribution',
-        partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POISSON),
-        figure.add_subplot(axes_grid[subfigure_row_index, 2])
+    _report_out_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION),
+        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
+        save_directory
     )
+
     subfigure_row_index += 1
 
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1, None),
-        'Higher-Order Degree Distribution - Dimension 1',
-        partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
-        figure.add_subplot(axes_grid[subfigure_row_index, 0])
+    _report_ho_1_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1),
+        figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2, None),
-        'Higher-Order Degree Distribution - Dimension 2',
-        partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
-        figure.add_subplot(axes_grid[subfigure_row_index, 1])
+    _report_ho_2_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2),
+        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3, None),
-        'Higher-Order Degree Distribution - Dimension 3',
-        partial(approximate_and_plot_pdf, theoretical_distribution_type=TheoreticalDistribution.Type.POWER_LAW),
-        figure.add_subplot(axes_grid[subfigure_row_index, 2])
+    _report_ho_3_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3),
+        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
+        save_directory
     )
+
     subfigure_row_index += 1
 
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION, None),
-        'Simplex dimension distribution',
-        partial(
-            plot_empirical_distribution_histogram_with_info,
-            histogram_type=EmpiricalDistribution.HistogramType.INTEGERS
-        ),
-        figure.add_subplot(axes_grid[subfigure_row_index, 0])
+    _report_simplex_dimension_distribution(
+        summary.get(BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION),
+        figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION, None),
-        'Facet dimension distribution',
-        partial(
-            plot_empirical_distribution_histogram_with_info,
-            histogram_type=EmpiricalDistribution.HistogramType.INTEGERS
-        ),
-        figure.add_subplot(axes_grid[subfigure_row_index, 1])
+    _report_facet_dimension_distribution(
+        summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION),
+        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION, None),
-        'Interaction dimension distribution',
-        partial(
-            plot_empirical_distribution_histogram_with_info,
-            histogram_type=EmpiricalDistribution.HistogramType.INTEGERS
-        ),
-        figure.add_subplot(axes_grid[subfigure_row_index, 2])
+    _report_interaction_dimension_distribution(
+        summary.get(BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION),
+        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
+        save_directory
     )
+
     subfigure_row_index += 1
 
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.BETTI_NUMBERS, None),
-        'Betti Numbers',
-        plot_value_counts,
-        figure.add_subplot(axes_grid[subfigure_row_index, 0])
+    _report_betti_numbers(
+        summary.get(BaseNetworkProperty.Type.BETTI_NUMBERS),
+        figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.PERSISTENCE, None),
-        'Persistence Diagram',
-        plot_persistence_diagram,
-        figure.add_subplot(axes_grid[subfigure_row_index, 1])
+    _report_persistence_diagram(
+        summary.get(BaseNetworkProperty.Type.PERSISTENCE),
+        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+        save_directory
     )
-    _plot_base_property(
-        summary.get(BaseNetworkProperty.Type.PERSISTENCE, None),
-        'Persistence Barcode',
-        plot_persistence_barcode,
-        figure.add_subplot(axes_grid[subfigure_row_index, 2])
+    _report_persistence_barcode(
+        summary.get(BaseNetworkProperty.Type.PERSISTENCE),
+        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
+        save_directory
     )
+
     subfigure_row_index += 1
 
     figure.tight_layout()
@@ -161,23 +139,216 @@ def analyze_infinite_network(
     save_directory: Path
 ) -> None:
     """Analyze the given infinite network."""
-    a = 1
     pass
 
 
-def _generate_descriptive_report(summary: dict[BaseNetworkProperty.Type, Any]) -> None:
+def _plot_giant_component(network: FiniteNetwork, save_path: Path):
+    info('Finite network analysis started.')
 
-    with open('../data_analysis/data_report.txt', 'w', encoding='utf8') as file:
-        file.write(
-            f'Number of nodes: {summary.num_of_nodes}\n' +
-            f'Number of edges: {summary.num_of_edges}\n' +
-            f'Maximum degree: {summary.max_degree}\n' +
-            f'Average clustering: {summary.avg_clustering}\n' +
-            f'Number of connected components: {summary.num_of_connected_components}\n' +
-            f'Dimension: {summary.dimension}\n' +
-            f'Number of simplices: {summary.num_of_simplices}\n' +
-            f'Betti numbers: {summary.betti_numbers}\n'
-        )
+    plt.rcParams["text.usetex"] = False
+
+    network_to_analyze = network
+    debug('Plotting simplicial complex started.')
+    network_to_plot = network_to_analyze.get_component(0)
+    simplicial_complex_figure, simplicial_complex_axes = plt.subplots(1, 1, figsize=(50, 50))
+    plot_finite_network(network_to_plot, simplicial_complex_axes)
+    simplicial_complex_figure.savefig(save_path)
+    simplicial_complex_figure.clf()
+    debug('Plotting simplicial complex finished.')
+
+
+@check_calculated
+def _report_total_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    axes.set_title('Total Degree Distribution')
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    plot_distribution_approximation(approximation, axes)
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'total_degree_distribution.csv'
+    )
+
+
+@check_calculated
+def _report_in_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    axes.set_title('In Degree Distribution')
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    plot_distribution_approximation(approximation, axes)
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'in_degree_distribution.csv'
+    )
+
+
+@check_calculated
+def _report_out_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    axes.set_title('Out Degree Distribution')
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    plot_distribution_approximation(approximation, axes)
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'out_degree_distribution.csv'
+    )
+
+
+@check_calculated
+def _report_ho_1_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    axes.set_title('Higher-Order Degree Distribution - Dimension 1')
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    plot_distribution_approximation(approximation, axes)
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'ho_degree_distribution_1.csv'
+    )
+
+
+@check_calculated
+def _report_ho_2_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    axes.set_title('Higher-Order Degree Distribution - Dimension 2')
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    plot_distribution_approximation(approximation, axes)
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'ho_degree_distribution_2.csv'
+    )
+
+
+@check_calculated
+def _report_ho_3_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    axes.set_title('Higher-Order Degree Distribution - Dimension 3')
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    plot_distribution_approximation(approximation, axes)
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'ho_degree_distribution_3.csv'
+    )
+
+
+@check_calculated
+def _report_simplex_dimension_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Simplex dimension distribution')
+    plot_empirical_distribution_histogram_with_info(
+        empirical_distribution,
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        axes
+    )
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'simplex_dimension_distribution.csv'
+    )
+
+
+@check_calculated
+def _report_facet_dimension_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Facet dimension distribution')
+    plot_empirical_distribution_histogram_with_info(
+        empirical_distribution,
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        axes
+    )
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'facet_dimension_distribution.csv'
+    )
+
+
+@check_calculated
+def _report_interaction_dimension_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Interaction dimension distribution')
+    plot_empirical_distribution_histogram_with_info(
+        empirical_distribution,
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        axes
+    )
+    empirical_distribution.save_histogram(
+        EmpiricalDistribution.HistogramType.INTEGERS,
+        save_directory / 'interaction_dimension_distribution.csv'
+    )
+
+
+@check_calculated
+def _report_betti_numbers(
+    betti_numbers: npt.NDArray[np.int_],
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Betti Numbers')
+    plot_value_counts(betti_numbers, axes)
+    pd.DataFrame(
+        betti_numbers,
+        columns=['dimension', 'betti_number'],
+        dtype=np.int32,
+    ).to_csv(save_directory / 'betti_numbers.csv', index=False)
+
+
+@check_calculated
+def _report_persistence_diagram(
+    persistence: tuple[tuple[int, tuple[int, int]], ...],
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Persistence Diagram')
+    plot_persistence_diagram_(persistence, axes)
+    _save_persistence(persistence, save_directory)
+
+
+@check_calculated
+def _report_persistence_barcode(
+    persistence: tuple[tuple[int, tuple[int, int]], ...],
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Persistence Barcode')
+    plot_persistence_barcode_(persistence, axes)
+    _save_persistence(persistence, save_directory)
+
+
+def _save_persistence(persistence: tuple[tuple[int, tuple[int, int]], ...], save_directory: Path) -> None:
+    pd.DataFrame(
+        [[dimension, birth, death] for dimension, (birth, death) in persistence],
+        columns=['dimension', 'birth', 'death']
+    ).to_csv(save_directory / 'persistence.csv', index=False)
 
 
 def _plot_base_property(
@@ -191,6 +362,6 @@ def _plot_base_property(
 
     if property_value is None:
         print_not_calculated(axes)
-        return
+        return None
 
     plotter(property_value, axes=axes)

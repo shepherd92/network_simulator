@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 from network.property import ScalarNetworkPropertyReport
-from reports.plotting_helper import plot_distribution_pdf_pair, plot_probability_plot, plot_qq_plot
+from reports.plotting_helper import plot_distribution_approximation, plot_probability_plot, plot_qq_plot
 
 
 def create_model_test_report(scalar_property_reports: list[ScalarNetworkPropertyReport]) -> Figure:
@@ -31,7 +31,7 @@ def _plot_property_report(property_report: ScalarNetworkPropertyReport, axes: pl
     axes.set_title(f'{property_report.params.name} distribution')
 
     distribution_pair = property_report.distributions
-    plot_distribution_pdf_pair(distribution_pair, axes)
+    plot_distribution_approximation(distribution_pair, axes)
 
     axes.axvline(x=property_report.data_point, color='green')
 

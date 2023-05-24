@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from itertools import combinations
+from typing import Any
 
 from gudhi.simplex_tree import SimplexTree
 import networkx as nx
@@ -84,14 +84,26 @@ class Network:
         """
         raise NotImplementedError
 
-    def get_simplices_by_dimension(self) -> dict[int, list[list[int]]]:
+    def get_simplices_by_dimension(self, dimension: int) -> list[list[int]]:
         """Return all simplices by their dimension."""
-        result: dict[int, list[list[int]]] = defaultdict(list)
-        for simplex in tqdm(self.simplices, desc='Extracting simplices by dimension', delay=10):
-            dimension = len(simplex) - 1
-            result[dimension].append(list(sorted(simplex)))
-
+        result: list[list[int]] = [
+            list(sorted(simplex))
+            for simplex in tqdm(self.simplices, desc='Extracting simplices by dimension', delay=10)
+            if len(simplex) - 1 == dimension
+        ]
         return result
+
+    def num_of_vertices_in_component(self, component_index: int) -> int:
+        """Return the number of vertices in a component."""
+        components = sorted(nx.connected_components(self._graph), key=len, reverse=True)
+        if component_index >= len(components):
+            return 0
+
+        return self.graph.subgraph(components[component_index]).number_of_nodes()
+
+    def get_info_as_dict(self) -> dict[str, Any]:
+        """Return a dict representation based on the network properties."""
+        raise NotImplementedError
 
     def _extract_facets(self) -> list[list[int]]:
         """Return the facets of the simplicial complex."""
@@ -174,6 +186,16 @@ class Network:
     def simplices(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
         raise NotImplementedError
+
+    @property
+    def num_simplices(self) -> int:
+        """Return the number of simplices in the simplicial complex."""
+        return self._simplicial_complex.num_simplices()
+
+    @property
+    def num_vertices(self) -> int:
+        """Return the number of nodes in the graph."""
+        return self._graph.number_of_nodes()
 
     @property
     def dimension(self) -> int:

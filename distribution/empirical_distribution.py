@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 from enum import Enum, auto
+from pathlib import Path
 from typing import Callable
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 from scipy.stats import kstest, gaussian_kde
 
 from distribution.distribution import Distribution
@@ -90,6 +92,17 @@ class EmpiricalDistribution(Distribution):
     def test_normality(self) -> float:
         """Execute a standard normality test on the data and return the resulting p value."""
         return kstest(self.value_sequence, 'norm').pvalue
+
+    def save_histogram(self, histogram_type: HistogramType, file_name: Path) -> None:
+        """Save histogram values."""
+        if len(self.value_sequence) == 0:
+            pd.DataFrame(columns=['bin_left_limit', 'value']).to_csv(file_name, index=False)
+            return
+
+        values, bins = self.calc_histogram(histogram_type)
+        pd.DataFrame(np.c_[bins[:-1], values], columns=['bin_left_limit', 'value']).to_csv(
+            file_name, index=False
+        )
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the pdf values at x values provided that they are in the domain of the distribution."""

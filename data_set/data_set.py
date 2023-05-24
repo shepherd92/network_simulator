@@ -52,7 +52,3 @@ class DataSet(FiniteNetwork):
     def _build_graph(self) -> None:
         """Build a simple networkx graph."""
         raise NotImplementedError
-
-    def __str__(self) -> str:
-        """Return a string representation based on the data set properties."""
-        raise NotImplementedError

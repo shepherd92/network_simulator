@@ -3,8 +3,8 @@
 
 from dataclasses import dataclass
 from logging import debug
+from typing import Any
 
-import networkx as nx
 import pandas as pd
 
 from data_set.data_set import DataSet
@@ -29,18 +29,46 @@ class ArxivDataSet(DataSet):
         self._authors: pd.DataFrame = pd.DataFrame()
         self._documents: pd.DataFrame = pd.DataFrame()
 
+    def get_info_as_dict(self) -> dict[str, Any]:
+        """Return a dict representation based on the network properties."""
+        date_interval = \
+            f"[{self._data_set_properties.date_interval[0].strftime('%Y-%m-%d')}, " + \
+            f"{self._data_set_properties.date_interval[1].strftime('%Y-%m-%d')}]"
+
+        if ArxivField.INVALID in self._data_set_properties.fields:
+            field_names = 'Not filtered'
+        else:
+            field_names = [field.name for field in self._data_set_properties.fields]
+
+        if ArxivSubCategory.INVALID in self._data_set_properties.primary_categories:
+            categories = 'Not filtered'
+        else:
+            categories = [category.name for category in self._data_set_properties.primary_categories]
+
+        result: dict[str, Any] = super().get_info_as_dict()
+        result.update({
+            'name': 'arxiv',
+            'fields': field_names,
+            'categories': categories,
+            'date_interval': date_interval,
+            'component': self._data_set_properties.component_index_from_largest,
+
+        })
+        return result
+
     def _read_data(self) -> None:
         """Load data from the disk for further processing."""
         # the dataset contains large integers as node ids
         # we first create a table that maps these integers as strings to smaller internal node ids
-        debug('Reading data file...')
+        data_file_name = self._data_set_properties.location / 'documents.csv'
+        debug(f'Reading data file {str(data_file_name)}...')
         all_documents = pd.read_csv(
-            self._data_set_properties.location / 'documents.csv',
+            data_file_name,
             index_col=0,
             parse_dates=['update_time', 'publish_time'],
             low_memory=False
         )
-        debug('done')
+        debug('Reading data file done')
         all_documents['categories'] = all_documents['categories'].apply(eval)
         all_documents['authors'] = all_documents['authors'].apply(eval)
 
@@ -141,12 +169,8 @@ class ArxivDataSet(DataSet):
         return '\n'.join([
             'Name: Arxiv',
             f'Fields: {field_names}',
-            f'Category: {categories}',
-            f'Number of vertices: {self._simplicial_complex.num_vertices()}',
-            f'Number of documents: {len(self._interactions)}',
-            f'Number of simplices: {self._simplicial_complex.num_simplices()}',
+            f'Categories: {categories}',
             f'Date Interval: {date_interval},',
-            f'Max Dimension: {self._data_set_properties.max_dimension}',
-            f'Number of components: {len(list(nx.connected_components(self._graph)))}',
             f'Component: {component}',
+            super().__str__(self)
         ])

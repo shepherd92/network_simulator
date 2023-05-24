@@ -14,7 +14,7 @@ from distribution.factory import create_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
 from reports.plotting_helper import (
-    plot_distribution_pdf_pair,
+    plot_distribution_approximation,
     plot_empirical_distribution_histogram_with_info,
 )
 
@@ -32,25 +32,25 @@ class PlottingHelperTest(unittest.TestCase):
         figure.set_size_inches(20, 10)
 
         axes_poisson.set_title('Poisson Distribution')
-        plot_distribution_pdf_pair(
+        plot_distribution_approximation(
             PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.POISSON),
             axes_poisson
         )
 
         axes_power_law.set_title('Power law Distribution')
-        plot_distribution_pdf_pair(
+        plot_distribution_approximation(
             PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.POWER_LAW),
             axes_power_law
         )
 
         axes_normal.set_title('Normal Distribution')
-        plot_distribution_pdf_pair(
+        plot_distribution_approximation(
             PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.NORMAL),
             axes_normal
         )
 
         axes_stable.set_title('Stable Distribution')
-        plot_distribution_pdf_pair(
+        plot_distribution_approximation(
             PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.STABLE),
             axes_stable
         )

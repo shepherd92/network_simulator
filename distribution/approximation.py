@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Theoretical approximation of an empirical distribution."""
 
+from pathlib import Path
 from typing import NamedTuple
 
 import numpy as np
@@ -138,6 +139,9 @@ class DistributionApproximation:
             index=confidence_levels
         )
         return confidence_intervals_df
+
+    def save(self, path: Path) -> None:
+        """Save the distribution pair to the given path."""
 
     @property
     def type(self) -> TheoreticalDistribution.Type:

@@ -7,9 +7,11 @@ from operator import itemgetter
 from pathlib import Path
 from typing import Any
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from matplotlib import cm
+from gudhi.persistence_graphical_tools import (
+    plot_persistence_barcode,
+    plot_persistence_diagram,
+)
+from matplotlib import pyplot as plt
 from matplotlib.offsetbox import AnchoredText
 from matplotlib.collections import PolyCollection
 import networkx as nx
@@ -43,35 +45,14 @@ def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
 
 def plot_finite_network(network: FiniteNetwork, axes: plt.Axes) -> None:
     """Plot a simplicial complex on the given axis."""
-
-    def get_face_color(simplex: set[int]):
-
-        MINIMUM_DIMENSION = 2
-        MAXIMUM_DIMENSION = 5
-
-        color_map = plt.get_cmap('viridis')
-        norm = mpl.colors.Normalize(vmin=MINIMUM_DIMENSION, vmax=MAXIMUM_DIMENSION)
-        scalar_map = cm.ScalarMappable(norm=norm, cmap=color_map)
-
-        dimension = len(simplex) - 1
-        face_color = scalar_map.to_rgba(dimension)
-        return face_color
-
-    if network.graph.number_of_nodes() <= 1000:
-        graphviz_method = 'neato'  # best for a few nodes
-    else:
-        graphviz_method = 'sfdp'  # scalable method
-    node_positions = nx.nx_agraph.graphviz_layout(network.graph, prog=graphviz_method)
-
-    all_facets = network._interactions
-    # remove facets with dimension 0 and 1 (points and edges)
-    facets_to_plot = sorted([facet for facet in all_facets if len(facet) - 1 > 1], key=len, reverse=True)
-
-    debug(f'Number of facets to plot: {len(facets_to_plot)}')
+    color_map_name = 'viridis_r'  # plasma, inferno, magma, cividis
+    all_node_positions = _determine_node_positions(network.graph)
+    interactions_to_plot = _determine_interactions_to_plot(network._interactions)
+    debug(f'Number of facets to plot: {len(interactions_to_plot)}')
 
     simplex_node_positions = [
-        list(itemgetter(*facet)(node_positions))
-        for facet in facets_to_plot
+        list(itemgetter(*facet)(all_node_positions))
+        for facet in interactions_to_plot
     ]
     convex_hulls = [
         ConvexHull(simplex_node_pos, qhull_options='QJ Pp')
@@ -85,42 +66,41 @@ def plot_finite_network(network: FiniteNetwork, axes: plt.Axes) -> None:
         ])
         for convex_hull, node_positions in zip(convex_hulls, simplex_node_positions)
     ]
-    face_colors = list(map(get_face_color, facets_to_plot))
+
+    # from pickle import dump
+    # with open('interactions.dat', "wb") as fp:  # Pickling
+    #     dump(interactions_to_plot, fp)
+    # np.save('polygon_coordinates.npy', np.array(polygon_coordinates, dtype=object), allow_pickle=True)
+
+    face_colors = _get_simplex_colors(interactions_to_plot, color_map_name)
 
     polygon_collection = PolyCollection(
         polygon_coordinates,
         facecolors=face_colors,
         edgecolors=('black',),
-        linewidths=(0.01,),
-        alpha=(0.3,),
+        linewidths=(0.01,)
     )
 
     axes.add_collection(polygon_collection)
 
-    nx.draw_networkx_edges(network.graph, node_positions, ax=axes, edge_color='black', width=0.01, alpha=0.3)
-    nx.draw_networkx_nodes(network.graph, node_positions, ax=axes, node_color='black', node_size=0.1)
+    nx.draw_networkx_edges(network.graph, all_node_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.01)
+    nx.draw_networkx_nodes(network.graph, all_node_positions, ax=axes, node_color='black', node_size=0.001)
 
-    axes.set_title("Simplicial Complex")
     axes.set_axis_off()
 
 
-def approximate_and_plot_pdf(
+def approximate_distribution(
     empirical_distribution: EmpiricalDistribution,
-    axes: plt.Axes,
-    theoretical_distribution_type: TheoreticalDistribution.Type,
-) -> None:
-    """Plot the empirical distribution PDF and its approximation."""
+    theoretical_distribution_type: TheoreticalDistribution.Type
+) -> DistributionApproximation:
+    """Approximate an empirical distribution with the given theoretical distribution."""
     distribution_pair = DistributionApproximation(empirical_distribution, theoretical_distribution_type)
     default_fitting_parameters = create_fitting_parameters(theoretical_distribution_type)
     distribution_pair.fit(default_fitting_parameters)
+    return distribution_pair
 
-    plot_distribution_pdf_pair(distribution_pair, axes)
 
-
-def plot_distribution_pdf_pair(
-    distribution_pair: DistributionApproximation,
-    axes: plt.Axes
-) -> None:
+def plot_distribution_approximation(distribution_pair: DistributionApproximation, axes: plt.Axes) -> None:
     """Plot the distribution and its approximation on a given axes."""
     # standardize the plots if the theoretical distribution is normal or stable
     if distribution_pair.type == TheoreticalDistribution.Type.POISSON:
@@ -153,6 +133,33 @@ def plot_distribution_pdf_pair(
         )
 
 
+def _determine_node_positions(graph: nx.Graph):
+
+    if graph.number_of_nodes() <= 1000:
+        graphviz_method = 'neato'  # best for a few nodes
+    else:
+        graphviz_method = 'sfdp'  # scalable method
+    node_positions = nx.nx_agraph.graphviz_layout(graph, prog=graphviz_method)
+    return node_positions
+
+
+def _determine_interactions_to_plot(interactions: list[list[int]]) -> list[list[int]]:
+    # remove facets with dimension 0 and 1 (points and edges)
+    interactions_to_plot = sorted([facet for facet in interactions if len(facet) - 1 > 1], key=len, reverse=False)
+    return interactions_to_plot
+
+
+def _get_simplex_colors(simplices: list[list[int]], color_map_name: str):
+    dimensions = np.array([len(simplex) - 1 for simplex in simplices])
+    color_values_on_map = {dimension: (dimensions < dimension).mean() for dimension in np.unique(dimensions)}
+    color_map = plt.get_cmap(color_map_name,)
+    face_colors = color_map(np.vectorize(color_values_on_map.get)(dimensions))
+
+    opacities = 1. / (dimensions - 1.)**2.
+    face_colors[:, -1] = opacities
+    return face_colors
+
+
 def _plot_approximation(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
@@ -165,7 +172,7 @@ def _plot_approximation(
         _plot_histogram(histogram, bins, axes)
     else:
         warning('Empirical distribution to be plotted is invalid.')
-        return
+        return None
 
     if distribution_pair.theoretical.valid:
         domain_intersection = distribution_pair.theoretical.domain.intersect(distribution_pair.empirical.domain)
@@ -192,7 +199,7 @@ def _plot_approximation_standardized(
     histogram_type: EmpiricalDistribution.HistogramType,
     padding: PaddingSide,
     axes: plt.Axes
-) -> None:
+) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
 
     if distribution_pair.empirical.valid:
         mu = distribution_pair.empirical.mean
@@ -202,7 +209,7 @@ def _plot_approximation_standardized(
         _plot_histogram(standardized_histogram, standardized_bins, axes)
     else:
         warning('Empirical distribution to be plotted is invalid.')
-        return
+        return None
 
     if distribution_pair.theoretical.valid:
         domain_intersection = distribution_pair.theoretical.domain.intersect(distribution_pair.empirical.domain)
@@ -224,13 +231,18 @@ def _plot_approximation_standardized(
     test_result = distribution_pair.run_test()
     print_info([distribution_pair, test_result], axes)
 
+    values_plotted_empirical = np.c_[standardized_bins[:-1], standardized_histogram]
+    values_plotted_theoretical = np.c_[standardized_theoretical_x_values, standardized_theoretical_pdf]
+
+    return values_plotted_empirical, values_plotted_theoretical
+
 
 def _plot_approximation_log(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
     padding: PaddingSide,
     axes: plt.Axes
-) -> None:
+) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
 
     if distribution_pair.empirical.valid:
         histogram, bins = distribution_pair.empirical.calc_histogram(histogram_type)
@@ -268,6 +280,11 @@ def _plot_approximation_log(
     test_result = distribution_pair.run_test()
     print_info([distribution_pair, test_result], axes)
 
+    values_plotted_empirical = np.c_[bins[:-1], histogram]
+    values_plotted_theoretical = np.c_[theoretical_x_values, theoretical_pdf_to_plot]
+
+    return values_plotted_empirical, values_plotted_theoretical
+
 
 def _standardize_coordinates(
     x_values: npt.NDArray[np.float_],
@@ -286,12 +303,15 @@ def plot_empirical_distribution_histogram_with_info(
     distribution: EmpiricalDistribution,
     histogram_type: EmpiricalDistribution.HistogramType,
     axes: plt.Axes,
-) -> None:
+) -> npt.NDArray[np.float_]:
     """Plot the empirical density with histogram estimation on the given axes with information."""
     histogram, bins = distribution.calc_histogram(histogram_type)
     _plot_histogram(histogram, bins, axes)
     _set_linear_scale_limits(x_values=bins, y_values=histogram, axes=axes)
     print_info([distribution], axes)
+
+    values_plotted = np.c_[bins[:-1], histogram]
+    return values_plotted
 
 
 def _plot_pdf(x_values: npt.NDArray[np.float_], pdf: npt.NDArray[np.float_], axes: plt.Axes) -> None:
@@ -326,12 +346,16 @@ def plot_empirical_distribution_value_counts(distribution: EmpiricalDistribution
     plot_value_counts(value_counts, axes)
 
 
-def plot_value_counts(value_counts: npt.NDArray[np.float_ | np.int_], axes: plt.Axes) -> None:
+def plot_value_counts(
+    value_counts: npt.NDArray[np.float_ | np.int_],
+    axes: plt.Axes
+) -> npt.NDArray[np.float_]:
     """Plot a list of values on a given axes."""
     markerline, _, _ = axes.stem(value_counts[:, 0], value_counts[:, 1])
     plt.setp(markerline, markersize=5)
     axes.set_xlabel('Index')
     axes.set_ylabel('Value')
+    return value_counts
 
 
 def plot_probability_plot(distribution_pair: DistributionApproximation, axes: plt.Axes) -> None:
@@ -372,12 +396,37 @@ def plot_qq_plot(distribution_pair: DistributionApproximation, axes: plt.Axes) -
     axes.set_ylim(limits)
 
 
+def plot_persistence_diagram_(persistence, axes: plt.Axes):
+    """Plot the persistence diagram and return the plotted values."""
+    plot_persistence_diagram(persistence)
+    return persistence
+
+
+def plot_persistence_barcode_(persistence, axes: plt.Axes):
+    """Plot the persistence barcode and return the plotted values."""
+    plot_persistence_barcode(persistence)
+    return persistence
+
+
 def print_info(objects_to_print: list[Any], axes: plt.Axes) -> None:
     """Print a text box to the given axes."""
     text = '\n'.join(map(str, objects_to_print))
     text_box = AnchoredText(text, frameon=True, loc='lower left', pad=0.5)
     plt.setp(text_box.patch, boxstyle='round', facecolor='wheat', alpha=0.5)
     axes.add_artist(text_box)
+
+
+def check_calculated(plotter_function):
+    """Check if the data to be plotted is calculated.
+
+    Use as a decorator.
+    """
+    def wrapper(data_to_plot: Any, axes: plt.Axes, save_directory: Path):
+        if data_to_plot is None:
+            print_not_calculated(axes)
+        else:
+            plotter_function(data_to_plot, axes, save_directory)
+    return wrapper
 
 
 def print_not_calculated(axes: plt.Axes) -> None:

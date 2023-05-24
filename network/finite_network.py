@@ -3,8 +3,8 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from logging import debug
-from math import comb
 from typing import Any
 
 from gudhi.simplex_tree import SimplexTree
@@ -13,6 +13,7 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
+from cpp_critical_sections.build.cpp_critical_sections import calc_degree_sequence
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
@@ -47,6 +48,7 @@ class FiniteNetwork(Network):
             return
 
         self._is_persistence_computed = False
+        self._is_collapsed_persistence_computed = False
 
         skeleton = self._get_simplex_skeleton_for_max_dimension(simplex)
         for face in skeleton:
@@ -75,10 +77,12 @@ class FiniteNetwork(Network):
         properties_to_calculate: list[BaseNetworkProperty.Type]
     ) -> dict[BaseNetworkProperty.Type, Any]:
         """Calculate the summary of the network."""
+        debug('Summary calculation started.')
         summary: dict[BaseNetworkProperty.Type, Any] = {
             property_type: self.calc_base_property(property_type)
             for property_type in properties_to_calculate
         }
+        debug('Summary calculation finished.')
         return summary
 
     def calc_scalar_property(
@@ -95,12 +99,24 @@ class FiniteNetwork(Network):
         scalar_property_value = scalar_property_params.calculator(source_base_property)
         return scalar_property_value
 
+    def collapse(self) -> FiniteNetwork:
+        """Collapse edges of the simplicial complex preserving its 1 homology."""
+        debug(f'Collapsing network, containing currently: {self.num_vertices} vertices.')
+        collapsed_network = FiniteNetwork(self.max_dimension)
+        collapsed_network.graph = deepcopy(self.graph)
+        collapsed_network.generate_simplicial_complex_from_graph()
+        collapsed_network.simplicial_complex.collapse_edges()
+        collapsed_network.simplicial_complex.expansion()
+        collapsed_network.generate_graph_from_simplicial_complex()
+        debug(f'Collapsed containing {collapsed_network.num_vertices} vertices.')
+        return collapsed_network
+
     def calc_base_property(self, property_type: BaseNetworkProperty.Type) -> Any:
         """Return a base property of the network."""
         debug(f'Calculating {property_type.name}...')
 
         if property_type == BaseNetworkProperty.Type.NUM_OF_NODES:
-            property_value = self.graph.number_of_nodes()
+            property_value = self.num_vertices
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
             property_value = self.graph.number_of_edges()
         elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
@@ -127,7 +143,7 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.DIMENSION:
             property_value = self.simplicial_complex.dimension()
         elif property_type == BaseNetworkProperty.Type.NUM_OF_SIMPLICES:
-            property_value = self.simplicial_complex.num_simplices()
+            property_value = self.num_simplices
         elif property_type == BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION:
@@ -135,6 +151,7 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_facet_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:
+            # property_value = self._calculate_betti_numbers_with_collapse(max_num_of_vertices=10000)
             property_value = self._calculate_betti_numbers()
         elif property_type == BaseNetworkProperty.Type.PERSISTENCE:
             property_value = tuple(self.simplicial_complex.persistence(persistence_dim_max=True))
@@ -147,6 +164,17 @@ class FiniteNetwork(Network):
 
         return property_value
 
+    def get_info_as_dict(self) -> dict[str, Any]:
+        """Return a dict representation based on the network properties."""
+        return {
+            'num_of_vertices': self.num_vertices,
+            'Number of interactions': len(self._interactions),
+            'Number of simplices': self.num_simplices,
+            'Max Dimension': self.max_dimension,
+            'Number of components': len(list(nx.connected_components(self._graph))),
+            'Number of vertices in component 0': self.num_of_vertices_in_component(0),
+        }
+
     def _calculate_average_degree(self) -> float:
         num_of_nodes = self.graph.number_of_nodes()
         num_of_edges = self.graph.number_of_edges()
@@ -156,7 +184,6 @@ class FiniteNetwork(Network):
     def _compute_persistence(self) -> None:
         """Compute persistence of the simplicial complex."""
         debug('Computing persistence...')
-        # self.simplicial_complex.compute_persistence(persistence_dim_max=self.max_dimension)
         self.simplicial_complex.compute_persistence()
         self._is_persistence_computed = True
         debug('Persistence computed.')
@@ -195,6 +222,16 @@ class FiniteNetwork(Network):
 
         return EmpiricalDistribution(degree_sequence)
 
+    def _calculate_betti_numbers_with_collapse(self, max_num_of_vertices: int) -> npt.NDArray[np.int_]:
+        """Calculate the Betti numbers for different dimensions."""
+        collapsed_network = self
+
+        while collapsed_network.num_vertices > max_num_of_vertices:
+            debug(f'Collapsing network as it contains {collapsed_network.num_vertices} vertices.')
+            collapsed_network = collapsed_network.collapse()
+
+        return collapsed_network._calculate_betti_numbers()
+
     def _calculate_betti_numbers(self) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
         if not self.is_persistence_computed:
@@ -218,33 +255,36 @@ class FiniteNetwork(Network):
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
 
-        # extract facets with dimension higher or equal to neighbor dimension
-        facets = filter(lambda facet: len(facet) - 1 >= neighbor_dimension, self.facets)
-
-        degree_sequence: list[int] = []
-        for facet in tqdm(
-            facets,
-            desc=f'Calculating degree sequence ({simplex_dimension} - {neighbor_dimension})...',
-            delay=10
-        ):
-            facet_dimension = len(facet) - 1
-            num_of_simplices_in_facet = comb(facet_dimension + 1, simplex_dimension + 1)
-            num_of_neighbors_in_facet = comb(
-                facet_dimension - simplex_dimension,
-                neighbor_dimension - simplex_dimension
-            )
-            degree_sequence += [num_of_neighbors_in_facet] * num_of_simplices_in_facet
-
+        degree_sequence = calc_degree_sequence(self.simplices, self.facets, simplex_dimension, neighbor_dimension)
         return degree_sequence
 
-    @property
+    @ property
     def simplices(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
         simplices_with_filtration = self.simplicial_complex.get_simplices()
         simplices = [simplex for simplex, _ in simplices_with_filtration]
         return simplices
 
-    @property
+    @ property
     def is_persistence_computed(self) -> bool:
         """Return if persistence is computed on the simplicial complex."""
         return self._is_persistence_computed
+
+    def __copy__(self):
+        """Produce collapsed version of self."""
+        return self
+
+    def __deepcopy__(self, memo):
+        """Produce collapsed version of self."""
+        return self
+
+    def __str__(self) -> str:
+        """Return a string representation based on the network properties."""
+        return '\n'.join([
+            f'Number of vertices: {self.num_vertices}',
+            f'Number of interactions: {len(self._interactions)}',
+            f'Number of simplices: {self.num_simplices}',
+            f'Max Dimension: {self.max_dimension}',
+            f'Number of components: {len(list(nx.connected_components(self._graph)))}',
+            f'Number of vertices in component 0: {self.num_of_vertices_in_component(0)}',
+        ])

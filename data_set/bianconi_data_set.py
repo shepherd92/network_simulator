@@ -66,9 +66,10 @@ class BianconiDataSet(DataSet):
 
         # pylint: disable-next=attribute-defined-outside-init
         self._interactions = \
-            list(map(set, self._data['nodes'].values)) + \
-            list(map(set, self._data['edges'].iloc[:, :2].values)) + \
-            list(map(set, self._data['triangles'].iloc[:, :3].values))
+            self._data['nodes'].values.tolist() + \
+            self._data['edges'].iloc[:, :2].values.tolist() + \
+            self._data['triangles'].iloc[:, :3].values.tolist()
+        pass
 
     def _build_graph(self) -> None:
         """Build a simple networkx graph."""

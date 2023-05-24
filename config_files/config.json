@@ -2,7 +2,7 @@
     "general": {
         "log_level": "DEBUG",
         "enable_profiling": false,
-        "num_of_processes": 1,
+        "num_of_processes": 6,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
             "output": "../output"
@@ -15,11 +15,15 @@
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
+                "AVERAGE_DEGREE",
                 "MAX_DEGREE",
+                "AVG_CLUSTERING",
                 "NUM_OF_CONNECTED_COMPONENTS",
                 "DIMENSION",
                 "NUM_OF_SIMPLICES",
                 "INTERACTION_DIMENSION_DISTRIBUTION",
+                "SIMPLEX_DIMENSION_DISTRIBUTION",
+                "FACET_DIMENSION_DISTRIBUTION",
                 "DEGREE_DISTRIBUTION",
                 "IN_DEGREE_DISTRIBUTION",
                 "OUT_DEGREE_DISTRIBUTION",
@@ -45,17 +49,23 @@
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
+                "AVERAGE_DEGREE",
                 "MAX_DEGREE",
+                "AVG_CLUSTERING",
                 "NUM_OF_CONNECTED_COMPONENTS",
                 "DIMENSION",
                 "NUM_OF_SIMPLICES",
                 "INTERACTION_DIMENSION_DISTRIBUTION",
+                "SIMPLEX_DIMENSION_DISTRIBUTION",
+                "FACET_DIMENSION_DISTRIBUTION",
                 "DEGREE_DISTRIBUTION",
                 "IN_DEGREE_DISTRIBUTION",
                 "OUT_DEGREE_DISTRIBUTION",
                 "HIGHER_ORDER_DEGREE_DISTRIBUTION_1",
                 "HIGHER_ORDER_DEGREE_DISTRIBUTION_2",
-                "HIGHER_ORDER_DEGREE_DISTRIBUTION_3"
+                "HIGHER_ORDER_DEGREE_DISTRIBUTION_3",
+                "BETTI_NUMBERS",
+                "PERSISTENCE"
             ]
         }
     }
