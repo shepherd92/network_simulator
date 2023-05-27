@@ -15,8 +15,8 @@ from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
-    max_dimension=2,
-    num_nodes=10000,
+    max_dimension=3,
+    num_nodes=1000000,
     torus_dimension=1,
     alpha=0.5,
     beta=1.0,

@@ -36,10 +36,10 @@ class Network:
     def generate_clique_complex_from_graph(self) -> None:
         """Given graph, generate the clique complex and store it in the simplicial complex member."""
         cliques = list(nx.find_cliques(self.graph))
-        self.simplicial_complex = SimplexTree()
-        self.add_simplices(cliques)
+        self.generate_simplicial_complex_from_graph()
         self._interactions = cliques
         self._facets = cliques
+        self.simplicial_complex.expansion(self._max_dimension)
 
     def filter_simplicial_complex_from_graph(self) -> None:
         """Filter out those simplices from the simplicial complex that are not present in the graph."""

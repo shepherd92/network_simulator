@@ -99,6 +99,14 @@ class AgeDependentRandomSimplexModel(Model):
 
         return network
 
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int | None = None) -> list[InfiniteNetwork]:
+        """Generate a list of infinite networks."""
+        infinite_networks = [
+            self.generate_infinite_network(seed * num_of_networks + index)
+            for index in range(num_of_networks)
+        ]
+        return infinite_networks
+
     def generate_infinite_network(self, seed: int | None = None) -> InfiniteNetwork:
         """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         assert self.parameters.torus_dimension == 1, \
@@ -115,13 +123,10 @@ class AgeDependentRandomSimplexModel(Model):
 
         N = int(np.round(b * (1/u - 1)))  # total area of the rectangle
         birth_times = np.r_[np.array([u]), random_number_generator.uniform(u, 1., size=N)]
-        positions = np.r_[
-            np.zeros((1, self.parameters.torus_dimension)),
-            random_number_generator.uniform(-b/u, +b/u, size=(N, self.parameters.torus_dimension))
-        ]
+        positions = np.r_[np.array([0.]), random_number_generator.uniform(-b/u, +b/u, size=N)]
 
         # vertices closer to the origin than 1/2 * beta * u^(-gamma) * v^(gamma - 1) are connected to  the origin
-        mask = np.linalg.norm(positions, axis=1) < 0.5 * b * u**(-g) * birth_times**(g - 1)
+        mask = np.abs(positions) < 0.5 * b * u**(-g) * birth_times**(g - 1)
         birth_times_connected_to_o = birth_times[mask]
         positions_connected_to_o = positions[mask]
 

@@ -45,10 +45,13 @@ std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<i
 {
   auto sorted_simplices{sort_simplices(simplices)};
   std::vector<std::vector<int32_t>> facets;
+#ifdef LOGGING
   auto counter{0U};
+#endif
 
   for (auto first = sorted_simplices.begin(); first != sorted_simplices.end(); ++first)
   {
+#ifdef LOGGING
     if (++counter % 1000 == 0)
     {
       std::cout << "\rC++: extracting facets..."
@@ -56,6 +59,7 @@ std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<i
                 << static_cast<float>(counter) / static_cast<float>(sorted_simplices.size()) * 100
                 << "%    ";
     }
+#endif
 
     auto first_is_subset{false};
     for (auto second{next(first)}; second != sorted_simplices.end(); ++second)
@@ -108,10 +112,13 @@ std::vector<int32_t> calc_degree_sequence(
           { return facet.size() > neighbor_dimension; });
 
   std::vector<int32_t> degree_sequence;
+#ifdef LOGGING
   auto counter{0U};
+#endif
 
   for (const auto &simplex : selected_simplices)
   {
+#ifdef LOGGING
     if (++counter % 1000 == 0)
     {
       std::cout << "\rC++: calculating degree sequence..."
@@ -119,6 +126,7 @@ std::vector<int32_t> calc_degree_sequence(
                 << static_cast<float>(counter) / static_cast<float>(selected_simplices.size()) * 100.
                 << "%    ";
     }
+#endif
 
     int higher_order_degree{0};
     for (const auto &facet : possible_neighbors)

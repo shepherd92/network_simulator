@@ -39,12 +39,12 @@
             "enable": false
         },
         "testing": {
-            "enable": false,
+            "enable": true,
             "test_against_data_set": false,
             "num_of_simulations": 100
         },
         "analysis": {
-            "enable": true,
+            "enable": false,
             "component_index_from_largest": -1,
             "properties": [
                 "NUM_OF_NODES",

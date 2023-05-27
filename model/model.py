@@ -6,6 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 from multiprocessing import Pool
+from tqdm import tqdm
 from typing import Any
 
 from data_set.data_set import DataSet
@@ -73,7 +74,11 @@ class Model:
         """Build a network of the model."""
         raise NotImplementedError
 
-    def generate_infinite_network(self, seed: int) -> InfiniteNetwork:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int | None = None) -> list[InfiniteNetwork]:
+        """Generate a set of "infinite" networks."""
+        raise NotImplementedError
+
+    def generate_infinite_network(self, seed: int | None) -> InfiniteNetwork:
         """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         raise NotImplementedError
 
@@ -121,11 +126,17 @@ class Model:
     ) -> list[list[Any]]:
         """Simulate networks using multiple processes calculating a list of base properties."""
         with Pool(num_of_processes) as pool:
+            args = list(zip([base_network_properties] * num_of_simulations, range(num_of_simulations)))
             # pylint: disable-next=no-member
-            all_networks_base_network_properties: list[list[Any]] = pool.starmap(  # type: ignore
-                self._generate_properties,
-                list(zip([base_network_properties] * num_of_simulations, range(num_of_simulations))),
-            )
+            all_networks_base_network_properties: list[list[Any]] = [
+                results for results in
+                tqdm(pool.istarmap(self._generate_properties, args), desc='Simulation: ', total=num_of_simulations)
+            ]
+
+            # all_networks_base_network_properties: list[list[Any]] = pool.starmap(  # type: ignore
+            #     self._generate_properties,
+            #     tqdm(args, desc='Simulation: ', total=num_of_simulations),
+            # )
         return all_networks_base_network_properties
 
     def _simulate_single_process(
@@ -135,44 +146,44 @@ class Model:
     ) -> list[list[Any]]:
         all_networks_base_network_properties = [
             self._generate_properties(base_network_properties, seed)
-            for seed in range(num_of_simulations)
+            for seed in tqdm(range(num_of_simulations), desc='Simulation: ')
         ]
         return all_networks_base_network_properties
 
     def _generate_properties(self, base_properties: list[BaseNetworkProperty], seed: int) -> list[Any]:
         """Build a single network of the model and return its summary."""
-        network: FiniteNetwork | None = None
+        finite_network: FiniteNetwork | None = None
+        infinite_networks: list[InfiniteNetwork] | None = None
         property_values: list[Any] = []
         for property_ in base_properties:
             if property_.calculation_method == BaseNetworkProperty.CalculationMethod.NETWORK:
-                network = self.generate_finite_network(seed) if network is None else network
-                property_value = network.calc_base_property(property_.property_type)
+                finite_network = self.generate_finite_network(seed) if finite_network is None else finite_network
+                property_value = finite_network.calc_base_property(property_.property_type)
             elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
-                property_value = self._calc_typical_property_distribution(property_.property_type, seed)
+                infinite_networks = \
+                    self.generate_infinite_network_set(self.parameters.num_nodes, seed) \
+                    if infinite_networks is None else infinite_networks
+                property_value = self._calc_typical_property_distribution(infinite_networks, property_.property_type)
             else:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)
-
-        print('.', end='', flush=True)
 
         return property_values
 
     def _calc_typical_property_distribution(
         self,
+        infinite_networks: list[InfiniteNetwork],
         property_type: BaseNetworkProperty.Type,
-        seed: int
     ) -> EmpiricalDistribution:
         """Generate typical properties of the given type."""
-        num_of_objects = self.parameters.num_nodes
+        typical_property_sets = [
+            infinite_network.calc_base_property_value_set(property_type)
+            for infinite_network in infinite_networks
+        ]
 
-        generated_values: list[Any] = []
-        while len(generated_values) < num_of_objects:
-            infinite_network = self.generate_infinite_network(seed)
-            next_typical_property_set = infinite_network.calc_base_property_value_set(property_type)
-            generated_values.extend(next_typical_property_set)
-            seed += 1
-
-        distribution = EmpiricalDistribution(generated_values)
+        distribution = EmpiricalDistribution([
+            value for property_set in typical_property_sets for value in property_set
+        ])
         return distribution
 
     @property

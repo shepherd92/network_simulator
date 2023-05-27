@@ -34,9 +34,6 @@ class FiniteNetwork(Network):
             simplicial_complex.insert((node,))
         for edge in tqdm(self.graph.edges, desc='Inserting edges from graph to simplical complex', delay=10):
             simplicial_complex.insert(edge)
-
-        self._interactions = self.graph.edges
-        self._facets = self.graph.edges
         self.simplicial_complex = simplicial_complex
 
     def add_simplex(self, simplex: list[int], filtration: float = 0.) -> None:

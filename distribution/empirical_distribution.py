@@ -239,6 +239,7 @@ class EmpiricalDistribution(Distribution):
         """Return string representation for reporting."""
         return '\n'.join([
             f'Empirical Domain: {self.domain}',
+            f'Empirical Values: {len(self.value_sequence)}',
             f'Empirical Mean: {self.mean:.4f}',
             f'Empirical Std: {self.std_dev:.4f}',
         ])

@@ -66,6 +66,8 @@ class PriceModel(Model):
         network.graph.add_edges_from(edges)
         network.digraph = network.graph.to_directed()
         network.generate_simplicial_complex_from_graph()
+        network._interactions = network.graph.edges
+        network._facets = network.graph.edges
 
         return network
 
