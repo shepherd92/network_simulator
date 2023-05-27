@@ -11,6 +11,7 @@ import numpy as np
 import numpy.typing as npt
 from scipy.optimize import OptimizeResult, minimize
 from scipy.stats import levy_stable
+from scipy.stats._warnings_errors import FitError
 
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -55,6 +56,19 @@ class StableDistribution(TheoreticalDistribution):
         quantiles = levy_stable.ppf(quantiles_to_calculate, *astuple(self._parameters))
         return quantiles
 
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        return {
+            'distribution_type': 'stable',
+            'valid': self.valid,
+            'domain_min': self.domain.min_,
+            'domain_max': self.domain.max_,
+            'alpa': self._parameters.alpha,
+            'beta': self._parameters.beta,
+            'location': self._parameters.location,
+            'scale': self._parameters.scale,
+        }
+
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,
@@ -97,7 +111,13 @@ class StableDistribution(TheoreticalDistribution):
         empirical_distribution: EmpiricalDistribution
     ) -> Parameters:
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
-        params = levy_stable.fit(value_sequence)
+
+        try:
+            params = levy_stable.fit(value_sequence)
+        except FitError:
+            # sometimes the fitting converges to parameters outside the domain
+            params = (np.nan, np.nan, np.nan, np.nan)
+
         return StableDistribution.Parameters(
             params[0],
             params[1],

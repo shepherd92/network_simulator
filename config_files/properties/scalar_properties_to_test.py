@@ -3,6 +3,7 @@
 
 import numpy as np
 
+from config_files.model_config.age_dependent_random_simplex_config import AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -22,7 +23,7 @@ def _get_power_law_exponent(empirical_distribution: EmpiricalDistribution) -> fl
     return approximation.theoretical.parameters.exponent
 
 
-GAMMA = 0.7
+GAMMA = AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS.gamma
 
 
 SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (

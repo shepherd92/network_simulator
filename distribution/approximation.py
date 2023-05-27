@@ -140,8 +140,24 @@ class DistributionApproximation:
         )
         return confidence_intervals_df
 
-    def save(self, path: Path) -> None:
-        """Save the distribution pair to the given path."""
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        empirical_info = self.empirical.get_info_as_dict()
+        theoretical_info = self.theoretical.get_info_as_dict()
+
+        joint_info: dict[str, int | float] = {}
+        for key, value in empirical_info.items():
+            joint_info[f'empirical_{key}'] = value
+        for key, value in theoretical_info.items():
+            joint_info[f'theoretical_{key}'] = value
+
+        return joint_info
+
+    def save_info(self, save_path: Path) -> None:
+        """Save the main parameters to the given file as a pandas data frame."""
+        info = self.get_info_as_dict()
+        data_frame = pd.DataFrame(info, index=[0])
+        data_frame.to_csv(save_path, index=False)
 
     @property
     def type(self) -> TheoreticalDistribution.Type:

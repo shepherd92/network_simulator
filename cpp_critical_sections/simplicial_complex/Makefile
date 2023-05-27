@@ -1,12 +1,12 @@
 # project name
-PROJECT := cpp_critical_sections
+PROJECT := simplicial_complex
 
 # suppress Makefile output
 # .SILENT :
 
 # compiler and linker settings
-CXX      := g++
-LD       := g++
+CXX := g++
+LD  := g++
 
 # std=c++17
 # MP:  add phony target for each dependency other than the main file
@@ -17,14 +17,12 @@ CXXFLAGS := -O3 -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-re
 LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -lcrypt -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
 
 # directories
-ROOT   := .
+ROOT   := ..
+MODULE_ROOT := .
 BLDDIR := $(ROOT)/build
-INCDIR := $(ROOT)/inc
-SRCDIR := $(ROOT)/.
-EXTERNAL_INC_DIRS = /usr/include/python3.10/
-
-# name of the include directory to be used recursively to search for include files
 INCDIRNAME := inc
+SRCDIR := $(MODULE_ROOT)/src
+EXTERNAL_INC_DIRS = /usr/include/python3.10/
 
 # definition of extenstions
 SRCEXT := cpp
@@ -56,7 +54,7 @@ DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
 -include $(DEPS)
 
 # construct include directory compiler flags
-INCDIRS := $(shell find $(ROOT) -iname $(INCDIRNAME) -type d) + $(EXTERNAL_INC_DIRS)
+INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME) $(EXTERNAL_INC_DIRS)
 CXXFLAGS += $(addprefix -I , $(INCDIRS))
 
 __all : $(BLDDIR)/$(PROJECT).$(OBJEXT)

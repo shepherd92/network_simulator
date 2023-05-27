@@ -44,6 +44,15 @@ class UniformDistribution(TheoreticalDistribution):
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return uniform.ppf(quantiles_to_calculate, *astuple(self.parameters))
 
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        return {
+            'distribution_type': 'uniform',
+            'valid': self.valid,
+            'domain_min': self.domain.min_,
+            'domain_max': self.domain.max_,
+        }
+
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,

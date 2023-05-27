@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """This module is responsible for analyzing a simplicial complex."""
 
-from json import dump
 from logging import debug, info
 from pathlib import Path
 from typing import Any, Callable
@@ -46,9 +45,7 @@ def analyze_finite_network(
     axes_grid_height = 4
     axes_grid_width = 3
 
-    network_info = network.get_info_as_dict()
-    with open(save_directory / 'info.json', 'w') as fp:
-        dump(network_info, fp)
+    network.save_info(save_directory / 'network_info.csv')
 
     figure = plt.figure('Network Analysis', figsize=(axes_grid_width * 10, axes_grid_height * 10))
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
@@ -171,6 +168,7 @@ def _report_total_degree_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'total_degree_distribution.csv'
     )
+    approximation.save_info(save_directory / 'total_degree_distribution_info.csv')
 
 
 @check_calculated
@@ -187,6 +185,7 @@ def _report_in_degree_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'in_degree_distribution.csv'
     )
+    approximation.save_info(save_directory / 'in_degree_distribution_info.csv')
 
 
 @check_calculated
@@ -203,6 +202,7 @@ def _report_out_degree_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'out_degree_distribution.csv'
     )
+    approximation.save_info(save_directory / 'out_degree_distribution_info.csv')
 
 
 @check_calculated
@@ -219,6 +219,7 @@ def _report_ho_1_degree_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'ho_degree_distribution_1.csv'
     )
+    approximation.save_info(save_directory / 'ho_degree_distribution_1_info.csv')
 
 
 @check_calculated
@@ -235,6 +236,7 @@ def _report_ho_2_degree_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'ho_degree_distribution_2.csv'
     )
+    approximation.save_info(save_directory / 'ho_degree_distribution_2_info.csv')
 
 
 @check_calculated
@@ -251,6 +253,7 @@ def _report_ho_3_degree_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'ho_degree_distribution_3.csv'
     )
+    approximation.save_info(save_directory / 'ho_degree_distribution_3_info.csv')
 
 
 @check_calculated
@@ -269,6 +272,7 @@ def _report_simplex_dimension_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'simplex_dimension_distribution.csv'
     )
+    empirical_distribution.save_info(save_directory / 'simplex_dimension_distribution_info.csv')
 
 
 @check_calculated
@@ -287,6 +291,7 @@ def _report_facet_dimension_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'facet_dimension_distribution.csv'
     )
+    empirical_distribution.save_info(save_directory / 'facet_dimension_distribution_info.csv')
 
 
 @check_calculated
@@ -305,6 +310,7 @@ def _report_interaction_dimension_distribution(
         EmpiricalDistribution.HistogramType.INTEGERS,
         save_directory / 'interaction_dimension_distribution.csv'
     )
+    empirical_distribution.save_info(save_directory / 'interaction_dimension_distribution_info.csv')
 
 
 @check_calculated

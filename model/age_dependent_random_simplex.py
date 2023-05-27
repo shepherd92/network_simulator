@@ -9,6 +9,9 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
+from cpp_critical_sections.build.adrcm import (
+    generate_connections_default,
+)
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -31,6 +34,16 @@ class AgeDependentRandomSimplexModel(Model):
         alpha: float = 0.5  # parameter of the profile function
         beta: float = 0.1  # edge density is beta / (1 - gamma)
         gamma: float = 0.5  # power law exponent is 1 + 1 / gamma
+
+        def to_numpy(self) -> npt.NDArray[np.float_]:
+            """Return the parameters as a numpy array."""
+            return np.array([
+                self.alpha,
+                self.beta,
+                self.gamma,
+                self.torus_dimension,
+                self.torus_size,
+            ])
 
     def __init__(self) -> None:
         """Create a network model with default parameters."""
@@ -66,38 +79,13 @@ class AgeDependentRandomSimplexModel(Model):
         node_ids = np.array(range(self.parameters.num_nodes))
         random_number_generator = np.random.default_rng(seed)
 
-        birth_times = random_number_generator.random(size=self.parameters.num_nodes)
-
         interarrival_times: npt.NDArray[np.float_] = random_number_generator.exponential(size=self.parameters.num_nodes)
         time = interarrival_times.sum()
+        birth_times = interarrival_times.cumsum() / time
         self.parameters.torus_size = time
 
         positions = random_number_generator.uniform(
             - time / 2, time / 2,
-            size=(self.parameters.num_nodes, self.parameters.torus_dimension)
-        )
-
-        connections = self._generate_connections(birth_times, positions, seed)
-
-        network = FiniteNetwork(self.parameters.max_dimension)
-        network.digraph.add_nodes_from(node_ids)
-        network.digraph.add_edges_from(connections)
-        network.graph = network.digraph.to_undirected()
-        network.generate_clique_complex_from_graph()
-
-        return network
-
-    def generate_finite_network_original(self, seed: int | None = None) -> FiniteNetwork:
-        """Build a network of the model."""
-        assert isinstance(self.parameters, AgeDependentRandomSimplexModel.Parameters), \
-            f'Wrong model parameter type {type(self.parameters)}'
-
-        node_ids = np.array(range(self.parameters.num_nodes))
-        random_number_generator = np.random.default_rng(seed)
-
-        interarrival_times: npt.NDArray[np.float_] = random_number_generator.exponential(size=self.parameters.num_nodes)
-        birth_times = interarrival_times.cumsum()
-        positions = random_number_generator.random(
             size=(self.parameters.num_nodes, self.parameters.torus_dimension)
         )
 
@@ -158,6 +146,34 @@ class AgeDependentRandomSimplexModel(Model):
         positions: npt.NDArray[np.float_],
         seed: int | None
     ) -> npt.NDArray[np.float_]:
+        CPP = True
+        if CPP:
+            return self._generate_connections_cpp(birth_times, positions, seed)
+        else:
+            return self._generate_connections_python(birth_times, positions, seed)
+
+    def _generate_connections_cpp(
+        self,
+        birth_times: npt.NDArray[np.float_],
+        positions: npt.NDArray[np.float_],
+        seed: int | None
+    ) -> npt.NDArray[np.float_]:
+        is_default_profile_function = np.isclose(self.parameters.alpha, 0.5)
+        is_default_connection_generation = is_default_profile_function and self.parameters.torus_dimension == 1
+        if is_default_connection_generation:
+            connections = generate_connections_default(birth_times, positions, self.parameters.to_numpy())
+        else:
+            raise NotImplementedError
+
+        return connections
+
+    def _generate_connections_python(
+        self,
+        birth_times: npt.NDArray[np.float_],
+        positions: npt.NDArray[np.float_],
+        seed: int | None
+    ) -> npt.NDArray[np.float_]:
+
         if self.parameters.num_nodes <= 1000:
             connections = self._generate_connections_vectorized(birth_times, positions, seed)
         else:
@@ -198,7 +214,7 @@ class AgeDependentRandomSimplexModel(Model):
         connection_list: list[np.ndarray] = []
         for source_node_id, source_birth_time, source_position in tqdm(zip(
             node_ids.tolist(), birth_times.tolist(), positions.tolist()
-        ), desc='Generating connections:', delay=10):
+        ), desc='Generating connections:', delay=10, total=len(node_ids)):
             target_birth_times = birth_times[:source_node_id]
             birth_time_ratios = source_birth_time / target_birth_times
 

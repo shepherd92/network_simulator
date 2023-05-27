@@ -50,6 +50,16 @@ class PowerLawDistribution(TheoreticalDistribution):
         quantiles = self.domain.min_ * (1. - quantiles_to_calculate)**(1. / (1 - self._parameters.exponent))
         return quantiles
 
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        return {
+            'distribution_type': 'power_law',
+            'valid': self.valid,
+            'domain_min': self.domain.min_,
+            'domain_max': self.domain.max_,
+            'exponent': self._parameters.exponent,
+        }
+
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,

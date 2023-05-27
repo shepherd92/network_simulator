@@ -31,9 +31,10 @@ class ArxivDataSet(DataSet):
 
     def get_info_as_dict(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
-        date_interval = \
-            f"[{self._data_set_properties.date_interval[0].strftime('%Y-%m-%d')}, " + \
-            f"{self._data_set_properties.date_interval[1].strftime('%Y-%m-%d')}]"
+        date_interval = [
+            self._data_set_properties.date_interval[0].strftime('%Y-%m-%d'),
+            self._data_set_properties.date_interval[1].strftime('%Y-%m-%d'),
+        ]
 
         if ArxivField.INVALID in self._data_set_properties.fields:
             field_names = 'Not filtered'
@@ -50,7 +51,8 @@ class ArxivDataSet(DataSet):
             'name': 'arxiv',
             'fields': field_names,
             'categories': categories,
-            'date_interval': date_interval,
+            'date_interval_min': date_interval[0],
+            'date_interval_max': date_interval[1],
             'component': self._data_set_properties.component_index_from_largest,
 
         })

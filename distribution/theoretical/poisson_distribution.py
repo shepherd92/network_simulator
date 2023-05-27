@@ -47,6 +47,16 @@ class PoissonDistribution(TheoreticalDistribution):
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return poisson.ppf(quantiles_to_calculate)
 
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        return {
+            'distribution_type': 'poisson',
+            'valid': self.valid,
+            'domain_min': self.domain.min_,
+            'domain_max': self.domain.max_,
+            'lambda': self.parameters.lambda_,
+        }
+
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,

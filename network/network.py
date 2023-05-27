@@ -4,13 +4,15 @@
 from __future__ import annotations
 
 from itertools import combinations
+from pathlib import Path
 from typing import Any
 
 from gudhi.simplex_tree import SimplexTree
 import networkx as nx
+import pandas as pd
 from tqdm import tqdm
 
-from cpp_critical_sections.build.cpp_critical_sections import extract_facets
+from cpp_critical_sections.build.simplicial_complex import extract_facets
 from distribution.empirical_distribution import EmpiricalDistribution
 
 
@@ -104,6 +106,12 @@ class Network:
     def get_info_as_dict(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         raise NotImplementedError
+
+    def save_info(self, save_path: Path) -> None:
+        """Save the main parameters to the given file as a pandas data frame."""
+        info = self.get_info_as_dict()
+        data_frame = pd.DataFrame(info, index=[0])
+        data_frame.to_csv(save_path, index=False)
 
     def _extract_facets(self) -> list[list[int]]:
         """Return the facets of the simplicial complex."""

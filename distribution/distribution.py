@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 
 class Distribution:
@@ -124,6 +126,16 @@ class Distribution:
 
         p_values = 2 * np.nanmin(np.c_[self.cdf(test_values), 1 - self.cdf(test_values)], axis=1)
         return p_values
+
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        raise NotImplementedError
+
+    def save_info(self, save_path: Path) -> None:
+        """Save the main parameters to the given file as a pandas data frame."""
+        info = self.get_info_as_dict()
+        data_frame = pd.DataFrame(info, index=[0])
+        data_frame.to_csv(save_path, index=False)
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
         """Return the PDF of the distribution evaluted at the given x_values."""

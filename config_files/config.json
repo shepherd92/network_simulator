@@ -11,7 +11,7 @@
     "data_set": {
         "type": "ARXIV",
         "analysis": {
-            "enable": true,
+            "enable": false,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
@@ -44,7 +44,7 @@
             "num_of_simulations": 100
         },
         "analysis": {
-            "enable": false,
+            "enable": true,
             "component_index_from_largest": -1,
             "properties": [
                 "NUM_OF_NODES",

@@ -13,7 +13,7 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
-from cpp_critical_sections.build.cpp_critical_sections import calc_degree_sequence
+from cpp_critical_sections.build.simplicial_complex import calc_degree_sequence
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
@@ -106,7 +106,7 @@ class FiniteNetwork(Network):
         collapsed_network.graph = deepcopy(self.graph)
         collapsed_network.generate_simplicial_complex_from_graph()
         collapsed_network.simplicial_complex.collapse_edges()
-        collapsed_network.simplicial_complex.expansion()
+        collapsed_network.simplicial_complex.expansion(self._max_dimension)
         collapsed_network.generate_graph_from_simplicial_complex()
         debug(f'Collapsed containing {collapsed_network.num_vertices} vertices.')
         return collapsed_network
@@ -151,10 +151,10 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_facet_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:
-            # property_value = self._calculate_betti_numbers_with_collapse(max_num_of_vertices=10000)
+            # property_value = self._calculate_betti_numbers_with_collapse(max_num_of_vertices=1000)
             property_value = self._calculate_betti_numbers()
         elif property_type == BaseNetworkProperty.Type.PERSISTENCE:
-            property_value = tuple(self.simplicial_complex.persistence(persistence_dim_max=True))
+            property_value = tuple(self.simplicial_complex.persistence())
         else:
             raise NotImplementedError(
                 f'Requested property type {property_type} is not available.'
@@ -168,11 +168,11 @@ class FiniteNetwork(Network):
         """Return a dict representation based on the network properties."""
         return {
             'num_of_vertices': self.num_vertices,
-            'Number of interactions': len(self._interactions),
-            'Number of simplices': self.num_simplices,
-            'Max Dimension': self.max_dimension,
-            'Number of components': len(list(nx.connected_components(self._graph))),
-            'Number of vertices in component 0': self.num_of_vertices_in_component(0),
+            'num_of_interactions': len(self._interactions),
+            'num_of_simplices': self.num_simplices,
+            'max_dimension': self.max_dimension,
+            'num_of_components': len(list(nx.connected_components(self._graph))),
+            'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
 
     def _calculate_average_degree(self) -> float:
