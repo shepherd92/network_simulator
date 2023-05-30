@@ -66,7 +66,8 @@ class Configuration:
         """Configuration of the execution of the program."""
 
         log_level: str = 'WARNING'
-        enable_profiling: bool = False
+        runtime_profiling: bool = False
+        memory_profiling: bool = False
         num_of_processes: int = 1
         directories: Directories = Directories()
 
@@ -98,7 +99,8 @@ class Configuration:
 
         self.general = Configuration.General(
             log_level=str(params['general']['log_level']),
-            enable_profiling=bool(params['general']['enable_profiling']),
+            runtime_profiling=bool(params['general']['runtime_profiling']),
+            memory_profiling=bool(params['general']['memory_profiling']),
             num_of_processes=num_of_processes,
             directories=Directories(
                 root=Path(params['general']['directories']['root']),

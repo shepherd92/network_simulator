@@ -141,7 +141,6 @@ class NetworkGeometryWithFlavorModel(Model):
         network._interactions = simplices
         network._facets = []
         network.add_simplices(simplices)
-        network.generate_graph_from_simplicial_complex()
 
         return network
 

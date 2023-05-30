@@ -9,6 +9,8 @@ from typing import Any
 
 from gudhi.simplex_tree import SimplexTree
 import networkx as nx
+import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from tqdm import tqdm
 
@@ -21,13 +23,15 @@ class Network:
 
     def __init__(self, max_dimension: int) -> None:
         """Construct an empty network."""
+        assert isinstance(max_dimension, int)
+        self._max_dimension = max_dimension
+
         self._interactions: list[list[int]] = []
         self._facets: list[list[int]] = []
         self._simplicial_complex = SimplexTree()
-        self._graph = nx.Graph()
-        self._digraph = nx.DiGraph()
-        assert isinstance(max_dimension, int)
-        self._max_dimension = max_dimension
+        self._graph: nx.Graph() | None = None
+        self._digraph: nx.DiGraph() | None = None
+        self._num_of_edges: int | None = None
 
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
@@ -35,10 +39,11 @@ class Network:
 
     def generate_clique_complex_from_graph(self) -> None:
         """Given graph, generate the clique complex and store it in the simplicial complex member."""
-        cliques = list(nx.find_cliques(self.graph))
         self.generate_simplicial_complex_from_graph()
-        self._interactions = cliques
-        self._facets = cliques
+        self.expand()
+
+    def expand(self) -> None:
+        """Expand simplicial complex to a clique complex."""
         self.simplicial_complex.expansion(self._max_dimension)
 
     def filter_simplicial_complex_from_graph(self) -> None:
@@ -58,28 +63,33 @@ class Network:
         # filter out empty lists
         self.interactions = list(filter(None, interactions))
 
-    def generate_graph_from_simplicial_complex(self) -> None:
+    def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
         """Set graph to represent the simplicial complex."""
         assert self.simplicial_complex.num_vertices() != 0, 'Simplicial complex is not built.'
 
-        for simplex, weight in self.simplicial_complex.get_skeleton(1):
-            if len(simplex) == 1:
-                self.graph.add_node(*simplex)
+        graph = nx.Graph()
+        graph.add_nodes_from([
+            simplex[0] for simplex, weight in self.simplicial_complex.get_skeleton(0)
+        ])
 
-        self.graph.add_weighted_edges_from([
+        graph.add_weighted_edges_from([
             [*simplex, weight]
             for simplex, weight in self.simplicial_complex.get_skeleton(1)
             if len(simplex) == 2
         ])
+        return graph
 
-        self.digraph = self.graph.to_directed()
+    def add_simplices_batch(self, simplices: npt.NDArray[np.int]) -> None:
+        """Add simplices to the simplicial complex in batch."""
+        assert simplices.shape[1] <= self.max_dimension, f'Simplices have too high dimension {simplices.shape[1]}.'
+        self.simplicial_complex.insert_batch(simplices.T, np.zeros((simplices.shape[0],)))
 
     def add_simplices(self, simplices: list[list[int]]) -> None:
         """Insert a simplex to the simplicial complex."""
         for simplex in tqdm(simplices, desc='Adding simplices', delay=10):
             self.add_simplex(simplex)
 
-    def add_simplex(self, simplex: list[int], filtration: float = 0.) -> None:
+    def add_simplex(self, simplex: list[int]) -> None:
         """Insert a simplex to the simplicial complex.
 
         Add the skeleton of the simplex as its dimension is too high.
@@ -113,12 +123,20 @@ class Network:
         data_frame = pd.DataFrame(info, index=[0])
         data_frame.to_csv(save_path, index=False)
 
+    def _reset(self) -> None:
+        self._interactions = []
+        self._facets = []
+        self._simplicial_complex = SimplexTree()
+        self._graph = None
+        self._digraph = None
+
     def _extract_facets(self) -> list[list[int]]:
         """Return the facets of the simplicial complex."""
-        assert isinstance(self._interactions[0], list), f'Interactions are not lists, but {type(self._interactions[0])}'
-
-        print(f'Extracting facets from {len(self._interactions)} interactions.')
-        facets: list[list[int]] = extract_facets(self._interactions)
+        if self._interactions:
+            print(f'Extracting facets from {len(self._interactions)} interactions.')
+            facets: list[list[int]] = extract_facets(self._interactions)
+        else:
+            facets = list(nx.find_cliques(self.graph))
 
         return facets
 
@@ -137,15 +155,15 @@ class Network:
 
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each dimension as a list."""
-        interaction_dimension_distribution = self._calc_dimension_distribution(self._interactions)
+        interaction_dimension_distribution = self._calc_dimension_distribution(self.interactions)
         return interaction_dimension_distribution
 
-    def _get_simplex_skeleton_for_max_dimension(self, simplex: list[int]) -> list[list[int]]:
+    def _get_simplex_skeleton_for_max_dimension(self, simplex: list[int]) -> npt.NDArray[np.int_]:
         simplex_dimension = len(simplex) - 1
         if simplex_dimension <= self.max_dimension:
-            skeleton = [simplex]
+            skeleton = np.array([simplex])
         else:
-            skeleton = list(combinations(simplex, self.max_dimension + 1))
+            skeleton = np.array(list(combinations(simplex, self.max_dimension + 1)))
 
         return skeleton
 
@@ -184,7 +202,10 @@ class Network:
     @simplicial_complex.setter
     def simplicial_complex(self, value: SimplexTree) -> None:
         self._simplicial_complex = value
+        self._interactions = None
+        self._facets = None
         self._is_persistence_computed = False
+        self._num_of_edges = None
 
     @simplicial_complex.deleter
     def simplicial_complex(self) -> None:
@@ -198,12 +219,12 @@ class Network:
     @property
     def num_simplices(self) -> int:
         """Return the number of simplices in the simplicial complex."""
-        return self._simplicial_complex.num_simplices()
+        return self.simplicial_complex.num_simplices()
 
     @property
     def num_vertices(self) -> int:
         """Return the number of nodes in the graph."""
-        return self._graph.number_of_nodes()
+        return self.simplicial_complex.num_vertices()
 
     @property
     def dimension(self) -> int:
@@ -218,6 +239,8 @@ class Network:
     @property
     def graph(self) -> nx.Graph:
         """Get the simple graph associated to the network."""
+        if self._graph is None:
+            self._graph = self._generate_graph_from_simplicial_complex()
         return self._graph
 
     @graph.setter
@@ -227,11 +250,9 @@ class Network:
     @property
     def digraph(self) -> nx.DiGraph:
         """Get the simple directed graph associated to the network."""
+        if self._digraph is None:
+            self._digraph = self.graph.to_directed()
         return self._digraph
-
-    @digraph.setter
-    def digraph(self, value: nx.DiGraph) -> None:
-        self._digraph = value
 
     @property
     def facets(self) -> list[set[int]]:
@@ -239,3 +260,17 @@ class Network:
         if not self._facets:
             self._facets = self._extract_facets()
         return self._facets
+
+    @property
+    def interactions(self) -> list[set[int]]:
+        """Get the simplices associated to the network."""
+        if not self._interactions:
+            return self.facets
+        return self._interactions
+
+    @property
+    def num_of_edges(self) -> int:
+        """Get the simplices associated to the network."""
+        if not self._num_of_edges:
+            self._num_of_edges = self.graph.number_of_edges()
+        return self._num_of_edges

@@ -4,13 +4,15 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from logging import info
 
 import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
 from cpp_critical_sections.build.adrcm import (
-    generate_connections_default,
+    generate_finite_network_connections_default,
+    generate_infinite_network_connections_default,
 )
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
@@ -38,6 +40,8 @@ class AgeDependentRandomSimplexModel(Model):
         def to_numpy(self) -> npt.NDArray[np.float_]:
             """Return the parameters as a numpy array."""
             return np.array([
+                self.max_dimension,
+                self.num_nodes,
                 self.alpha,
                 self.beta,
                 self.gamma,
@@ -73,10 +77,11 @@ class AgeDependentRandomSimplexModel(Model):
 
     def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
+        info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
         assert isinstance(self.parameters, AgeDependentRandomSimplexModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
 
-        node_ids = np.array(range(self.parameters.num_nodes))
+        node_ids = np.array(range(self.parameters.num_nodes))[:, np.newaxis]
         random_number_generator = np.random.default_rng(seed)
 
         interarrival_times: npt.NDArray[np.float_] = random_number_generator.exponential(size=self.parameters.num_nodes)
@@ -92,22 +97,42 @@ class AgeDependentRandomSimplexModel(Model):
         connections = self._generate_connections(birth_times, positions, seed)
 
         network = FiniteNetwork(self.parameters.max_dimension)
-        network.digraph.add_nodes_from(node_ids)
-        network.digraph.add_edges_from(connections)
-        network.graph = network.digraph.to_undirected()
-        network.generate_clique_complex_from_graph()
+        network.add_simplices_batch(node_ids)
+        network.add_simplices_batch(connections)
+        network.expand()
+        info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
 
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int | None = None) -> list[InfiniteNetwork]:
+    def generate_infinite_network_set(self, seed: int) -> list[InfiniteNetwork]:
         """Generate a list of infinite networks."""
+        info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
+        assert self.parameters.torus_dimension == 1, \
+            f'Torus dimension must be 1, but it is {self.parameters.torus_dimension}'
+
+        connections_set: list[npt.NDArray[np.float_]] = \
+            generate_infinite_network_connections_default(self.parameters.to_numpy(), seed)
+
         infinite_networks = [
-            self.generate_infinite_network(seed * num_of_networks + index)
-            for index in range(num_of_networks)
+            self.generate_infinite_network(connections)
+            for connections in connections_set
         ]
+        info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed} done.')
         return infinite_networks
 
-    def generate_infinite_network(self, seed: int | None = None) -> InfiniteNetwork:
+    def generate_infinite_network(self, connections: npt.NDArray[np.int_]) -> InfiniteNetwork:
+        """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
+        # as each node that we consider is connected to O, the number of nodes is the maximal index of connections
+        network = InfiniteNetwork(self.parameters.max_dimension)
+        # network.digraph.add_nodes_from(node_ids)
+        # network.digraph.add_edges_from(connections)
+        # network.graph = network.digraph.to_undirected()
+        network.add_simplices_batch(connections)
+        network.expand()
+
+        return network
+
+    def generate_infinite_network_bkp(self, seed: int | None = None) -> InfiniteNetwork:
         """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         assert self.parameters.torus_dimension == 1, \
             f'Torus dimension must be 1, but it is {self.parameters.torus_dimension}'
@@ -151,8 +176,9 @@ class AgeDependentRandomSimplexModel(Model):
         positions: npt.NDArray[np.float_],
         seed: int | None
     ) -> npt.NDArray[np.float_]:
-        CPP = True
-        if CPP:
+        is_default_profile_function = np.isclose(self.parameters.alpha, 0.5)
+        is_default_connection_generation = is_default_profile_function and self.parameters.torus_dimension == 1
+        if is_default_connection_generation:
             return self._generate_connections_cpp(birth_times, positions, seed)
         else:
             return self._generate_connections_python(birth_times, positions, seed)
@@ -163,13 +189,13 @@ class AgeDependentRandomSimplexModel(Model):
         positions: npt.NDArray[np.float_],
         seed: int | None
     ) -> npt.NDArray[np.float_]:
-        is_default_profile_function = np.isclose(self.parameters.alpha, 0.5)
-        is_default_connection_generation = is_default_profile_function and self.parameters.torus_dimension == 1
-        if is_default_connection_generation:
-            connections = generate_connections_default(birth_times, positions, self.parameters.to_numpy())
-        else:
-            raise NotImplementedError
-
+        assert np.isclose(self.parameters.alpha, 0.5), \
+            'In C++, only the default connection generation is implemented. ' + \
+            f'Alpha parameter is not 0.5, but {self.parameters.alpha}.'
+        assert self.parameters.torus_dimension == 1, \
+            'In C++, only the default connection generation is implemented. ' + \
+            f'Torus dimension is not 1, but {self.parameters.torus_dimension}.'
+        connections = generate_finite_network_connections_default(birth_times, positions, self.parameters.to_numpy())
         return connections
 
     def _generate_connections_python(

@@ -38,7 +38,6 @@ class DataSet(FiniteNetwork):
         """Load data from the disk for further processing."""
         self._read_data()
         self._build_simplicial_complex()
-        self._build_graph()
         self.reduce_to_component(self._data_set_properties.component_index_from_largest)
 
     def _read_data(self) -> None:

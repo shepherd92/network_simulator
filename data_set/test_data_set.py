@@ -30,10 +30,6 @@ class TestDataSet(DataSet):
         self._facets = []
         self.add_simplices(simplices)
 
-    def _build_graph(self) -> None:
-        """Build a simple networkx graph."""
-        self.generate_graph_from_simplicial_complex()
-
     def __str__(self) -> str:
         """Return a string representation based on the data set properties."""
         return '\n'.join([

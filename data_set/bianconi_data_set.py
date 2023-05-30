@@ -55,25 +55,9 @@ class BianconiDataSet(DataSet):
         """Build a simplicial complex based on the loaded data."""
         assert self._data, 'Data is not loaded.'
 
-        for node in self._data['nodes'].values:
-            self.add_simplex(node)
-
-        for edge in self._data['edges'].values:
-            self.add_simplex(edge[:2], filtration=edge[-1])
-
-        for triangle in self._data['triangles'].values:
-            self.add_simplex(triangle[:3], filtration=triangle[-1])
-
-        # pylint: disable-next=attribute-defined-outside-init
-        self._interactions = \
-            self._data['nodes'].values.tolist() + \
-            self._data['edges'].iloc[:, :2].values.tolist() + \
-            self._data['triangles'].iloc[:, :3].values.tolist()
-        pass
-
-    def _build_graph(self) -> None:
-        """Build a simple networkx graph."""
-        self.generate_graph_from_simplicial_complex()
+        self.add_simplices_batch(self._data['nodes'].values)
+        self.add_simplices_batch(self._data['edges'][['node_0', 'node_1']].values)
+        self.add_simplices_batch(self._data['triangles'][['node_0', 'node_1', 'node_2']].values)
 
     def __str__(self) -> str:
         """Return a string representation based on the data set properties."""

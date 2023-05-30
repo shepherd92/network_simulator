@@ -26,6 +26,7 @@ class FiniteNetwork(Network):
         """Construct an empty network."""
         super().__init__(max_dimension)
         self._is_persistence_computed: bool = False
+        self._betti_numbers: npt.NDArray[np.int_] | None = None
 
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
@@ -36,7 +37,7 @@ class FiniteNetwork(Network):
             simplicial_complex.insert(edge)
         self.simplicial_complex = simplicial_complex
 
-    def add_simplex(self, simplex: list[int], filtration: float = 0.) -> None:
+    def add_simplex(self, simplex: list[int]) -> None:
         """Insert a simplex to the simplicial complex.
 
         Add the skeleton of the simplex as its dimension is too high.
@@ -48,15 +49,14 @@ class FiniteNetwork(Network):
         self._is_collapsed_persistence_computed = False
 
         skeleton = self._get_simplex_skeleton_for_max_dimension(simplex)
-        for face in skeleton:
-            self.simplicial_complex.insert(face, filtration)
+        self.add_simplices_batch(skeleton)
 
     def get_component(self, component_index: int) -> FiniteNetwork:
         """Reduce the network to the specified component only."""
         reduced_network = FiniteNetwork(self.max_dimension)
 
         if component_index != -1:
-            components = sorted(nx.connected_components(self._graph), key=len, reverse=True)
+            components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
             reduced_network.graph = self._graph.subgraph(components[component_index])
             reduced_network.generate_clique_complex_from_graph()
 
@@ -66,7 +66,7 @@ class FiniteNetwork(Network):
         """Reduce the network to the specified component only."""
         if component_index != -1:
             components = sorted(nx.connected_components(self._graph), key=len, reverse=True)
-            self._graph = self._graph.subgraph(components[component_index])
+            self.graph = self.graph.subgraph(components[component_index])
             self.filter_simplicial_complex_from_graph()
 
     def calc_network_summary(
@@ -100,11 +100,10 @@ class FiniteNetwork(Network):
         """Collapse edges of the simplicial complex preserving its 1 homology."""
         debug(f'Collapsing network, containing currently: {self.num_vertices} vertices.')
         collapsed_network = FiniteNetwork(self.max_dimension)
-        collapsed_network.graph = deepcopy(self.graph)
-        collapsed_network.generate_simplicial_complex_from_graph()
+        collapsed_network.simplicial_complex = deepcopy(self.simplicial_complex)
         collapsed_network.simplicial_complex.collapse_edges()
-        collapsed_network.simplicial_complex.expansion(self._max_dimension)
-        collapsed_network.generate_graph_from_simplicial_complex()
+        collapsed_network.expand()
+        collapsed_network._generate_graph_from_simplicial_complex()
         debug(f'Collapsed containing {collapsed_network.num_vertices} vertices.')
         return collapsed_network
 
@@ -115,7 +114,7 @@ class FiniteNetwork(Network):
         if property_type == BaseNetworkProperty.Type.NUM_OF_NODES:
             property_value = self.num_vertices
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
-            property_value = self.graph.number_of_edges()
+            property_value = self.num_of_edges
         elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
             property_value = self._calculate_average_degree()
         elif property_type == BaseNetworkProperty.Type.MAX_DEGREE:
@@ -149,7 +148,7 @@ class FiniteNetwork(Network):
             property_value = self._calculate_facet_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:
             # property_value = self._calculate_betti_numbers_with_collapse(max_num_of_vertices=1000)
-            property_value = self._calculate_betti_numbers()
+            property_value = self.betti_numbers
         elif property_type == BaseNetworkProperty.Type.PERSISTENCE:
             property_value = tuple(self.simplicial_complex.persistence())
         else:
@@ -171,6 +170,12 @@ class FiniteNetwork(Network):
             'num_of_components': len(list(nx.connected_components(self._graph))),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
+
+    def _reset(self):
+        """Reset saved partial results."""
+        super()._reset()
+        self._is_persistence_computed = False
+        self._betti_numbers = None
 
     def _calculate_average_degree(self) -> float:
         num_of_nodes = self.graph.number_of_nodes()
@@ -221,6 +226,9 @@ class FiniteNetwork(Network):
 
     def _calculate_betti_numbers_with_collapse(self, max_num_of_vertices: int) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
+        if self._betti_numbers:
+            return self._betti_numbers
+
         collapsed_network = self
 
         while collapsed_network.num_vertices > max_num_of_vertices:
@@ -231,6 +239,9 @@ class FiniteNetwork(Network):
 
     def _calculate_betti_numbers(self) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
+        if self._betti_numbers:
+            return self._betti_numbers
+
         if not self.is_persistence_computed:
             self._compute_persistence()
 
@@ -261,6 +272,24 @@ class FiniteNetwork(Network):
         simplices_with_filtration = self.simplicial_complex.get_simplices()
         simplices = [simplex for simplex, _ in simplices_with_filtration]
         return simplices
+
+    @property
+    def simplicial_complex(self) -> SimplexTree:
+        """Getter of simplicial complex."""
+        return super(FiniteNetwork, self).simplicial_complex
+
+    @property
+    def betti_numbers(self) -> npt.NDArray[np.int_]:
+        """Getter of simplicial complex."""
+        if self._betti_numbers is None:
+            self._betti_numbers = self._calculate_betti_numbers()
+        return self._betti_numbers
+
+    @simplicial_complex.setter
+    def simplicial_complex(self, value: SimplexTree) -> None:
+        """Setter of simplicial complex."""
+        super(FiniteNetwork, self.__class__).simplicial_complex.fset(self, value)
+        self._is_persistence_computed = False
 
     @ property
     def is_persistence_computed(self) -> bool:

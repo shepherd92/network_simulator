@@ -59,8 +59,6 @@ class WattsStrogatzModel(Model):
         network.graph = graph
         network.digraph = graph.to_directed()
         network.generate_simplicial_complex_from_graph()
-        network._interactions = graph.edges
-        network._facets = graph.edges
 
         return network
 

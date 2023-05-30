@@ -8,10 +8,12 @@ namespace py = pybind11;
 struct ModelParameters
 {
     ModelParameters(const py::array_t<double> &model_parameters_input);
+    uint32_t max_dimension;
+    uint32_t num_of_nodes;
     double alpha;
     double beta;
     double gamma;
-    double torus_dimension;
+    uint32_t torus_dimension;
     double torus_size;
 };
 

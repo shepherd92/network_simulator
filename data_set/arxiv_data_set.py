@@ -135,10 +135,6 @@ class ArxivDataSet(DataSet):
 
         debug('done.')
 
-    def _build_graph(self) -> None:
-        """Build a simple networkx graph."""
-        self.generate_graph_from_simplicial_complex()
-
     @property
     def authors(self) -> pd.DataFrame:
         """Get the authors of the data set."""

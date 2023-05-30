@@ -1,7 +1,8 @@
 {
     "general": {
         "log_level": "DEBUG",
-        "enable_profiling": false,
+        "runtime_profiling": false,
+        "memory_profiling": false,
         "num_of_processes": 6,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
@@ -9,7 +10,7 @@
         }
     },
     "data_set": {
-        "type": "ARXIV",
+        "type": "BIANCONI",
         "analysis": {
             "enable": false,
             "properties": [

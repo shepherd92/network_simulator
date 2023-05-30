@@ -5,7 +5,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from multiprocessing import Pool
+from logging import info
+from multiprocessing import Pool, Value
 from tqdm import tqdm
 from typing import Any
 
@@ -15,6 +16,11 @@ from network.finite_network import FiniteNetwork
 from network.infinite_network import InfiniteNetwork
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 import tools.istarmap  # pylint: disable=unused-import # noqa: F401
+
+
+NUM_OF_SIMULATIONS = 0
+SIMULATIONS_DONE = Value('i', 0)
+PROGRESS_BAR = None
 
 
 class Model:
@@ -70,11 +76,11 @@ class Model:
         )
         return scalar_property_distributions
 
-    def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
+    def generate_finite_network(self, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
         raise NotImplementedError
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int | None = None) -> list[InfiniteNetwork]:
+    def generate_infinite_network_set(self, seed: int) -> list[InfiniteNetwork]:
         """Generate a set of "infinite" networks."""
         raise NotImplementedError
 
@@ -88,6 +94,13 @@ class Model:
         num_of_simulations: int,
         num_of_processes: int
     ) -> list[list[Any]]:
+
+        global NUM_OF_SIMULATIONS
+        NUM_OF_SIMULATIONS = num_of_simulations
+
+        global PROGRESS_BAR
+        PROGRESS_BAR = tqdm(total=NUM_OF_SIMULATIONS, desc='Simulation')
+
         if num_of_processes > 1:
             base_network_property_values: list[list[Any]] = self._simulate_multiple_processes(
                 base_network_properties,
@@ -125,18 +138,21 @@ class Model:
         num_of_processes: int
     ) -> list[list[Any]]:
         """Simulate networks using multiple processes calculating a list of base properties."""
-        with Pool(num_of_processes) as pool:
-            args = list(zip([base_network_properties] * num_of_simulations, range(num_of_simulations)))
-            # pylint: disable-next=no-member
-            all_networks_base_network_properties: list[list[Any]] = [
-                results for results in
-                tqdm(pool.istarmap(self._generate_properties, args), desc='Simulation: ', total=num_of_simulations)
-            ]
+        info(f'Starting a pool of {num_of_processes} processes.')
 
-            # all_networks_base_network_properties: list[list[Any]] = pool.starmap(  # type: ignore
-            #     self._generate_properties,
-            #     tqdm(args, desc='Simulation: ', total=num_of_simulations),
-            # )
+        with Pool(num_of_processes) as pool:
+            args = list(zip([base_network_properties] * num_of_simulations, range(86, num_of_simulations + 86)))
+            # pylint: disable-next=no-member
+            # all_networks_base_network_properties: list[list[Any]] = [
+            #     results for results in
+            #     tqdm(pool.istarmap(self._generate_properties, args), desc='Simulation:', total=num_of_simulations)
+            # ]
+
+            all_networks_base_network_properties: list[list[Any]] = pool.starmap(  # type: ignore
+                self._generate_properties,
+                args
+            )
+        info(f'Multiprocessing with {num_of_processes} processes finished.')
         return all_networks_base_network_properties
 
     def _simulate_single_process(
@@ -146,7 +162,7 @@ class Model:
     ) -> list[list[Any]]:
         all_networks_base_network_properties = [
             self._generate_properties(base_network_properties, seed)
-            for seed in tqdm(range(num_of_simulations), desc='Simulation: ')
+            for seed in tqdm(range(86, num_of_simulations + 86), desc='Simulation')
         ]
         return all_networks_base_network_properties
 
@@ -161,12 +177,19 @@ class Model:
                 property_value = finite_network.calc_base_property(property_.property_type)
             elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
                 infinite_networks = \
-                    self.generate_infinite_network_set(self.parameters.num_nodes, seed) \
+                    self.generate_infinite_network_set(seed) \
                     if infinite_networks is None else infinite_networks
                 property_value = self._calc_typical_property_distribution(infinite_networks, property_.property_type)
             else:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)
+
+        global SIMULATIONS_DONE
+        global PROGRESS_BAR
+        with SIMULATIONS_DONE.get_lock():
+            SIMULATIONS_DONE.value += 1
+            PROGRESS_BAR.n = SIMULATIONS_DONE.value
+            PROGRESS_BAR.refresh()
 
         return property_values
 

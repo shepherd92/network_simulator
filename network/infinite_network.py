@@ -28,7 +28,7 @@ class InfiniteNetwork(Network):
 
         self.simplicial_complex = simplicial_complex
 
-    def add_simplex(self, simplex: list[int], filtration: float = 0.) -> None:
+    def add_simplex(self, simplex: list[int]) -> None:
         """Insert a simplex to the simplicial complex.
 
         Add the skeleton of the simplex as its dimension is too high.
@@ -37,8 +37,7 @@ class InfiniteNetwork(Network):
             return
 
         skeleton = self._get_simplex_skeleton_for_max_dimension(simplex)
-        for face in skeleton:
-            self.simplicial_complex.insert(face, filtration)
+        self.add_simplices_batch(skeleton)
 
     def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
         """Return a base property of the network.
@@ -94,6 +93,6 @@ class InfiniteNetwork(Network):
     @property
     def simplices(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
-        simplices_with_filtration = self.simplicial_complex.get_cofaces([0])
+        simplices_with_filtration = self.simplicial_complex.get_cofaces([0], 0)
         simplices = [simplex for simplex, _ in simplices_with_filtration]
         return simplices

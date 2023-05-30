@@ -7,10 +7,14 @@
 
 namespace py = pybind11;
 
-py::array_t<int32_t> generate_connections_default(
+py::array_t<int32_t> generate_finite_network_connections_default_interface(
     const py::array_t<double> &birth_times_input,
     const py::array_t<double> &positions_input,
     const py::array_t<double> &model_parameters);
+
+std::vector<py::array_t<int32_t>> generate_infinite_network_connections_default_interface(
+    const py::array_t<double> &model_parameters,
+    const uint32_t seed);
 
 #include "connection_generator.inl"
 

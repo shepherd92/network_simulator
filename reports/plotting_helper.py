@@ -47,7 +47,7 @@ def plot_finite_network(network: FiniteNetwork, axes: plt.Axes) -> None:
     """Plot a simplicial complex on the given axis."""
     color_map_name = 'viridis_r'  # plasma, inferno, magma, cividis
     all_node_positions = _determine_node_positions(network.graph)
-    interactions_to_plot = _determine_interactions_to_plot(network._interactions)
+    interactions_to_plot = _determine_interactions_to_plot(network.interactions)
     debug(f'Number of facets to plot: {len(interactions_to_plot)}')
 
     simplex_node_positions = [

@@ -10,6 +10,7 @@ from pathlib import Path
 from pstats import Stats, SortKey
 from shutil import copytree, ignore_patterns
 from subprocess import Popen, PIPE, call, check_output
+import tracemalloc
 
 import numpy as np
 
@@ -31,7 +32,7 @@ from tools.debugger import debugger_is_active
 def main(configuration: Configuration) -> None:
     """Run program - main function."""
     num_of_processes = 1 \
-        if debugger_is_active() or configuration.general.enable_profiling \
+        if debugger_is_active() or configuration.general.runtime_profiling or configuration.general.memory_profiling \
         else configuration.general.num_of_processes
 
     data_set_type = configuration.data_set.type_
@@ -196,35 +197,59 @@ def main_wrapper(params: argparse.Namespace) -> None:
     logging.getLogger('PIL.PngImagePlugin').setLevel(logging.WARNING)
     logging.captureWarnings(True)
 
-    if configuration.general.enable_profiling:
-        profiler = cProfile.Profile()
-        profiler.enable()
+    if configuration.general.runtime_profiling:
+        runtime_profiler = cProfile.Profile()
+        runtime_profiler.enable()
+
+    if configuration.general.memory_profiling:
+        tracemalloc.start()
 
     main(configuration)
 
-    if configuration.general.enable_profiling:
-        profile_output_dir = configuration.general.directories.output
-        profiler.disable()
-        stream = io.StringIO()
-        statistics = Stats(profiler, stream=stream).sort_stats(SortKey.CUMULATIVE)
-        statistics.print_stats(str(configuration.general.directories.root), 100)
-        statistics.dump_stats(profile_output_dir / 'profile_results.prof')
-        profile_log_path = profile_output_dir / 'profile_results.txt'
+    if configuration.general.memory_profiling:
+        memory_usage_snapshot = tracemalloc.take_snapshot()
+        tracemalloc.stop()
 
-        with open(profile_log_path, 'w', encoding='utf-8') as profile_log_file:
+        profile_output_dir = configuration.general.directories.output / 'profile_statistics'
+        profile_output_dir.mkdir(parents=True, exist_ok=True)
+
+        project_root_dir = Path(__file__).parent
+        filter_ = tracemalloc.Filter(inclusive=True, filename_pattern=f'{str(project_root_dir)}/*')
+        memory_statistics = memory_usage_snapshot.filter_traces([filter_]).statistics('lineno')
+        memory_usage_snapshot.dump(profile_output_dir / 'memory_profile_results.prof')
+        memory_profile_log_file = profile_output_dir / 'memory_profile_results.txt'
+        with open(memory_profile_log_file, 'w', encoding='utf-8') as profile_log_file:
+            profile_log_file.write('size,count,trace_back\n')
+            for stat in memory_statistics:
+                profile_log_file.write(f'{stat.size / 2**16},{stat.count},{stat.traceback}\n')
+        tracemalloc.clear_traces()
+
+    if configuration.general.runtime_profiling:
+        runtime_profiler.disable()
+
+        profile_output_dir = configuration.general.directories.output / 'profile_statistics'
+        profile_output_dir.mkdir(parents=True, exist_ok=True)
+
+        stream = io.StringIO()
+
+        runtime_statistics = Stats(runtime_profiler, stream=stream).sort_stats(SortKey.CUMULATIVE)
+        runtime_statistics.print_stats(str(configuration.general.directories.root), 100)
+        runtime_statistics.dump_stats(profile_output_dir / 'runtime_profile_results.prof')
+        runtime_profile_log_file = profile_output_dir / 'runtime_profile_results.txt'
+        with open(runtime_profile_log_file, 'w', encoding='utf-8') as profile_log_file:
             profile_log_file.write(stream.getvalue())
 
         with Popen(
-            ('gprof2dot', '-f', 'pstats', profile_output_dir / 'profile_results.prof'),
+            ('gprof2dot', '-f', 'pstats', profile_output_dir / 'runtime_profile_results.prof'),
             stdout=PIPE
         ) as gprof_process:
             check_output(
-                ('dot', '-Tpng', '-o', profile_output_dir / 'profile_results.png'),
+                ('dot', '-Tpng', '-o', profile_output_dir / 'runtime_profile_results.png'),
                 stdin=gprof_process.stdout
             )
             gprof_process.wait()
 
-        call(('snakeviz', '--server', profile_output_dir / 'profile_results.prof'))
+        call(('snakeviz', '--server', profile_output_dir / 'runtime_profile_results.prof'))
 
 
 if __name__ == '__main__':
