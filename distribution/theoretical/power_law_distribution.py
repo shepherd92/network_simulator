@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from logging import error, warning
+from logging import error
 
 import numpy as np
 import numpy.typing as npt
@@ -129,7 +129,7 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def _determine_domain_quantiles(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the minimum degree from which the power-law holds."""
-        min_quantile = 0.67
+        min_quantile = 0.5
         max_quantile = 1.0
         self._domain.min_ = empirical_distribution.domain.max_ ** min_quantile
         self._domain.max_ = empirical_distribution.domain.max_ ** max_quantile
@@ -143,7 +143,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         """
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         if len(value_sequence) == 0:
-            warning(f'Value sequence is empty in domain [{self.domain.min_}, {self.domain.max_}].')
+            # warning(f'Value sequence is empty in domain [{self.domain.min_}, {self.domain.max_}].')
             return PowerLawDistribution.Parameters(np.nan)
 
         estimate = 1. + len(value_sequence) / (sum(np.log(value_sequence / (self.domain.min_ - 0.5))))
@@ -154,8 +154,9 @@ class PowerLawDistribution(TheoreticalDistribution):
         empirical_distribution: EmpiricalDistribution
     ) -> float:
         """Estimate the power law exponent."""
-        x_values = np.unique(empirical_distribution.get_value_sequence)
+        x_values = np.unique(empirical_distribution.value_sequence)
         pdf = empirical_distribution.pdf(x_values)
+
         x_values = x_values[pdf > 0.]
         pdf = pdf[pdf > 1e-9]
 

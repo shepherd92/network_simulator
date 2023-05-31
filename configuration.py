@@ -41,6 +41,7 @@ class ModelTesting(NamedTuple):
     enable: bool = False
     test_against_data_set: bool = False
     num_of_simulations: int = 0
+    num_of_infinite_networks: int = 0
 
 
 class ModelAnalysis(NamedTuple):
@@ -68,6 +69,7 @@ class Configuration:
         log_level: str = 'WARNING'
         runtime_profiling: bool = False
         memory_profiling: bool = False
+        tracing: bool = False
         num_of_processes: int = 1
         directories: Directories = Directories()
 
@@ -101,6 +103,7 @@ class Configuration:
             log_level=str(params['general']['log_level']),
             runtime_profiling=bool(params['general']['runtime_profiling']),
             memory_profiling=bool(params['general']['memory_profiling']),
+            tracing=bool(params['general']['tracing']),
             num_of_processes=num_of_processes,
             directories=Directories(
                 root=Path(params['general']['directories']['root']),
@@ -128,6 +131,7 @@ class Configuration:
                 enable=bool(params['model']['testing']['enable']),
                 test_against_data_set=bool(params['model']['testing']['test_against_data_set']),
                 num_of_simulations=int(params['model']['testing']['num_of_simulations']),
+                num_of_infinite_networks=int(params['model']['testing']['num_of_infinite_networks']),
             ),
             analysis=ModelAnalysis(
                 enable=bool(params['model']['analysis']['enable']),

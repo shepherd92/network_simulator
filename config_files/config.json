@@ -3,14 +3,15 @@
         "log_level": "DEBUG",
         "runtime_profiling": false,
         "memory_profiling": false,
-        "num_of_processes": 6,
+        "tracing": false,
+        "num_of_processes": 3,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
             "output": "../output"
         }
     },
     "data_set": {
-        "type": "BIANCONI",
+        "type": "ARXIV",
         "analysis": {
             "enable": false,
             "properties": [
@@ -42,7 +43,8 @@
         "testing": {
             "enable": true,
             "test_against_data_set": false,
-            "num_of_simulations": 100
+            "num_of_simulations": 100,
+            "num_of_infinite_networks": 10000
         },
         "analysis": {
             "enable": false,

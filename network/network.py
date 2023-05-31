@@ -65,7 +65,7 @@ class Network:
 
     def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
         """Set graph to represent the simplicial complex."""
-        assert self.simplicial_complex.num_vertices() != 0, 'Simplicial complex is not built.'
+        # assert self.simplicial_complex.num_vertices() != 0, 'Simplicial complex is not built.'
 
         graph = nx.Graph()
         graph.add_nodes_from([

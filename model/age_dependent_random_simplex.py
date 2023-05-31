@@ -104,14 +104,14 @@ class AgeDependentRandomSimplexModel(Model):
 
         return network
 
-    def generate_infinite_network_set(self, seed: int) -> list[InfiniteNetwork]:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> list[InfiniteNetwork]:
         """Generate a list of infinite networks."""
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
         assert self.parameters.torus_dimension == 1, \
             f'Torus dimension must be 1, but it is {self.parameters.torus_dimension}'
 
         connections_set: list[npt.NDArray[np.float_]] = \
-            generate_infinite_network_connections_default(self.parameters.to_numpy(), seed)
+            generate_infinite_network_connections_default(self.parameters.to_numpy(), num_of_networks, seed)
 
         infinite_networks = [
             self.generate_infinite_network(connections)

@@ -10,6 +10,7 @@ from pathlib import Path
 from pstats import Stats, SortKey
 from shutil import copytree, ignore_patterns
 from subprocess import Popen, PIPE, call, check_output
+from trace import Trace
 import tracemalloc
 
 import numpy as np
@@ -84,6 +85,7 @@ def main(configuration: Configuration) -> None:
         scalar_property_distributions = model.simulate(
             scalar_property_params_to_calculate=list(SCALAR_PROPERTY_PARAMS_TO_TEST),
             num_of_simulations=configuration.model.network_testing.num_of_simulations,
+            num_of_infinite_networks=configuration.model.network_testing.num_of_infinite_networks,
             num_of_processes=num_of_processes,
         )
 
@@ -204,7 +206,17 @@ def main_wrapper(params: argparse.Namespace) -> None:
     if configuration.general.memory_profiling:
         tracemalloc.start()
 
-    main(configuration)
+    if configuration.general.tracing:
+        tracer = Trace(
+            trace=True,
+            count=False,
+        )
+        tracer.runfunc(main, configuration)
+        tracer_results = tracer.results()
+        tracer_results.write_results(show_missing=True, coverdir=".")
+
+    else:
+        main(configuration)
 
     if configuration.general.memory_profiling:
         memory_usage_snapshot = tracemalloc.take_snapshot()

@@ -56,7 +56,8 @@ class Model:
         self,
         scalar_property_params_to_calculate: list[DerivedNetworkProperty],
         num_of_simulations: int,
-        num_of_processes: int
+        num_of_infinite_networks: int,
+        num_of_processes: int,
     ) -> list[EmpiricalDistribution]:
         """Calculate the summaries for the given network model."""
         base_network_properties = [
@@ -67,7 +68,8 @@ class Model:
         all_networks_base_network_properties = self._simulate_base_properties(
             base_network_properties,
             num_of_simulations,
-            num_of_processes
+            num_of_infinite_networks,
+            num_of_processes,
         )
 
         scalar_property_distributions = self._extract_derived_properties(
@@ -80,7 +82,7 @@ class Model:
         """Build a network of the model."""
         raise NotImplementedError
 
-    def generate_infinite_network_set(self, seed: int) -> list[InfiniteNetwork]:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> list[InfiniteNetwork]:
         """Generate a set of "infinite" networks."""
         raise NotImplementedError
 
@@ -92,6 +94,7 @@ class Model:
         self,
         base_network_properties: list[BaseNetworkProperty],
         num_of_simulations: int,
+        num_of_infinite_networks: int,
         num_of_processes: int
     ) -> list[list[Any]]:
 
@@ -105,12 +108,14 @@ class Model:
             base_network_property_values: list[list[Any]] = self._simulate_multiple_processes(
                 base_network_properties,
                 num_of_simulations,
-                num_of_processes
+                num_of_infinite_networks,
+                num_of_processes,
             )
         else:
             base_network_property_values = self._simulate_single_process(
                 base_network_properties,
-                num_of_simulations
+                num_of_simulations,
+                num_of_infinite_networks,
             )
 
         return base_network_property_values
@@ -135,13 +140,18 @@ class Model:
         self,
         base_network_properties: list[BaseNetworkProperty],
         num_of_simulations: int,
-        num_of_processes: int
+        num_of_infinite_networks: int,
+        num_of_processes: int,
     ) -> list[list[Any]]:
         """Simulate networks using multiple processes calculating a list of base properties."""
         info(f'Starting a pool of {num_of_processes} processes.')
 
         with Pool(num_of_processes) as pool:
-            args = list(zip([base_network_properties] * num_of_simulations, range(86, num_of_simulations + 86)))
+            args = list(zip(
+                [base_network_properties] * num_of_simulations,
+                [num_of_infinite_networks] * num_of_simulations,
+                range(num_of_simulations),
+            ))
             # pylint: disable-next=no-member
             # all_networks_base_network_properties: list[list[Any]] = [
             #     results for results in
@@ -158,15 +168,21 @@ class Model:
     def _simulate_single_process(
         self,
         base_network_properties: list[BaseNetworkProperty],
-        num_of_simulations: int
+        num_of_simulations: int,
+        num_of_infinite_networks: int,
     ) -> list[list[Any]]:
         all_networks_base_network_properties = [
-            self._generate_properties(base_network_properties, seed)
-            for seed in tqdm(range(86, num_of_simulations + 86), desc='Simulation')
+            self._generate_properties(base_network_properties, num_of_infinite_networks, seed)
+            for seed in range(num_of_simulations)
         ]
         return all_networks_base_network_properties
 
-    def _generate_properties(self, base_properties: list[BaseNetworkProperty], seed: int) -> list[Any]:
+    def _generate_properties(
+        self,
+        base_properties: list[BaseNetworkProperty],
+        num_of_infinite_networks: int,
+        seed: int,
+    ) -> list[Any]:
         """Build a single network of the model and return its summary."""
         finite_network: FiniteNetwork | None = None
         infinite_networks: list[InfiniteNetwork] | None = None
@@ -177,7 +193,7 @@ class Model:
                 property_value = finite_network.calc_base_property(property_.property_type)
             elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
                 infinite_networks = \
-                    self.generate_infinite_network_set(seed) \
+                    self.generate_infinite_network_set(num_of_infinite_networks, seed) \
                     if infinite_networks is None else infinite_networks
                 property_value = self._calc_typical_property_distribution(infinite_networks, property_.property_type)
             else:
