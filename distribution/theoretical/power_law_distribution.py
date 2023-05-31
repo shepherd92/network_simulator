@@ -114,6 +114,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         low = max(empirical_distribution.domain.min_, 1.)
         high = empirical_distribution.domain.max_
         valid_min_bounds = min_bounds.intersect(Distribution.Domain(low, high**0.75 * low**(1 - 0.75)))
+        self._domain.max_ = empirical_distribution.domain.max_
         # create an array with guesses in the 0th column, and respective Kolmogorov-Smirnov
         # statistics in the 1st column
         ks_statistics: npt.NDArray[np.float_] = np.array([
@@ -175,7 +176,7 @@ class PowerLawDistribution(TheoreticalDistribution):
             return np.nan
 
         self._domain.min_ = guess
-        self._parameters = self._estimate_exponent_mle(empirical_distribution)
+        self._parameters.exponent = self._estimate_exponent_mle(empirical_distribution)
         self._valid = True  # pylint: disable=attribute-defined-outside-init
 
         ks_statistic = self.kolmogorov_smirnov(empirical_distribution, x_values)
@@ -190,7 +191,7 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
-        cdf_values = 1. - (x_values / self.domain.min_)**(1 - self._parameters.exponent)
+        cdf_values = 1. - (x_values / self.domain.min_)**(1 - self.parameters.exponent)
         return cdf_values
 
     @property

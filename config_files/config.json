@@ -13,7 +13,7 @@
     "data_set": {
         "type": "ARXIV",
         "analysis": {
-            "enable": false,
+            "enable": true,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
@@ -41,7 +41,7 @@
             "enable": false
         },
         "testing": {
-            "enable": true,
+            "enable": false,
             "test_against_data_set": false,
             "num_of_simulations": 100,
             "num_of_infinite_networks": 10000

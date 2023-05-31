@@ -3,7 +3,6 @@
 
 import unittest
 
-import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import pareto
 
@@ -12,8 +11,6 @@ from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import create_fitting_parameters
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-
-from reports.plotting_helper import plot_distribution_approximation
 
 
 class PowerLawDistributionTest(unittest.TestCase):
@@ -24,37 +21,22 @@ class PowerLawDistributionTest(unittest.TestCase):
         self.parameters = PowerLawDistribution.Parameters(exponent=2.5,)
 
         np.random.seed(seed=0)
-        size = 100
+        size = 100000
         power_law_distributed_numbers = pareto.rvs(
             self.parameters.exponent - 1.,
             size=size,
         )
         assert power_law_distributed_numbers is not None
-        empirical_distribution = EmpiricalDistribution(power_law_distributed_numbers.tolist())
-
-        self.approximation = DistributionApproximation(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
-        fitting_parameters = create_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW)
-        self.approximation.fit(fitting_parameters)
+        self.empirical_distribution = EmpiricalDistribution(power_law_distributed_numbers.tolist())
 
     def test_fitting(self):
         """Test if the fitting method gives a reasonably good fit."""
-        kolmogorov_smirnov_threshold = 0.1
+        approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+        fitting_parameters = create_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW)
+        fitting_parameters.fitting_method = PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN
+        approximation.fit(fitting_parameters)
 
-        test_results = self.approximation.run_test()
-        self._plot_pdfs()
-
-        self.assertLess(
-            test_results.kolmogorov_smirnov,
-            kolmogorov_smirnov_threshold,
-            f'Kolmogorov-Smirnov statistic is {test_results.kolmogorov_smirnov}, ' +
-            f'which should be less than {kolmogorov_smirnov_threshold}.'
-        )
-
-    def _plot_pdfs(self):
-
-        figure, axes = plt.subplots(1, 1)
-        plot_distribution_approximation(self.approximation, axes)
-        figure.show()
+        self.assertAlmostEqual(approximation.theoretical.parameters.exponent, 2.5, delta=0.2)
 
 
 if __name__ == '__main__':

@@ -81,7 +81,7 @@ class Network:
 
     def add_simplices_batch(self, simplices: npt.NDArray[np.int]) -> None:
         """Add simplices to the simplicial complex in batch."""
-        assert simplices.shape[1] <= self.max_dimension, f'Simplices have too high dimension {simplices.shape[1]}.'
+        assert simplices.shape[1] - 1 <= self.max_dimension, f'Simplices have too high dimension {simplices.shape[1]}.'
         self.simplicial_complex.insert_batch(simplices.T, np.zeros((simplices.shape[0],)))
 
     def add_simplices(self, simplices: list[list[int]]) -> None:

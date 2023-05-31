@@ -13,12 +13,12 @@ def main() -> None:
     output_path.mkdir(parents=True, exist_ok=True)
 
     directories = {
-        'finance':     input_base_path / '20230525_104118',
-        'biology':     input_base_path / '20230525_103656',
-        'statistics':  input_base_path / '20230525_101139',
-        'mathematics': input_base_path / '20230525_101354',
-        'economics':   input_base_path / '20230525_104241',
-        'engineering': input_base_path / '20230525_104359',
+        'finance':     input_base_path / '20230531_192623',
+        'biology':     input_base_path / '20230531_190426',
+        'statistics':  input_base_path / '20230531_192839',
+        'mathematics': input_base_path / '20230531_193146',
+        'economics':   input_base_path / '20230531_194711',
+        'engineering': input_base_path / '20230531_194823',
     }
 
     prepare_data_analysis_data(directories, output_path)

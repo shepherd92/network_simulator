@@ -21,8 +21,8 @@ class TestDataSet(DataSet):
         """Build a simplicial complex based on the loaded data."""
         simplices = [
             [3, 4, 5, 6],
-            [2, 3, 4],
-            [1, 2], [2, 3], [1, 7], [2, 7],
+            [2, 3, 4], [4, 5, 8], [4, 6, 8], [5, 6, 8],
+            [1, 2], [1, 7], [2, 7],
             [0]
         ]
         # pylint: disable-next=attribute-defined-outside-init

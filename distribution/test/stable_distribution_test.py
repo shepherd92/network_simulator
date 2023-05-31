@@ -8,6 +8,7 @@ import numpy as np
 from scipy.stats import levy_stable
 
 from distribution.approximation import DistributionApproximation
+from distribution.factory import create_fitting_parameters
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.stable_distribution import StableDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -37,17 +38,18 @@ class StableDistributionTest(unittest.TestCase):
             size=size,
         )
         assert stable_distributed_numbers is not None
-        empirical_distribution = EmpiricalDistribution(stable_distributed_numbers.tolist())
-
-        self.approximation = DistributionApproximation(empirical_distribution, TheoreticalDistribution.Type.STABLE)
-        self.approximation.fit()
+        self.empirical_distribution = EmpiricalDistribution(stable_distributed_numbers.tolist())
 
     def test_fitting(self):
         """Test if the fitting method gives a reasonably good fit."""
         kolmogorov_smirnov_threshold = 0.1
 
-        test_results = self.approximation.run_test()
-        self._plot_pdfs()
+        approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.STABLE)
+        fitting_parameters = create_fitting_parameters(TheoreticalDistribution.Type.STABLE)
+        approximation.fit(fitting_parameters)
+
+        test_results = approximation.run_test()
+        # self._plot_pdfs()
 
         self.assertLess(
             test_results.kolmogorov_smirnov,

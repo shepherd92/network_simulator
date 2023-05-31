@@ -17,7 +17,7 @@ def _get_power_law_exponent(empirical_distribution: EmpiricalDistribution) -> fl
     approximation = DistributionApproximation(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
     approximation.fit(PowerLawDistribution.FittingParameters(
         PowerLawDistribution.Parameters(),
-        PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
+        PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN,
     ))
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
