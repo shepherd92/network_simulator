@@ -10,7 +10,7 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
-from cpp_critical_sections.build.adrcm import (
+from cpp_modules.build.adrcm import (
     generate_finite_network_connections_default,
     generate_infinite_network_connections_default,
 )
@@ -51,7 +51,7 @@ class AgeDependentRandomSimplexModel(Model):
 
     def __init__(self) -> None:
         """Create a network model with default parameters."""
-        self._parameters: AgeDependentRandomSimplexModel.Parameters = AgeDependentRandomSimplexModel.Parameters()
+        self._parameters = AgeDependentRandomSimplexModel.Parameters()
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
@@ -127,6 +127,7 @@ class AgeDependentRandomSimplexModel(Model):
         # network.digraph.add_nodes_from(node_ids)
         # network.digraph.add_edges_from(connections)
         # network.graph = network.digraph.to_undirected()
+        network.add_simplex([0])  # ensure that the origin is added
         network.add_simplices_batch(connections)
         network.expand()
 
@@ -195,7 +196,11 @@ class AgeDependentRandomSimplexModel(Model):
         assert self.parameters.torus_dimension == 1, \
             'In C++, only the default connection generation is implemented. ' + \
             f'Torus dimension is not 1, but {self.parameters.torus_dimension}.'
-        connections = generate_finite_network_connections_default(birth_times, positions, self.parameters.to_numpy())
+        connections = generate_finite_network_connections_default(
+            birth_times,
+            positions.flatten(),
+            self.parameters.to_numpy()
+        )
         return connections
 
     def _generate_connections_python(

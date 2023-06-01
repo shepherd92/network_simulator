@@ -10,6 +10,9 @@ from multiprocessing import Pool, Value
 from tqdm import tqdm
 from typing import Any
 
+import numpy as np
+import numpy.typing as npt
+
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.finite_network import FiniteNetwork
@@ -86,7 +89,7 @@ class Model:
         """Generate a set of "infinite" networks."""
         raise NotImplementedError
 
-    def generate_infinite_network(self, seed: int | None) -> InfiniteNetwork:
+    def generate_infinite_network(self, connections: npt.NDArray[np.int_]) -> InfiniteNetwork:
         """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         raise NotImplementedError
 
@@ -185,17 +188,17 @@ class Model:
     ) -> list[Any]:
         """Build a single network of the model and return its summary."""
         finite_network: FiniteNetwork | None = None
-        infinite_networks: list[InfiniteNetwork] | None = None
+        infinite_network_set: list[InfiniteNetwork] | None = None
         property_values: list[Any] = []
         for property_ in base_properties:
             if property_.calculation_method == BaseNetworkProperty.CalculationMethod.NETWORK:
                 finite_network = self.generate_finite_network(seed) if finite_network is None else finite_network
                 property_value = finite_network.calc_base_property(property_.property_type)
             elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
-                infinite_networks = \
+                infinite_network_set = \
                     self.generate_infinite_network_set(num_of_infinite_networks, seed) \
-                    if infinite_networks is None else infinite_networks
-                property_value = self._calc_typical_property_distribution(infinite_networks, property_.property_type)
+                    if infinite_network_set is None else infinite_network_set
+                property_value = self._calc_typical_property_distribution(infinite_network_set, property_.property_type)
             else:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)

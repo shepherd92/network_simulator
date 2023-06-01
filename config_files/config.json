@@ -4,7 +4,7 @@
         "runtime_profiling": false,
         "memory_profiling": false,
         "tracing": false,
-        "num_of_processes": 3,
+        "num_of_processes": 6,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
             "output": "../output"
@@ -13,7 +13,7 @@
     "data_set": {
         "type": "ARXIV",
         "analysis": {
-            "enable": true,
+            "enable": false,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
@@ -41,14 +41,15 @@
             "enable": false
         },
         "testing": {
-            "enable": false,
+            "enable": true,
             "test_against_data_set": false,
             "num_of_simulations": 100,
-            "num_of_infinite_networks": 10000
+            "num_of_infinite_networks": 0
         },
         "analysis": {
             "enable": false,
             "component_index_from_largest": -1,
+            "num_of_infinite_networks": 10000,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",

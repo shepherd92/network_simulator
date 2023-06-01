@@ -18,6 +18,7 @@ class BaseNetworkProperty:
 
         NUM_OF_NODES: int = auto()
         NUM_OF_EDGES: int = auto()
+        NUM_OF_TRIANGLES: int = auto()
         AVERAGE_DEGREE: int = auto()
         MAX_DEGREE: int = auto()
         AVG_CLUSTERING: int = auto()

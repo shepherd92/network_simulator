@@ -84,6 +84,8 @@ class EmpiricalDistribution(Distribution):
 
     def calc_value_counts(self) -> npt.NDArray[np.int_]:
         """Calculate how many times each value appears in the value sequence."""
+        assert self.value_sequence.dtype == np.int_, \
+            'Function calc_value_counts can only be called with integer value sequence.'
         values, counts = np.unique(self.value_sequence, return_counts=True)
         value_counts = np.c_[values, counts]
         sorted_value_counts = value_counts[value_counts[:, 0].argsort()]

@@ -4,8 +4,8 @@
 from __future__ import annotations
 
 from gudhi.simplex_tree import SimplexTree
-from math import comb
 
+from cpp_modules.build.simplicial_complex import calc_degree_sequence
 from network.network import Network
 from network.property import BaseNetworkProperty
 
@@ -74,20 +74,9 @@ class InfiniteNetwork(Network):
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
 
-        # extract facets with dimension (len(facet) - 1) higher or equal to neighbor dimension
-        # assumption: every facet contains vertex 0
-        facets = filter(lambda facet: len(facet) - 1 >= neighbor_dimension, self.facets)
+        assert self.simplicial_complex.num_vertices() > 0, 'Simplicial complex is empty.'
 
-        degree_sequence: list[int] = []
-        for facet in facets:
-            facet_dimension = len(facet) - 1
-            num_of_simplices_in_facet_containing_0 = comb(facet_dimension, simplex_dimension)
-            num_of_neighbors_in_facet_containing_0 = comb(
-                facet_dimension - simplex_dimension,
-                neighbor_dimension - simplex_dimension
-            )
-            degree_sequence += [num_of_neighbors_in_facet_containing_0] * num_of_simplices_in_facet_containing_0
-
+        degree_sequence = calc_degree_sequence(self.simplices, self.facets, simplex_dimension, neighbor_dimension)
         return degree_sequence
 
     @property
@@ -95,4 +84,4 @@ class InfiniteNetwork(Network):
         """Get the simplices associated to the network."""
         simplices_with_filtration = self.simplicial_complex.get_cofaces([0], 0)
         simplices = [simplex for simplex, _ in simplices_with_filtration]
-        return simplices
+        return simplices + [[0]]

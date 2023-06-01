@@ -112,27 +112,17 @@ std::vector<int32_t> calc_degree_sequence(
           { return facet.size() > neighbor_dimension; });
 
   std::vector<int32_t> degree_sequence;
-#ifdef LOGGING
-  auto counter{0U};
-#endif
 
   for (const auto &simplex : selected_simplices)
   {
-#ifdef LOGGING
-    if (++counter % 1000 == 0)
-    {
-      std::cout << "\rC++: calculating degree sequence..."
-                << std::setprecision(3)
-                << static_cast<float>(counter) / static_cast<float>(selected_simplices.size()) * 100.
-                << "%    ";
-    }
-#endif
-
     int higher_order_degree{0};
+    // iterate over all facets
     for (const auto &facet : possible_neighbors)
     {
+      // check if the facet includes the vertices of the simplex
       if (includes(facet.begin(), facet.end(), simplex.begin(), simplex.end()))
       {
+        // if the facet contains the simplex, calculate the number of neighbor simplices in the facet
         higher_order_degree += choose(facet.size() - 1 - simplex_dimension, neighbor_dimension - simplex_dimension);
       }
     }

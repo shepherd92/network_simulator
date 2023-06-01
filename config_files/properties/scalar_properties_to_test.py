@@ -55,6 +55,33 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         ),
     ),
     DerivedNetworkProperty(
+        name='num_of_triangles_normal_mle',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_TRIANGLES),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            fixed_parameters=NormalDistribution.Parameters(),
+            fitting_method=NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
+        ),
+    ),
+    DerivedNetworkProperty(
+        name='num_of_triangles_normal_match_quantile',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_TRIANGLES),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            fixed_parameters=NormalDistribution.Parameters(),
+            fitting_method=NormalDistribution.FittingMethod.MATCH_2_DOT_5_PERCENTILE,
+        ),
+    ),
+    DerivedNetworkProperty(
+        name='num_of_triangles_stable',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_TRIANGLES),
+        theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+        fitting_parameters=StableDistribution.FittingParameters(
+            StableDistribution.Parameters(alpha=1 / GAMMA, beta=1., location=np.nan, scale=np.nan),
+            StableDistribution.FittingMethod.MLE_SCIPY,
+        ),
+    ),
+    DerivedNetworkProperty(
         name='vertex_degree_exponent_finite',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
@@ -97,6 +124,32 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         name='edge_degree_exponent_infinite',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+        ),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            NormalDistribution.Parameters(),
+            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
+        ),
+        calculator=lambda distribution: _get_power_law_exponent(distribution)
+    ),
+    DerivedNetworkProperty(
+        name='triangle_degree_exponent_finite',
+        source_base_property=BaseNetworkProperty(
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
+            BaseNetworkProperty.CalculationMethod.NETWORK,
+        ),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            NormalDistribution.Parameters(),
+            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
+        ),
+        calculator=lambda distribution: _get_power_law_exponent(distribution)
+    ),
+    DerivedNetworkProperty(
+        name='triangle_degree_exponent_infinite',
+        source_base_property=BaseNetworkProperty(
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
             BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,

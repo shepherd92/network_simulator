@@ -39,7 +39,7 @@ def analyze_finite_network(
     plt.rcParams["text.usetex"] = False
 
     network_to_analyze = network
-    _plot_giant_component(network_to_analyze, save_directory / 'network.png')
+    _plot_giant_component(network_to_analyze.get_component(0), save_directory / 'network.png')
     summary = network_to_analyze.calc_network_summary(calculated_properties)
 
     axes_grid_height = 4
@@ -130,13 +130,14 @@ def analyze_finite_network(
     info('Finite network analysis finished.')
 
 
-def analyze_infinite_network(
-    network: InfiniteNetwork,
+def analyze_infinite_network_set(
+    networks: list[InfiniteNetwork],
     calculated_properties: list[BaseNetworkProperty.Type],
     save_directory: Path
 ) -> None:
-    """Analyze the given infinite network."""
-    pass
+    """Analyze the given infinite network set."""
+    network_with_most_nodes = max(networks, key=lambda network: network.num_vertices)
+    _plot_giant_component(network_with_most_nodes, save_directory / 'largest_infinite_network.png')
 
 
 def _plot_giant_component(network: FiniteNetwork, save_path: Path):
@@ -144,11 +145,9 @@ def _plot_giant_component(network: FiniteNetwork, save_path: Path):
 
     plt.rcParams["text.usetex"] = False
 
-    network_to_analyze = network
     debug('Plotting simplicial complex started.')
-    network_to_plot = network_to_analyze.get_component(0)
     simplicial_complex_figure, simplicial_complex_axes = plt.subplots(1, 1, figsize=(50, 50))
-    plot_finite_network(network_to_plot, simplicial_complex_axes)
+    plot_finite_network(network, simplicial_complex_axes)
     simplicial_complex_figure.savefig(save_path)
     simplicial_complex_figure.clf()
     debug('Plotting simplicial complex finished.')

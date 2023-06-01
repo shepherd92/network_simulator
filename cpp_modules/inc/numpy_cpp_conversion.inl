@@ -9,7 +9,7 @@ namespace py = pybind11;
 template <typename T>
 std::vector<T> numpy_to_vector_1d(const py::array_t<T, py::array::c_style | py::array::forcecast> &array)
 {
-    py::buffer_info bufInfo{array.request()};
+    py::buffer_info buffer_info{array.request()};
     assert(buffer_info.ndim == 1U);
     return std::vector<T>(array.data(), array.data() + array.size());
 }

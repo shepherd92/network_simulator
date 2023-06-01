@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Merge results from different runs for easier comparison and analysis."""
 
 from pathlib import Path
 from shutil import copyfile
@@ -12,7 +13,7 @@ def main() -> None:
     output_path = Path('../output/_prepared_data')
     output_path.mkdir(parents=True, exist_ok=True)
 
-    directories = {
+    data_analysis_directories = {
         'finance':     input_base_path / '20230531_192623',
         'biology':     input_base_path / '20230531_190426',
         'statistics':  input_base_path / '20230531_192839',
@@ -21,7 +22,16 @@ def main() -> None:
         'engineering': input_base_path / '20230531_194823',
     }
 
-    prepare_data_analysis_data(directories, output_path)
+    degree_distribution_directories = {
+        'infinite_networks': input_base_path / '20230601_141157_infinite_networks',
+        '100':               input_base_path / '20230601_142643_100',
+        '1000':              input_base_path / '20230601_143217_1000',
+        '10000':             input_base_path / '20230601_143513_10000',
+        # '100000':            input_base_path / '20230531_194711',
+    }
+
+    prepare_data_analysis_data(data_analysis_directories, output_path)
+    prepare_degree_distribution_data(degree_distribution_directories, output_path)
 
 
 def prepare_data_analysis_data(directories: dict[str, Path], output_path: Path) -> None:
@@ -31,6 +41,10 @@ def prepare_data_analysis_data(directories: dict[str, Path], output_path: Path) 
     create_dimension_distributions(directories, output_path)
     copy_network_plots(directories, output_path)
     create_network_info_table(directories, output_path)
+
+
+def prepare_degree_distribution_data(directories: dict[str, Path], output_path: Path) -> None:
+    """Prepare all information related to the higher-order degree distributions."""
 
 
 def create_ordinary_degree_distributions(directories: dict[str, Path], output_path: Path) -> None:

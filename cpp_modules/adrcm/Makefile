@@ -13,22 +13,25 @@ LD       := g++
 # MT:  
 # MD:  list user and system-defined include files
 # MMD: list user-defined include files
-CXXFLAGS := -O3 -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -DNDEBUG -fwrapv -fstack-protector-strong -fPIC
-LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -lcrypt -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
+# PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
+# ldl
+CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC
+LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
 
 # directories
-ROOT   := ..
+ROOT        := ..
 MODULE_ROOT := .
-BLDDIR := $(ROOT)/build
-INCDIRNAME := inc
-SRCDIR := $(MODULE_ROOT)/src
+BLDDIR      := $(ROOT)/build
+INCDIRNAME  := inc
+SRCDIR      := $(MODULE_ROOT)/src
 EXTERNAL_INC_DIRS = /usr/include/python3.10/
 
 # definition of extenstions
 SRCEXT := cpp
+# INLEXT := inl
 OBJEXT := so
 
-TARGETS := __all doxygen clean
+TARGETS := __all release debug clean
 
 # remove files generated when there was an error
 .DELETE_ON_ERROR :
@@ -42,7 +45,8 @@ MAKEFLAGS += --no-print-directory
 SUFFIXES += .d
 
 # find source files
-SRCS := $(shell find $(SRCDIR) -name "*.$(SRCEXT)")
+SRCS := $(shell find $(SRCDIR) -type f -iname "*.$(SRCEXT)")
+# INLS := $(shell find $(INCDIR) -type f -iname "*.$(INLEXT)")
 
 # create object names from source filenames
 EXEOBJS  := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.$(OBJEXT))
@@ -57,11 +61,17 @@ DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
 INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME) $(EXTERNAL_INC_DIRS)
 CXXFLAGS += $(addprefix -I , $(INCDIRS))
 
-__all : $(BLDDIR)/$(PROJECT).$(OBJEXT)
+__all : release
 
-$(BLDDIR)/$(PROJECT).$(OBJEXT): $(SRCS) | $(BLDDIR)
+# set target specific compiler and linker flags
+debug   : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG
+debug   : LDFLAGS  += -pg -lgcov
+release : CXXFLAGS += -O3
+
+release debug : $(BLDDIR)/$(PROJECT).$(OBJEXT)
+
+$(BLDDIR)/$(PROJECT).$(OBJEXT) : $(SRCS) | $(BLDDIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
-	@touch __init__.py
 	@touch $(BLDDIR)/__init__.py
 
 # make directories

@@ -25,7 +25,7 @@ from model.factory import create_model, load_default_parameters
 from network.property import ScalarNetworkPropertyReport
 from optimizer.model_optimizer import ModelOptimizer
 from optimizer.factory import create_parameter_options
-from reports.network_analysis import analyze_finite_network, analyze_infinite_network
+from reports.network_analysis import analyze_finite_network, analyze_infinite_network_set
 from reports.model_analysis import create_model_test_report
 from tools.debugger import debugger_is_active
 
@@ -120,6 +120,9 @@ def main(configuration: Configuration) -> None:
             scalar_property_save_dir = model_test_save_dir / scalar_network_property_report.params.name
             scalar_property_save_dir.mkdir(parents=True, exist_ok=True)
 
+            scalar_network_property_report.distributions.save_info(
+                scalar_property_save_dir / 'distribution_info.csv')
+
             pdfs = scalar_network_property_report.distributions.get_pdfs()
             pdfs.to_csv(scalar_property_save_dir / 'pdfs.csv', float_format='%.9f')
             value_sequence = scalar_network_property_report.distributions.empirical.value_sequence
@@ -148,9 +151,12 @@ def main(configuration: Configuration) -> None:
             configuration.model.analysis.properties_to_calculate,
             model_analysis_save_dir,
         )
-        typical_infinite_network = model.generate_infinite_network()
-        analyze_infinite_network(
-            typical_infinite_network,
+        typical_infinite_network_set = model.generate_infinite_network_set(
+            configuration.model.analysis.num_of_infinite_networks,
+            seed=0,
+        )
+        analyze_infinite_network_set(
+            typical_infinite_network_set,
             configuration.model.analysis.properties_to_calculate,
             model_analysis_save_dir,
         )

@@ -13,7 +13,7 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
-from cpp_critical_sections.build.simplicial_complex import calc_degree_sequence
+from cpp_modules.build.simplicial_complex import calc_degree_sequence
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
@@ -114,7 +114,11 @@ class FiniteNetwork(Network):
         if property_type == BaseNetworkProperty.Type.NUM_OF_NODES:
             property_value = self.num_vertices
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
-            property_value = self.num_of_edges
+            simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
+            property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1][0, 1]
+        elif property_type == BaseNetworkProperty.Type.NUM_OF_TRIANGLES:
+            simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
+            property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2][0, 1]
         elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
             property_value = self._calculate_average_degree()
         elif property_type == BaseNetworkProperty.Type.MAX_DEGREE:
@@ -143,7 +147,7 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION:
-            property_value = self._calculate_simplex_dimension_distribution()
+            property_value = self.simplex_dimension_distribution
         elif property_type == BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_facet_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:

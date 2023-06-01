@@ -14,7 +14,7 @@ import numpy.typing as npt
 import pandas as pd
 from tqdm import tqdm
 
-from cpp_critical_sections.build.simplicial_complex import extract_facets
+from cpp_modules.build.simplicial_complex import extract_facets
 from distribution.empirical_distribution import EmpiricalDistribution
 
 
@@ -28,10 +28,10 @@ class Network:
 
         self._interactions: list[list[int]] = []
         self._facets: list[list[int]] = []
+        self._simplex_dimension_distribution: EmpiricalDistribution | None = None
         self._simplicial_complex = SimplexTree()
         self._graph: nx.Graph() | None = None
         self._digraph: nx.DiGraph() | None = None
-        self._num_of_edges: int | None = None
 
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
@@ -126,6 +126,7 @@ class Network:
     def _reset(self) -> None:
         self._interactions = []
         self._facets = []
+        self._simplex_dimension_distribution = None
         self._simplicial_complex = SimplexTree()
         self._graph = None
         self._digraph = None
@@ -204,6 +205,7 @@ class Network:
         self._simplicial_complex = value
         self._interactions = None
         self._facets = None
+        self._simplex_dimension_distribution = None
         self._is_persistence_computed = False
         self._num_of_edges = None
 
@@ -255,22 +257,22 @@ class Network:
         return self._digraph
 
     @property
-    def facets(self) -> list[set[int]]:
+    def facets(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
         if not self._facets:
             self._facets = self._extract_facets()
         return self._facets
 
     @property
-    def interactions(self) -> list[set[int]]:
+    def interactions(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
         if not self._interactions:
             return self.facets
         return self._interactions
 
     @property
-    def num_of_edges(self) -> int:
+    def simplex_dimension_distribution(self) -> EmpiricalDistribution:
         """Get the simplices associated to the network."""
-        if not self._num_of_edges:
-            self._num_of_edges = self.graph.number_of_edges()
-        return self._num_of_edges
+        if not self._simplex_dimension_distribution:
+            self._simplex_dimension_distribution = self._calculate_simplex_dimension_distribution()
+        return self._simplex_dimension_distribution

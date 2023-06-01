@@ -49,6 +49,7 @@ class ModelAnalysis(NamedTuple):
 
     enable: bool = False
     component_index_from_largest: int = 0
+    num_of_infinite_networks: int = 0
     properties_to_calculate: list[BaseNetworkProperty.Type] = []
 
 
@@ -138,6 +139,7 @@ class Configuration:
                 component_index_from_largest=int(
                     params['model']['analysis']['component_index_from_largest']
                 ),
+                num_of_infinite_networks=int(params['model']['analysis']['num_of_infinite_networks']),
                 properties_to_calculate=[
                     BaseNetworkProperty.Type[network_property]
                     for network_property in params['model']['analysis']['properties']
