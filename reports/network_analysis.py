@@ -19,7 +19,6 @@ from reports.plotting_helper import (
     approximate_distribution,
     check_calculated,
     plot_distribution_approximation,
-    plot_empirical_distribution_histogram_with_info,
     plot_finite_network,
     plot_persistence_barcode_,
     plot_persistence_diagram_,
@@ -160,14 +159,10 @@ def _report_total_degree_distribution(
     save_directory: Path
 ) -> None:
 
-    axes.set_title('Total Degree Distribution')
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'total_degree_distribution')
     plot_distribution_approximation(approximation, axes)
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'total_degree_distribution.csv'
-    )
-    approximation.save_info(save_directory / 'total_degree_distribution_info.csv')
+    axes.set_title('Total Degree Distribution')
 
 
 @check_calculated
@@ -177,14 +172,10 @@ def _report_in_degree_distribution(
     save_directory: Path
 ) -> None:
 
-    axes.set_title('In Degree Distribution')
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'in_degree_distribution')
     plot_distribution_approximation(approximation, axes)
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'in_degree_distribution.csv'
-    )
-    approximation.save_info(save_directory / 'in_degree_distribution_info.csv')
+    axes.set_title('In Degree Distribution')
 
 
 @check_calculated
@@ -194,14 +185,10 @@ def _report_out_degree_distribution(
     save_directory: Path
 ) -> None:
 
-    axes.set_title('Out Degree Distribution')
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'out_degree_distribution')
     plot_distribution_approximation(approximation, axes)
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'out_degree_distribution.csv'
-    )
-    approximation.save_info(save_directory / 'out_degree_distribution_info.csv')
+    axes.set_title('Out Degree Distribution')
 
 
 @check_calculated
@@ -211,14 +198,10 @@ def _report_ho_1_degree_distribution(
     save_directory: Path
 ) -> None:
 
-    axes.set_title('Higher-Order Degree Distribution - Dimension 1')
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'ho_degree_distribution_1')
     plot_distribution_approximation(approximation, axes)
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'ho_degree_distribution_1.csv'
-    )
-    approximation.save_info(save_directory / 'ho_degree_distribution_1_info.csv')
+    axes.set_title('Higher-Order Degree Distribution - Dimension 1')
 
 
 @check_calculated
@@ -228,14 +211,10 @@ def _report_ho_2_degree_distribution(
     save_directory: Path
 ) -> None:
 
-    axes.set_title('Higher-Order Degree Distribution - Dimension 2')
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'ho_degree_distribution_2')
     plot_distribution_approximation(approximation, axes)
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'ho_degree_distribution_2.csv'
-    )
-    approximation.save_info(save_directory / 'ho_degree_distribution_2_info.csv')
+    axes.set_title('Higher-Order Degree Distribution - Dimension 2')
 
 
 @check_calculated
@@ -245,14 +224,10 @@ def _report_ho_3_degree_distribution(
     save_directory: Path
 ) -> None:
 
-    axes.set_title('Higher-Order Degree Distribution - Dimension 3')
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'ho_degree_distribution_3')
     plot_distribution_approximation(approximation, axes)
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'ho_degree_distribution_3.csv'
-    )
-    approximation.save_info(save_directory / 'ho_degree_distribution_3_info.csv')
+    axes.set_title('Higher-Order Degree Distribution - Dimension 3')
 
 
 @check_calculated
@@ -261,17 +236,11 @@ def _report_simplex_dimension_distribution(
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
+
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'simplex_dimension_distribution')
+    plot_value_counts(empirical_distribution.calc_value_counts(), axes)
     axes.set_title('Simplex dimension distribution')
-    plot_empirical_distribution_histogram_with_info(
-        empirical_distribution,
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        axes
-    )
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'simplex_dimension_distribution.csv'
-    )
-    empirical_distribution.save_info(save_directory / 'simplex_dimension_distribution_info.csv')
 
 
 @check_calculated
@@ -280,17 +249,11 @@ def _report_facet_dimension_distribution(
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
+
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'facet_dimension_distribution')
+    plot_value_counts(empirical_distribution.calc_value_counts(), axes)
     axes.set_title('Facet dimension distribution')
-    plot_empirical_distribution_histogram_with_info(
-        empirical_distribution,
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        axes
-    )
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'facet_dimension_distribution.csv'
-    )
-    empirical_distribution.save_info(save_directory / 'facet_dimension_distribution_info.csv')
 
 
 @check_calculated
@@ -299,17 +262,10 @@ def _report_interaction_dimension_distribution(
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
+    approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+    approximation.save(save_directory / 'interaction_dimension_distribution')
+    plot_value_counts(empirical_distribution.calc_value_counts(), axes)
     axes.set_title('Interaction dimension distribution')
-    plot_empirical_distribution_histogram_with_info(
-        empirical_distribution,
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        axes
-    )
-    empirical_distribution.save_histogram(
-        EmpiricalDistribution.HistogramType.INTEGERS,
-        save_directory / 'interaction_dimension_distribution.csv'
-    )
-    empirical_distribution.save_info(save_directory / 'interaction_dimension_distribution_info.csv')
 
 
 @check_calculated

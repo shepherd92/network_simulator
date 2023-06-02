@@ -14,6 +14,7 @@ from trace import Trace
 import tracemalloc
 
 import numpy as np
+from tqdm import tqdm
 
 from configuration import Configuration
 from config_files.properties.scalar_properties_to_fit import SCALAR_PROPERTY_PARAMS_TO_FIT
@@ -90,7 +91,10 @@ def main(configuration: Configuration) -> None:
         )
 
         scalar_property_reports: list[ScalarNetworkPropertyReport] = []
-        for property_params, distribution in zip(SCALAR_PROPERTY_PARAMS_TO_TEST, scalar_property_distributions):
+        for property_params, distribution in tqdm(
+            zip(SCALAR_PROPERTY_PARAMS_TO_TEST, scalar_property_distributions),
+            total=len(SCALAR_PROPERTY_PARAMS_TO_TEST),
+        ):
             distribution_pair = DistributionApproximation(
                 distribution,
                 property_params.theoretical_approximation_type
@@ -118,20 +122,7 @@ def main(configuration: Configuration) -> None:
 
         for scalar_network_property_report in scalar_property_reports:
             scalar_property_save_dir = model_test_save_dir / scalar_network_property_report.params.name
-            scalar_property_save_dir.mkdir(parents=True, exist_ok=True)
-
-            scalar_network_property_report.distributions.save_info(
-                scalar_property_save_dir / 'distribution_info.csv')
-
-            pdfs = scalar_network_property_report.distributions.get_pdfs()
-            pdfs.to_csv(scalar_property_save_dir / 'pdfs.csv', float_format='%.9f')
-            value_sequence = scalar_network_property_report.distributions.empirical.value_sequence
-            np.savetxt(scalar_property_save_dir / 'value_sequence.csv', value_sequence, delimiter=',')
-
-            confidence_levels = [0.9, 0.95, 0.99]
-            confidence_intervals = \
-                scalar_network_property_report.distributions.get_confidence_intervals(confidence_levels)
-            confidence_intervals.to_csv(scalar_property_save_dir / 'confidence_intervals.csv', float_format='%.4f')
+            scalar_network_property_report.distributions.save(scalar_property_save_dir)
 
         model_network_report_figure = create_model_test_report(scalar_property_reports)
         model_network_report_figure.savefig(model_test_save_dir / f'{model_type.name.lower()}_report.png')

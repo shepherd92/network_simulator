@@ -20,6 +20,7 @@ class DistributionApproximation:
         """Results of the statistical tests for a scalar network property."""
 
         probability_plot_r_value: float = np.nan
+        qq_plot_r_value: float = np.nan
         point_p_value: float = np.nan
         kolmogorov_smirnov: float = np.nan
 
@@ -37,6 +38,7 @@ class DistributionApproximation:
         self._type = theoretical_type
         self._empirical = empirical
         self._theoretical = create_theoretical_distribution(theoretical_type)
+        self._pdfs: pd.DataFrame | None = None
 
     def fit(self, fitting_parameters: TheoreticalDistribution.FittingParameters) -> None:
         """Fit the theoretical distribution to the emirical distribution."""
@@ -52,6 +54,7 @@ class DistributionApproximation:
             np.unique(self.empirical.value_sequence)
         )
         probability_plot_r_value = self.calculate_probability_plot_r_value()
+        qq_plot_r_value = self.calculate_qq_plot_r_value()
 
         if not np.isnan(point_value):
             p_value = self.theoretical.calc_p_values(np.array([point_value]))[0]
@@ -60,11 +63,20 @@ class DistributionApproximation:
 
         test_result = DistributionApproximation.TestResult(
             probability_plot_r_value=probability_plot_r_value,
+            qq_plot_r_value=qq_plot_r_value,
             point_p_value=p_value,
             kolmogorov_smirnov=kolmogorov_smirnov,
         )
 
         return test_result
+
+    def calculate_probability_plot_r_value(self) -> float:
+        """Calculate the goodness of fit of a straight line fitted to the probability plot.
+
+        The line to which we compare the points is y=x.
+        """
+        points = self.generate_probability_plot_points()
+        return self._calc_r_squared_value(points)
 
     def generate_probability_plot_points(self) -> npt.NDArray[np.float_]:
         """Return the points of the probability points."""
@@ -75,6 +87,14 @@ class DistributionApproximation:
         empirical_cdf = self.empirical.conditional_cdf(x_values)
         points = np.c_[empirical_cdf, theoretical_cdf]
         return points
+
+    def calculate_qq_plot_r_value(self) -> float:
+        """Calculate the goodness of fit of a straight line fitted to the probability plot.
+
+        The line to which we compare the points is y=x.
+        """
+        points = self.generate_qq_plot_points()
+        return self._calc_r_squared_value(points)
 
     def generate_qq_plot_points(self) -> npt.NDArray[np.float_]:
         """Return the points of the probability points."""
@@ -87,28 +107,30 @@ class DistributionApproximation:
         std = self.empirical.value_sequence.std()
         return (points - mean) / std
 
-    def calculate_probability_plot_r_value(self) -> float:
-        """Calculate the goodness of fit of a straight line fitted to the probability plot.
+    def save(self, save_directory: Path) -> None:
+        """Save all information of the aroximation."""
+        save_directory.mkdir(parents=True, exist_ok=True)
+        self.save_info(save_directory / 'distribution_info.csv')
 
-        The line to which we compare the points is y=x.
-        """
+        if len(self.empirical.value_sequence) == 0:
+            return
+
+        self.pdfs.to_csv(save_directory / 'pdfs.csv', float_format='%.9f')
+        np.savetxt(save_directory / 'value_sequence.csv', self.empirical.value_sequence, delimiter=',')
+        if self.empirical.value_sequence.dtype == np.int_:
+            value_counts = self.empirical.calc_value_counts()
+            np.savetxt(save_directory / 'value_counts.csv', value_counts, delimiter=',')
+
+        confidence_levels = [0.9, 0.95, 0.99]
+        confidence_intervals = self.get_confidence_intervals(confidence_levels)
+        confidence_intervals.to_csv(save_directory / 'confidence_intervals.csv', float_format='%.4f')
+
         probability_plot_points = self.generate_probability_plot_points()
-        ss_res = np.sum((probability_plot_points[:, 1] - probability_plot_points[:, 0])**2)
-        probability_plot_r_value = 1 - ss_res
-        return probability_plot_r_value
+        np.savetxt(save_directory / 'probability_plot_points.csv', probability_plot_points, delimiter=',')
+        qq_plot_points = self.generate_qq_plot_points()
+        np.savetxt(save_directory / 'qq_plot_points.csv', qq_plot_points, delimiter=',')
 
-    def calculate_qq_plot_r_value(self) -> float:
-        """Calculate the goodness of fit of a straight line fitted to the probability plot.
-
-        The line to which we compare the points is y=x.
-        """
-        probability_plot_points = self.generate_qq_plot_points()
-        ss_res = np.sum((probability_plot_points[:, 1] - probability_plot_points[:, 0])**2)
-        ss_tot = np.sum((probability_plot_points[:, 1] - probability_plot_points[:, 1].mean())**2)
-        probability_plot_r_value = 1 - ss_res / ss_tot
-        return probability_plot_r_value
-
-    def get_pdfs(self) -> pd.DataFrame:
+    def _get_pdfs(self) -> pd.DataFrame:
         """Get the pdfs of the two distributions."""
         num_of_points = 1000
         x_values = np.linspace(
@@ -140,6 +162,12 @@ class DistributionApproximation:
         )
         return confidence_intervals_df
 
+    def save_info(self, save_path: Path) -> None:
+        """Save the main parameters to the given file as a pandas data frame."""
+        info = self.get_info_as_dict()
+        data_frame = pd.DataFrame(info, index=[0])
+        data_frame.to_csv(save_path, index=False)
+
     def get_info_as_dict(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         empirical_info = self.empirical.get_info_as_dict()
@@ -151,13 +179,20 @@ class DistributionApproximation:
         for key, value in theoretical_info.items():
             joint_info[f'theoretical_{key}'] = value
 
+        test_result = self.run_test()
+        joint_info['kolmogorov_smirnov'] = test_result.kolmogorov_smirnov
+        joint_info['probability_plot_r_value'] = test_result.probability_plot_r_value
+        joint_info['qq_plot_r_value'] = test_result.qq_plot_r_value
+
         return joint_info
 
-    def save_info(self, save_path: Path) -> None:
-        """Save the main parameters to the given file as a pandas data frame."""
-        info = self.get_info_as_dict()
-        data_frame = pd.DataFrame(info, index=[0])
-        data_frame.to_csv(save_path, index=False)
+    @staticmethod
+    def _calc_r_squared_value(points: npt.NDArray) -> float:
+
+        ss_res = np.sum((points[:, 1] - points[:, 0])**2)
+        ss_tot = np.sum((points[:, 1] - points[:, 1].mean())**2)
+        probability_plot_r_value = 1 - ss_res / ss_tot
+        return probability_plot_r_value
 
     @property
     def type(self) -> TheoreticalDistribution.Type:
@@ -173,6 +208,13 @@ class DistributionApproximation:
     def theoretical(self) -> TheoreticalDistribution:
         """Return the theoretical approximation part."""
         return self._theoretical
+
+    @property
+    def pdfs(self) -> pd.DataFrame:
+        """Return the theoretical approximation part."""
+        if self._pdfs is None:
+            self._pdfs = self._get_pdfs()
+        return self._pdfs
 
     @property
     def valid(self) -> bool:

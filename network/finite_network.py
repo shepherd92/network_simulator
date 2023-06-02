@@ -118,7 +118,10 @@ class FiniteNetwork(Network):
             property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1][0, 1]
         elif property_type == BaseNetworkProperty.Type.NUM_OF_TRIANGLES:
             simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
-            property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2][0, 1]
+            if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2]) == 0:
+                property_value = 0
+            else:
+                property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2][0, 1]
         elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
             property_value = self._calculate_average_degree()
         elif property_type == BaseNetworkProperty.Type.MAX_DEGREE:
