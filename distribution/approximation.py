@@ -26,7 +26,9 @@ class DistributionApproximation:
 
         def __str__(self) -> str:
             """Return string representation for reporting."""
-            result = f'probability_plot_r_value: {self.probability_plot_r_value:.4f}\n' + \
+            result = \
+                f'probability_plot_r_value: {self.probability_plot_r_value:.4f}\n' + \
+                f'qq_plot_r_value: {self.qq_plot_r_value:.4f}\n' + \
                 f'Kolmogorov-Smirnov statistic: {self.kolmogorov_smirnov:.4f}'
 
             if not np.isnan(self.point_p_value):
@@ -125,6 +127,10 @@ class DistributionApproximation:
         confidence_intervals = self.get_confidence_intervals(confidence_levels)
         confidence_intervals.to_csv(save_directory / 'confidence_intervals.csv', float_format='%.4f')
 
+        quantiles_to_calculate = [0.00, 0.25, 0.50, 0.75, 1.00]
+        quantiles = self.get_quantiles(quantiles_to_calculate)
+        quantiles.to_csv(save_directory / 'quantiles.csv', float_format='%.4f')
+
         probability_plot_points = self.generate_probability_plot_points()
         np.savetxt(save_directory / 'probability_plot_points.csv', probability_plot_points, delimiter=',')
         qq_plot_points = self.generate_qq_plot_points()
@@ -162,6 +168,19 @@ class DistributionApproximation:
         )
         return confidence_intervals_df
 
+    def get_quantiles(self, quantiles_to_calculate: list[float]) -> pd.DataFrame:
+        """Get confidence intervals for the specified confidence levels."""
+        theoretical_quantiles = self.theoretical.calc_quantiles(np.array(quantiles_to_calculate))
+        empirical_quantiles = self.empirical.calc_quantiles(np.array(quantiles_to_calculate))
+
+        index = [int(quantile*100) for quantile in quantiles_to_calculate]
+        quantiles = pd.DataFrame(
+            np.c_[empirical_quantiles, theoretical_quantiles],
+            columns=['empirical', 'theoretical'],
+            index=index
+        )
+        return quantiles
+
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
         info = self.get_info_as_dict()
@@ -191,8 +210,8 @@ class DistributionApproximation:
 
         ss_res = np.sum((points[:, 1] - points[:, 0])**2)
         ss_tot = np.sum((points[:, 1] - points[:, 1].mean())**2)
-        probability_plot_r_value = 1 - ss_res / ss_tot
-        return probability_plot_r_value
+        r_value = 1 - ss_res / ss_tot
+        return r_value
 
     @property
     def type(self) -> TheoreticalDistribution.Type:

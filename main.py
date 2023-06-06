@@ -3,6 +3,7 @@
 
 import argparse
 import cProfile
+from enum import Enum, auto
 import io
 import logging
 from logging import basicConfig, info
@@ -16,7 +17,7 @@ import tracemalloc
 import numpy as np
 from tqdm import tqdm
 
-from configuration import Configuration
+from configuration.configuration import Configuration
 from config_files.properties.scalar_properties_to_fit import SCALAR_PROPERTY_PARAMS_TO_FIT
 from config_files.properties.scalar_properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
 from data_set.factory import load_data
@@ -31,7 +32,16 @@ from reports.model_analysis import create_model_test_report
 from tools.debugger import debugger_is_active
 
 
-def main(configuration: Configuration) -> None:
+class Mode(Enum):
+    """Mode in which the program runs."""
+
+    ANALYSIS = 'analysis'  # to analyze a data set
+    FITTING = 'fitting'  # to fit model parameters to data
+    TESTING = 'testing'  # to analyze model properties
+    EXAMPLE = 'example'  # to analyze an example network from the model
+
+
+def main(mode: Mode, configuration: Configuration) -> None:
     """Run program - main function."""
     num_of_processes = 1 \
         if debugger_is_active() or configuration.general.runtime_profiling or configuration.general.memory_profiling \
@@ -40,23 +50,20 @@ def main(configuration: Configuration) -> None:
     data_set_type = configuration.data_set.type_
     model_type = configuration.model.type_
 
-    if data_set_required(configuration):
+    if mode == Mode.ANALYSIS:
         data_set = load_data(data_set_type)
-
-    if configuration.data_set.analysis.enable:
-
         (configuration.general.directories.output / 'data').mkdir(parents=True, exist_ok=True)
         analyze_finite_network(
             data_set,
             configuration.data_set.analysis.properties_to_calculate,
             configuration.general.directories.output / 'data'
         )
+    elif mode == Mode.FITTING:
 
-    model: Model = create_model(model_type)
-    model.parameters = load_default_parameters(model_type)
+        model: Model = create_model(model_type)
+        model.parameters = load_default_parameters(model_type)
 
-    if configuration.model.fitting.enable:
-
+        data_set = load_data(data_set_type)
         parameter_options = create_parameter_options(model_type, data_set)
         optimizer = ModelOptimizer(model, method='BFGS')
 
@@ -76,11 +83,14 @@ def main(configuration: Configuration) -> None:
                 'maxiter': 10
             }
         )
-
-    if configuration.model.network_testing.enable:
+    elif mode == Mode.TESTING:
         info('Network testing started.')
 
+        model: Model = create_model(model_type)
+        model.parameters = load_default_parameters(model_type)
+
         if configuration.model.network_testing.test_against_data_set:
+            data_set = load_data(data_set_type)
             model.set_relevant_parameters_from_data_set(data_set)
 
         scalar_property_distributions = model.simulate(
@@ -129,9 +139,11 @@ def main(configuration: Configuration) -> None:
         model_network_report_figure.clf()
 
         info('Network testing finished.')
-
-    if configuration.model.analysis.enable:
+    elif mode == Mode.EXAMPLE:
         info('Model analysis started.')
+
+        model: Model = create_model(model_type)
+        model.parameters = load_default_parameters(model_type)
 
         model_analysis_save_dir = (configuration.general.directories.output / 'model_analysis')
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
@@ -153,15 +165,17 @@ def main(configuration: Configuration) -> None:
         )
 
         info('Model analysis finished.')
+    else:
+        raise NotImplementedError('Unknown mode.')
 
 
-def data_set_required(configuration: Configuration) -> bool:
+def data_set_required(mode: Mode, configuration: Configuration) -> bool:
     """Check if loading of a data set is required."""
     return \
-        configuration.data_set.analysis.enable or \
-        configuration.model.fitting.enable or \
+        mode == Mode.ANALYSIS or \
+        mode == Mode.FITTING or \
         (
-            configuration.model.network_testing.enable and
+            mode == Mode.TESTING and
             configuration.model.network_testing.test_against_data_set
         )
 
@@ -169,7 +183,8 @@ def data_set_required(configuration: Configuration) -> bool:
 def create_parser() -> argparse.ArgumentParser:
     """Create parser for command line arguments."""
     parser = argparse.ArgumentParser(description='Load and prepare input data for training.')
-    parser.add_argument('--config_dir', type=Path, default=Path('config_files'), help='Path to the config directory')
+    parser.add_argument('--mode', type=Mode, choices=list(Mode), help='Mode in which the program should be run.')
+    parser.add_argument('--config_dir', type=Path, default=Path('config_files'), help='Path to the config directory.')
     return parser
 
 
@@ -189,7 +204,7 @@ def main_wrapper(params: argparse.Namespace) -> None:
         filemode='w',
         encoding='utf-8',
         level=getattr(logging, configuration.general.log_level),
-        format='%(asctime)s %(levelname)-8s %(filename)s.%(funcName)s%(lineno)d - %(message)s',
+        format='%(asctime)s %(levelname)-8s %(filename)s.%(funcName)s.%(lineno)d - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S',
     )
     logging.getLogger('matplotlib.font_manager').setLevel(logging.WARNING)
@@ -213,7 +228,7 @@ def main_wrapper(params: argparse.Namespace) -> None:
         tracer_results.write_results(show_missing=True, coverdir=".")
 
     else:
-        main(configuration)
+        main(params.mode, configuration)
 
     if configuration.general.memory_profiling:
         memory_usage_snapshot = tracemalloc.take_snapshot()

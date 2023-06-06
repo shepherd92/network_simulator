@@ -25,20 +25,16 @@ class Directories(NamedTuple):
 class DataSetAnalysis(NamedTuple):
     """Data set analysis options."""
 
-    enable: bool = False
     properties_to_calculate: list[BaseNetworkProperty.Type] = []
 
 
 class ModelFitting(NamedTuple):
     """Model fitting configuration."""
 
-    enable: bool = False
-
 
 class ModelTesting(NamedTuple):
     """Model testing configuration for networks."""
 
-    enable: bool = False
     test_against_data_set: bool = False
     num_of_simulations: int = 0
     num_of_infinite_networks: int = 0
@@ -47,7 +43,6 @@ class ModelTesting(NamedTuple):
 class ModelAnalysis(NamedTuple):
     """Model analysis configuration."""
 
-    enable: bool = False
     component_index_from_largest: int = 0
     num_of_infinite_networks: int = 0
     properties_to_calculate: list[BaseNetworkProperty.Type] = []
@@ -56,7 +51,6 @@ class ModelAnalysis(NamedTuple):
 class ModelStatistics(NamedTuple):
     """Model statistics configuration."""
 
-    enable: bool = False
     num_of_simulations: int = 0
 
 
@@ -115,7 +109,6 @@ class Configuration:
         self.data_set = Configuration.DataSet(
             type_=DataSet.Type[params['data_set']['type']],
             analysis=DataSetAnalysis(
-                enable=bool(params['data_set']['analysis']['enable']),
                 properties_to_calculate=[
                     BaseNetworkProperty.Type[network_property]
                     for network_property in params['data_set']['analysis']['properties']
@@ -126,16 +119,13 @@ class Configuration:
         self.model = Configuration.Model(
             type_=Model.Type[str(params['model']['type'])],
             fitting=ModelFitting(
-                enable=bool(params['model']['fitting']['enable']),
             ),
             network_testing=ModelTesting(
-                enable=bool(params['model']['testing']['enable']),
                 test_against_data_set=bool(params['model']['testing']['test_against_data_set']),
                 num_of_simulations=int(params['model']['testing']['num_of_simulations']),
                 num_of_infinite_networks=int(params['model']['testing']['num_of_infinite_networks']),
             ),
             analysis=ModelAnalysis(
-                enable=bool(params['model']['analysis']['enable']),
                 component_index_from_largest=int(
                     params['model']['analysis']['component_index_from_largest']
                 ),

@@ -42,10 +42,7 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_default_inte
     const auto g{model_parameters.gamma};
 
     std::mt19937 random_number_generator{seed};
-    // LLLLLLLLLLLLLLLLLLLLLLLLLLLL
-    // constexpr auto maximum_network_size{1000000U};
-    // const auto minimum_birth_time{b / (maximum_network_size + 1)};
-    const auto minimum_birth_time{0.};
+    constexpr auto minimum_birth_time{0.};
     std::uniform_real_distribution<> uniform_distribution(minimum_birth_time, 1.);
 
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
@@ -62,11 +59,11 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_default_inte
         std::uniform_real_distribution<> position_distribution{-b / u, +b / u};
         for (auto index{0U}; index < N; ++index)
         {
-            const auto birth_time{birth_time_distribution(random_number_generator)};
+            const auto v{birth_time_distribution(random_number_generator)};
             const auto position{position_distribution(random_number_generator)};
-            if (std::abs(position) < 0.5 * b * std::pow(u, -g) * std::pow(birth_time, g - 1.))
+            if (std::abs(position) < 0.5 * b * std::pow(u, -g) * std::pow(v, g - 1.))
             {
-                nodes.push_back(Point(birth_time, position));
+                nodes.push_back(Point(v, position));
             }
         }
 

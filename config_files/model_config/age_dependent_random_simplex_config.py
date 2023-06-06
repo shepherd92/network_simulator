@@ -7,6 +7,7 @@ import numpy as np
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
+from distribution.factory import create_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
 from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
@@ -16,11 +17,11 @@ from optimizer.parameter_option import ModelParameterOptions, ParameterOption
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
     max_dimension=3,
-    num_nodes=10,
+    num_nodes=4,
     torus_dimension=1,
     alpha=0.5,
     beta=1.0,
-    gamma=0.7,
+    gamma=0.05,
 )
 
 
@@ -37,10 +38,7 @@ class AgeDependentRandomSimplexParameterOptions(ModelParameterOptions):
         )
         approximation = DistributionApproximation(in_degree_distribution, TheoreticalDistribution.Type.POWER_LAW)
         assert isinstance(approximation.theoretical, PowerLawDistribution)
-        approximation.fit(PowerLawDistribution.FittingParameters(
-            PowerLawDistribution.Parameters(),
-            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN
-        ))
+        approximation.fit(create_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW))
         gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 

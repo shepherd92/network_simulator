@@ -35,8 +35,10 @@ class PowerLawDistribution(TheoreticalDistribution):
         """Method used for fitting the power law distribution."""
 
         LINEAR_REGRESSION = auto()
-        MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN = auto()
+        MAXIMUM_LIKELIHOOD_LOGARITHMIC_RATIO_DOMAIN = auto()
         MAXIMUM_LIKELIHOOD_MLE_DOMAIN = auto()
+        MAXIMUM_LIKELIHOOD_DETERMINISTIC_DOMAIN = auto()
+        MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN = auto()
 
     def __init__(self) -> None:
         """Create a default power law distribution."""
@@ -66,14 +68,22 @@ class PowerLawDistribution(TheoreticalDistribution):
         fitting_parameters: FittingParameters
     ) -> None:
         if fitting_parameters.fitting_method in [
-            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_LOGARITHMIC_RATIO_DOMAIN,
             PowerLawDistribution.FittingMethod.LINEAR_REGRESSION,
         ]:
-            self._determine_domain_quantiles(empirical_distribution)
+            self._determine_domain_logarithmic_ratio(empirical_distribution)
+        elif fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
+        ]:
+            self._determine_domain_quantile(empirical_distribution)
         elif fitting_parameters.fitting_method in [
             PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN,
         ]:
             self._determine_domain_mle(empirical_distribution)
+        elif fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_DETERMINISTIC_DOMAIN,
+        ]:
+            self._determine_domain_deterministic()
         else:
             assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
 
@@ -93,8 +103,10 @@ class PowerLawDistribution(TheoreticalDistribution):
             return
 
         if fitting_parameters.fitting_method in [
-            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_LOGARITHMIC_RATIO_DOMAIN,
             PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN,
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_DETERMINISTIC_DOMAIN,
+            PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_QUANTILE_DOMAIN,
         ]:
             self._parameters.exponent = self._estimate_exponent_mle(empirical_distribution)
         elif fitting_parameters.fitting_method in [
@@ -103,6 +115,11 @@ class PowerLawDistribution(TheoreticalDistribution):
             self._parameters.exponent = self._estimate_exponent_linear_regression(empirical_distribution)
         else:
             assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+
+    def _determine_domain_deterministic(self) -> None:
+        """Find the domain at which the power-law holds."""
+        # calculate the intersection of the domains so that at least 25% of the domain remains above the minimum
+        self._domain.min_ = np.round(50)
 
     def _determine_domain_mle(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the domain at which the power-law holds.
@@ -128,12 +145,19 @@ class PowerLawDistribution(TheoreticalDistribution):
 
         self._domain.min_ = np.round(ks_statistics[np.nanargmin([ks_statistics[:, 1]]), 0])
 
-    def _determine_domain_quantiles(self, empirical_distribution: EmpiricalDistribution) -> None:
+    def _determine_domain_logarithmic_ratio(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the minimum degree from which the power-law holds."""
-        min_quantile = 0.33
-        max_quantile = 1.0
-        self._domain.min_ = empirical_distribution.domain.max_ ** min_quantile
-        self._domain.max_ = empirical_distribution.domain.max_ ** max_quantile
+        min_ratio = 0.5
+        max_ratio = 0.9
+        self._domain.min_ = empirical_distribution.domain.max_ ** min_ratio
+        self._domain.max_ = empirical_distribution.domain.max_ ** max_ratio
+
+    def _determine_domain_quantile(self, empirical_distribution: EmpiricalDistribution) -> None:
+        """Find the minimum degree from which the power-law holds."""
+        min_quantile = 0.5
+        max_quantile = 0.9
+        self._domain.min_ = np.quantile(empirical_distribution.value_sequence, min_quantile)
+        self._domain.max_ = np.quantile(empirical_distribution.value_sequence, max_quantile)
 
     def _estimate_exponent_mle(self, empirical_distribution: EmpiricalDistribution) -> Parameters:
         """Estimate the power law  with maximum likelihood estimation.
@@ -145,7 +169,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         if len(value_sequence) == 0:
             # warning(f'Value sequence is empty in domain [{self.domain.min_}, {self.domain.max_}].')
-            return PowerLawDistribution.Parameters(np.nan)
+            return np.nan
 
         estimate = 1. + len(value_sequence) / (sum(np.log(value_sequence / (self.domain.min_ - 0.5))))
         return estimate

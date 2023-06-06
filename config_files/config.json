@@ -11,12 +11,12 @@
         }
     },
     "data_set": {
-        "type": "ARXIV",
+        "type": "TEST",
         "analysis": {
-            "enable": false,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
+                "NUM_OF_TRIANGLES",
                 "AVERAGE_DEGREE",
                 "MAX_DEGREE",
                 "AVG_CLUSTERING",
@@ -37,22 +37,19 @@
     },
     "model": {
         "type": "AGE_DEPENDENT_RANDOM_SIMPLEX",
-        "fitting": {
-            "enable": false
-        },
+        "fitting": {},
         "testing": {
-            "enable": true,
             "test_against_data_set": false,
-            "num_of_simulations": 10,
-            "num_of_infinite_networks": 10000
+            "num_of_simulations": 100,
+            "num_of_infinite_networks": 10
         },
         "analysis": {
-            "enable": false,
             "component_index_from_largest": -1,
-            "num_of_infinite_networks": 10000,
+            "num_of_infinite_networks": 100000,
             "properties": [
                 "NUM_OF_NODES",
                 "NUM_OF_EDGES",
+                "NUM_OF_TRIANGLES",
                 "AVERAGE_DEGREE",
                 "MAX_DEGREE",
                 "AVG_CLUSTERING",

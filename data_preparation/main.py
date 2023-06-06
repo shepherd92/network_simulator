@@ -14,21 +14,28 @@ def main() -> None:
     output_path.mkdir(parents=True, exist_ok=True)
 
     data_analysis_directories = {
-        'finance':     input_base_path / '20230602_082443',
-        'biology':     input_base_path / '20230602_082443',
-        'statistics':  input_base_path / '20230602_082443',
-        'mathematics': input_base_path / '20230602_082443',
-        'economics':   input_base_path / '20230602_082443',
-        'engineering': input_base_path / '20230602_082443',
+        # 'finance':     input_base_path / '20230606_074218',
+        # 'biology':     input_base_path / '20230606_074555',
+        # 'statistics':  input_base_path / '20230606_075103',
+        # 'mathematics': input_base_path / '20230606_075318',
+        # 'economics':   input_base_path / '20230606_080916',
+        # 'engineering': input_base_path / '20230606_081030',
+        'finance':     input_base_path / '20230606_100639',
+        'biology':     input_base_path / '20230606_100750',
+        'statistics':  input_base_path / '20230606_100814',
+        'mathematics': input_base_path / '20230606_100846',
+        'economics':   input_base_path / '20230606_100922',
+        'engineering': input_base_path / '20230606_101140',
     }
 
     degree_distribution_directories = {
-        'infinite': input_base_path / '20230601_172852',
-        '10':       input_base_path / '20230601_173622',
-        '100':      input_base_path / '20230601_173718',
-        '1000':     input_base_path / '20230601_180236',
-        '10000':    input_base_path / '20230601_184235',
-        '100000':   input_base_path / '20230601_202919',
+        # 'infinite': input_base_path / '20230603_090700',
+        'infinite': input_base_path / '20230605_103841',
+        '10':       input_base_path / '20230605_110718',
+        '100':      input_base_path / '20230605_110844',
+        '1000':     input_base_path / '20230605_110907',
+        '10000':    input_base_path / '20230605_110933',
+        '100000':   input_base_path / '20230605_214557',
     }
 
     prepare_data_analysis_data(data_analysis_directories, output_path)
@@ -46,34 +53,39 @@ def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -
 
 def prepare_simulation_degree_distribution_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare all information related to the higher-order degree distributions."""
-    _merge_vertex_degree_exponents(directories, output_dir)
+    _merge_ho_degree_exponents(directories, output_dir)
 
 
-def _merge_vertex_degree_exponents(directories: dict[str, Path], output_dir: Path):
+def _merge_ho_degree_exponents(directories: dict[str, Path], output_dir: Path):
     for dimension in ['vertex', 'edge', 'triangle']:
         merged_exponent_data_frame_rows: list[dict[str, float]] = []
         for network_size, directory in directories.items():
-            subdirectory_suffix = 'infinite' if network_size == 'infinite' else 'finite'
-            subdirectory_name = f'{dimension}_degree_exponent_{subdirectory_suffix}'
+            subdirectory_name = f'{dimension}_degree_exponent'
             subdirectory_path = directory / 'model_test' / subdirectory_name
 
             if not subdirectory_path.is_dir():
                 continue
 
             confidence_intervals = pd.read_csv(subdirectory_path / 'confidence_intervals.csv', index_col=0)
+            quantiles = pd.read_csv(subdirectory_path / 'quantiles.csv', index_col=0)
             distribution_info = pd.read_csv(subdirectory_path / 'distribution_info.csv')
 
             merged_data_frame_row = {
-                'network_size':  network_size,
-                'num_of_values': distribution_info['empirical_num_of_values'].iloc[0],
-                'mean':          distribution_info['empirical_mean'].iloc[0],
-                'stddev':        distribution_info['empirical_std_dev'].iloc[0],
-                '99_lower':      confidence_intervals['empirical_lower'][0.99],
-                '99_upper':      confidence_intervals['empirical_upper'][0.99],
-                '95_lower':      confidence_intervals['empirical_lower'][0.95],
-                '95_upper':      confidence_intervals['empirical_upper'][0.95],
-                '90_lower':      confidence_intervals['empirical_lower'][0.90],
-                '90_upper':      confidence_intervals['empirical_upper'][0.90],
+                'network_size':         network_size,
+                'num_of_values':        distribution_info['empirical_num_of_values'].iloc[0],
+                'mean':                 distribution_info['empirical_mean'].iloc[0],
+                'stddev':               distribution_info['empirical_std_dev'].iloc[0],
+                'confidence_99_lower':  confidence_intervals['empirical_lower'][0.99],
+                'confidence_99_upper':  confidence_intervals['empirical_upper'][0.99],
+                'confidence_95_lower':  confidence_intervals['empirical_lower'][0.95],
+                'confidence_95_upper':  confidence_intervals['empirical_upper'][0.95],
+                'confidence_90_lower':  confidence_intervals['empirical_lower'][0.90],
+                'confidence_90_upper':  confidence_intervals['empirical_upper'][0.90],
+                'quantile_0':           quantiles['empirical'][0],
+                'quantile_25':          quantiles['empirical'][25],
+                'quantile_50':          quantiles['empirical'][50],
+                'quantile_75':          quantiles['empirical'][75],
+                'quantile_100':         quantiles['empirical'][100],
             }
 
             merged_exponent_data_frame_rows.append(merged_data_frame_row)
@@ -92,7 +104,7 @@ def create_ordinary_degree_distributions(directories: dict[str, Path], output_di
     _merge_distribution_info(
         directories,
         'data/total_degree_distribution',
-        output_dir / 'total_degree_distribution.csv',
+        output_dir / 'total_degree_distribution_info.csv',
     )
 
 
@@ -149,6 +161,8 @@ def _merge_value_counts(directories: dict[str, Path], subdirectory_name: str, ou
         current_distribution = pd.read_csv(
             directory / subdirectory_name / 'value_counts.csv',
             index_col=0,
+            header=None,
+            dtype=int
         )
         if current_distribution.empty:
             continue
@@ -158,7 +172,9 @@ def _merge_value_counts(directories: dict[str, Path], subdirectory_name: str, ou
 
     if data_frames:
         merged_data_frame = pd.concat(data_frames, axis=1)
-        merged_data_frame.to_csv(output_path)
+        merged_data_frame.index.name = 'value'
+        merged_data_frame.fillna(0, inplace=True)
+        merged_data_frame.astype(int).to_csv(output_path)
 
 
 def _merge_distribution_info(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:

@@ -22,8 +22,8 @@ class PriceParameterOptions(ModelParameterOptions):
         num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
 
         self.options = (
-            #                                        name,           initial guess,  lb,   ub, integer, optimize,  step)
-            ParameterOption('max_dimension',  data_set.max_dimension,  0,   10,   True,    False,    1.),
-            ParameterOption('num_nodes',            num_of_nodes,  0,    0,   True,    False,    1.),
-            ParameterOption('probability_degree_constant',                      1.,  1,  100,   False,    False,    1.),
+            #                                        name,           initial guess,  lb,   ub, integer,  optimize, step)
+            ParameterOption('max_dimension',               data_set.max_dimension,  0,   10,   True,     False,     1.),
+            ParameterOption('num_nodes',                   num_of_nodes,            0,    0,   True,     False,     1.),
+            ParameterOption('probability_degree_constant', 1.,                      1,  100,   False,    False,     1.),
         )

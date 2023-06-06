@@ -24,8 +24,8 @@ class ErdosRenyiParameterOptions(ModelParameterOptions):
         edge_probability_guess = num_of_edges / (num_of_nodes * (num_of_nodes - 1) / 2)
 
         self.options = (
-            #                             name,           initial guess,   lb,        ub, integer, optimize,  step)
-            ParameterOption('max_dimension',  data_set.max_dimension,  0,        10,   True,    False,  1.),
-            ParameterOption('num_nodes',            num_of_nodes,  0,         0,   True,    False,  1.),
-            ParameterOption('edge_probability',  edge_probability_guess,  0.0,       1.0,   False,    False,  1.),
+            #                name,              initial guess,           lb,       ub,   integer, optimize, step)
+            ParameterOption('max_dimension',    data_set.max_dimension,  0,        10,   True,    False,    1.),
+            ParameterOption('num_nodes',        num_of_nodes,            0,         0,   True,    False,    1.),
+            ParameterOption('edge_probability', edge_probability_guess,  0.0,       1.0, False,   False,    1.),
         )
