@@ -20,22 +20,22 @@ def main() -> None:
         # 'mathematics': input_base_path / '20230606_075318',
         # 'economics':   input_base_path / '20230606_080916',
         # 'engineering': input_base_path / '20230606_081030',
-        'finance':     input_base_path / '20230606_100639',
-        'biology':     input_base_path / '20230606_100750',
-        'statistics':  input_base_path / '20230606_100814',
-        'mathematics': input_base_path / '20230606_100846',
-        'economics':   input_base_path / '20230606_100922',
-        'engineering': input_base_path / '20230606_101140',
+        'finance':     input_base_path / '20230606_184218',
+        'biology':     input_base_path / '20230606_184236',
+        'statistics':  input_base_path / '20230606_184248',
+        'mathematics': input_base_path / '20230606_185539',
+        'economics':   input_base_path / '20230606_184303',
+        'engineering': input_base_path / '20230606_185553',
     }
 
     degree_distribution_directories = {
         # 'infinite': input_base_path / '20230603_090700',
+        '10':       input_base_path / '20230606_194220',
+        '100':      input_base_path / '20230606_194238',
+        '1000':     input_base_path / '20230606_195454',
+        '10000':    input_base_path / '20230606_195655',
+        '100000':   input_base_path / '20230606_214805',
         'infinite': input_base_path / '20230605_103841',
-        '10':       input_base_path / '20230605_110718',
-        '100':      input_base_path / '20230605_110844',
-        '1000':     input_base_path / '20230605_110907',
-        '10000':    input_base_path / '20230605_110933',
-        '100000':   input_base_path / '20230605_214557',
     }
 
     prepare_data_analysis_data(data_analysis_directories, output_path)

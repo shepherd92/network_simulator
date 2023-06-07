@@ -74,6 +74,81 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_default_inte
     return result;
 }
 
+std::vector<py::array_t<int>> generate_infinite_network_connections_default_interface_new(
+    const py::array_t<double> &model_parameters_input,
+    const uint32_t num_of_infinite_networks,
+    const uint32_t seed)
+{
+    auto model_parameters{ModelParameters(model_parameters_input)};
+    std::vector<py::array_t<int>> result{};
+    const auto b{model_parameters.beta};
+    const auto g{model_parameters.gamma};
+
+    std::mt19937 random_number_generator{seed};
+    std::uniform_real_distribution<> uniform_distribution_u(0., 1.);
+    std::uniform_real_distribution<> uniform_distribution_y(-1., 1.);
+
+    for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
+    {
+        const auto u{uniform_distribution_u(random_number_generator)}; // birth time of the typical node
+
+        // generate nodes
+        std::vector<Point> nodes;
+        nodes.push_back(Point(u, 0.));
+
+        // generate older nodes which (u, 0) connects to
+        // w is a random variable that is later transformed to be the birth time
+        // const auto w_intensity_older_nodes{2. * b / (1. - g) * std::pow(u, g - 1.)};
+        // std::exponential_distribution<> w_interarrival_time_distribution_older_nodes(1. / w_intensity_older_nodes);
+        // double w_older{w_interarrival_time_distribution_older_nodes(random_number_generator)};
+        // while (w_older < std::pow(u, 1. - g))
+        // {
+        //     // v: birth time of the neighbor of (u, 0)
+        //     const auto v{std::pow(w_older, 1. / (1. - g))};
+        //     // y: position of the neighbor of (u, 0)
+        //     const auto y{uniform_distribution_y(random_number_generator) * b * std::pow(v, -g) * std::pow(u, g - 1.)};
+        //     // create point and save it
+        //     nodes.push_back(Point{v, y});
+        //     // increment w to arrive to the next birth time (before transformation)
+        //     w_older += w_interarrival_time_distribution_older_nodes(random_number_generator);
+        // }
+
+        // generate younger nodes which connect to (u, 0)
+        // w is a random variable that is later transformed to be the birth time
+        const auto w_intensity_younger_nodes{2. * b / g * std::pow(u, -g)};
+        std::exponential_distribution<> w_interarrival_time_distribution_younger_nodes{w_intensity_younger_nodes};
+        double w_younger{std::pow(u, g) + w_interarrival_time_distribution_younger_nodes(random_number_generator)};
+        while (w_younger < 1.)
+        {
+            // v: birth time of the neighbor of (u, 0)
+            const auto v{std::pow(w_younger, 1. / g)};
+            // y: position of the neighbor of (u, 0)
+            const auto y{uniform_distribution_y(random_number_generator) * b * std::pow(u, -g) * std::pow(v, g - 1.)};
+            // create point and save it
+            nodes.push_back(Point{v, y});
+            // increment w to arrive to the next birth time (before transformation)
+            w_younger += w_interarrival_time_distribution_younger_nodes(random_number_generator);
+        }
+
+        // if (nodes.size() > 1000U)
+        // {
+        //     std::cout << "u: " << u << "; nodes size: " << nodes.size() << std::endl;
+        // }
+
+        // for (const auto &node : nodes)
+        // {
+        //     std::cout << "(" << node.birth_time() << ", " << node.position() << ")" << std::endl;
+        // }
+        // std::cout << std::endl
+        //           << std::endl;
+
+        const auto connections{generate_network_connections_default(nodes, model_parameters)};
+        result.push_back(vector_of_pairs_to_numpy<int>(connections));
+    }
+
+    return result;
+}
+
 std::vector<Point> create_nodes(
     const py::array_t<double> &birth_times_input,
     const py::array_t<double> &positions_input)

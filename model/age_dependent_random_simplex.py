@@ -128,6 +128,9 @@ class AgeDependentRandomSimplexModel(Model):
         # network.digraph.add_edges_from(connections)
         # network.graph = network.digraph.to_undirected()
         network.add_simplex([0])  # ensure that the origin is added
+        if len(connections) > 10000:
+            print(connections.max())
+
         network.add_simplices_batch(connections)
         network.expand()
 
@@ -196,6 +199,7 @@ class AgeDependentRandomSimplexModel(Model):
         assert self.parameters.torus_dimension == 1, \
             'In C++, only the default connection generation is implemented. ' + \
             f'Torus dimension is not 1, but {self.parameters.torus_dimension}.'
+
         connections = generate_finite_network_connections_default(
             birth_times,
             positions.flatten(),

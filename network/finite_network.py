@@ -246,9 +246,6 @@ class FiniteNetwork(Network):
 
     def _calculate_betti_numbers(self) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
-        if self._betti_numbers:
-            return self._betti_numbers
-
         if not self.is_persistence_computed:
             self._compute_persistence()
 
@@ -257,7 +254,7 @@ class FiniteNetwork(Network):
         else:
             betti_numbers = [self.graph.number_of_nodes()]
 
-        betti_number_array = np.zeros((self.max_dimension, 2))
+        betti_number_array = np.zeros((self.max_dimension, 2), dtype=int)
         betti_number_array[:, 0] = range(self.max_dimension)
 
         for dimension, betti_number in enumerate(betti_numbers):

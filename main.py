@@ -47,7 +47,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         if debugger_is_active() or configuration.general.runtime_profiling or configuration.general.memory_profiling \
         else configuration.general.num_of_processes
 
-    data_set_type = configuration.data_set.type_
+    data_set_type = configuration.data_set_analysis.type_
     model_type = configuration.model.type_
 
     if mode == Mode.ANALYSIS:
@@ -55,8 +55,9 @@ def main(mode: Mode, configuration: Configuration) -> None:
         (configuration.general.directories.output / 'data').mkdir(parents=True, exist_ok=True)
         analyze_finite_network(
             data_set,
-            configuration.data_set.analysis.properties_to_calculate,
-            configuration.general.directories.output / 'data'
+            configuration.data_set_analysis.properties_to_calculate,
+            configuration.data_set_analysis.plot,
+            configuration.general.directories.output / 'data',
         )
     elif mode == Mode.FITTING:
 

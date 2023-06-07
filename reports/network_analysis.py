@@ -30,16 +30,18 @@ from reports.plotting_helper import (
 def analyze_finite_network(
     network: FiniteNetwork,
     calculated_properties: list[BaseNetworkProperty.Type],
-    save_directory: Path
+    plot: bool,
+    save_directory: Path,
 ) -> None:
     """Generate exploratory analysis of the provided finite network."""
     info('Finite network analysis started.')
 
     plt.rcParams["text.usetex"] = False
 
-    network_to_analyze = network
-    _plot_giant_component(network_to_analyze.get_component(0), save_directory / 'network.png')
-    summary = network_to_analyze.calc_network_summary(calculated_properties)
+    if plot:
+        _plot_giant_component(network.get_component(0), save_directory / 'network.png')
+
+    summary = network.calc_network_summary(calculated_properties)
 
     axes_grid_height = 4
     axes_grid_width = 3

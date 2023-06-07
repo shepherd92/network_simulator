@@ -22,12 +22,6 @@ class Directories(NamedTuple):
     output: Path = Path()
 
 
-class DataSetAnalysis(NamedTuple):
-    """Data set analysis options."""
-
-    properties_to_calculate: list[BaseNetworkProperty.Type] = []
-
-
 class ModelFitting(NamedTuple):
     """Model fitting configuration."""
 
@@ -68,11 +62,12 @@ class Configuration:
         num_of_processes: int = 1
         directories: Directories = Directories()
 
-    class DataSet(NamedTuple):
+    class DataSetAnalysis(NamedTuple):
         """Data set configuration."""
 
         type_: DataSet.Type = DataSet.Type.INVALID
-        analysis: DataSetAnalysis = DataSetAnalysis()
+        plot: bool = False
+        properties_to_calculate: list[BaseNetworkProperty.Type] = []
 
     class Model(NamedTuple):
         """Model configuration."""
@@ -83,7 +78,7 @@ class Configuration:
         analysis: ModelAnalysis = ModelAnalysis()
 
     general = General()
-    data_set = DataSet()
+    data_set_analysis = DataSetAnalysis()
     model = Model()
 
     def load(self, path: Path) -> None:
@@ -106,14 +101,13 @@ class Configuration:
             ),
         )
 
-        self.data_set = Configuration.DataSet(
-            type_=DataSet.Type[params['data_set']['type']],
-            analysis=DataSetAnalysis(
-                properties_to_calculate=[
-                    BaseNetworkProperty.Type[network_property]
-                    for network_property in params['data_set']['analysis']['properties']
-                ],
-            ),
+        self.data_set_analysis = Configuration.DataSetAnalysis(
+            type_=DataSet.Type[params['data_set_analysis']['type']],
+            plot=bool(params['data_set_analysis']['plot']),
+            properties_to_calculate=[
+                BaseNetworkProperty.Type[network_property]
+                for network_property in params['data_set_analysis']['properties']
+            ],
         )
 
         self.model = Configuration.Model(

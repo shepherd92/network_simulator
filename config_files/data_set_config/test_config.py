@@ -8,7 +8,7 @@ from data_set.test_data_set import TestDataSet
 
 TEST_DATA_SET_PARAMETERS = TestDataSet.Parameters(
     location=Path(),
-    max_dimension=2,
+    max_dimension=3,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
 )

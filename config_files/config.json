@@ -1,39 +1,39 @@
 {
     "general": {
         "log_level": "DEBUG",
-        "runtime_profiling": false,
+        "runtime_profiling": true,
         "memory_profiling": false,
         "tracing": false,
-        "num_of_processes": 6,
+        "num_of_processes": 1,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
             "output": "../output"
         }
     },
-    "data_set": {
+    "data_set_analysis": {
         "type": "TEST",
-        "analysis": {
-            "properties": [
-                "NUM_OF_NODES",
-                "NUM_OF_EDGES",
-                "NUM_OF_TRIANGLES",
-                "AVERAGE_DEGREE",
-                "MAX_DEGREE",
-                "AVG_CLUSTERING",
-                "NUM_OF_CONNECTED_COMPONENTS",
-                "DIMENSION",
-                "NUM_OF_SIMPLICES",
-                "INTERACTION_DIMENSION_DISTRIBUTION",
-                "SIMPLEX_DIMENSION_DISTRIBUTION",
-                "FACET_DIMENSION_DISTRIBUTION",
-                "DEGREE_DISTRIBUTION",
-                "IN_DEGREE_DISTRIBUTION",
-                "OUT_DEGREE_DISTRIBUTION",
-                "HIGHER_ORDER_DEGREE_DISTRIBUTION_1",
-                "HIGHER_ORDER_DEGREE_DISTRIBUTION_2",
-                "HIGHER_ORDER_DEGREE_DISTRIBUTION_3"
-            ]
-        }
+        "plot": false,
+        "properties": [
+            "NUM_OF_NODES",
+            "NUM_OF_EDGES",
+            "NUM_OF_TRIANGLES",
+            "AVERAGE_DEGREE",
+            "MAX_DEGREE",
+            "AVG_CLUSTERING",
+            "NUM_OF_CONNECTED_COMPONENTS",
+            "DIMENSION",
+            "NUM_OF_SIMPLICES",
+            "INTERACTION_DIMENSION_DISTRIBUTION",
+            "SIMPLEX_DIMENSION_DISTRIBUTION",
+            "FACET_DIMENSION_DISTRIBUTION",
+            "DEGREE_DISTRIBUTION",
+            "IN_DEGREE_DISTRIBUTION",
+            "OUT_DEGREE_DISTRIBUTION",
+            "HIGHER_ORDER_DEGREE_DISTRIBUTION_1",
+            "HIGHER_ORDER_DEGREE_DISTRIBUTION_2",
+            "HIGHER_ORDER_DEGREE_DISTRIBUTION_3",
+            "BETTI_NUMBERS"
+        ]
     },
     "model": {
         "type": "AGE_DEPENDENT_RANDOM_SIMPLEX",
@@ -41,7 +41,7 @@
         "testing": {
             "test_against_data_set": false,
             "num_of_simulations": 100,
-            "num_of_infinite_networks": 10
+            "num_of_infinite_networks": 10000
         },
         "analysis": {
             "component_index_from_largest": -1,
