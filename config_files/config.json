@@ -1,7 +1,7 @@
 {
     "general": {
         "log_level": "DEBUG",
-        "runtime_profiling": true,
+        "runtime_profiling": false,
         "memory_profiling": false,
         "tracing": false,
         "num_of_processes": 1,

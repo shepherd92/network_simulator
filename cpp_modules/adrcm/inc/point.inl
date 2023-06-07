@@ -17,6 +17,7 @@ inline double Point::distance(const Point &other) const
 inline double Point::torus_distance(const Point &other, const double torus_size) const
 {
     const auto distance_inside{distance(other)};
+    assert(distance_inside < torus_size);
     return distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside;
 }
 

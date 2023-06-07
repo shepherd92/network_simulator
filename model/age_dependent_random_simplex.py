@@ -128,9 +128,6 @@ class AgeDependentRandomSimplexModel(Model):
         # network.digraph.add_edges_from(connections)
         # network.graph = network.digraph.to_undirected()
         network.add_simplex([0])  # ensure that the origin is added
-        if len(connections) > 10000:
-            print(connections.max())
-
         network.add_simplices_batch(connections)
         network.expand()
 

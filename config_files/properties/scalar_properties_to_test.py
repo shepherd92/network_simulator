@@ -9,6 +9,7 @@ from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import create_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.normal_distribution import NormalDistribution
+from distribution.theoretical.poisson_distribution import PoissonDistribution
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
 from distribution.theoretical.stable_distribution import StableDistribution
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
@@ -19,6 +20,13 @@ def _get_power_law_exponent(empirical_distribution: EmpiricalDistribution) -> fl
     approximation.fit(create_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW))
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
+
+
+def _get_poisson_parameter(empirical_distribution: EmpiricalDistribution) -> float:
+    approximation = DistributionApproximation(empirical_distribution, TheoreticalDistribution.Type.POISSON)
+    approximation.fit(create_fitting_parameters(TheoreticalDistribution.Type.POISSON))
+    assert isinstance(approximation.theoretical, PoissonDistribution)
+    return approximation.theoretical.parameters.lambda_
 
 
 GAMMA = AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS.gamma
@@ -92,6 +100,20 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
             NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
         ),
         calculator=_get_power_law_exponent
+    ),
+    DerivedNetworkProperty(
+        name='vertex_degree_exponent_poisson',
+        source_base_property=BaseNetworkProperty(
+            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.CalculationMethod.NETWORK,
+            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+        ),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=NormalDistribution.FittingParameters(
+            NormalDistribution.Parameters(),
+            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
+        ),
+        calculator=_get_poisson_parameter
     ),
     DerivedNetworkProperty(
         name='edge_degree_exponent',
