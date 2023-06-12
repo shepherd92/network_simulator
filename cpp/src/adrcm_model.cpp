@@ -4,6 +4,7 @@
 
 #include "tools.h"
 #include "adrcm_model.h"
+#include "network.h"
 
 namespace py = pybind11;
 
@@ -25,7 +26,7 @@ AdrcmModel::AdrcmModel(
 {
 }
 
-Network AdrcmModel::generate_finite_network() const
+auto AdrcmModel::generate_finite_network() const
 {
     const auto vertices{create_vertices()};
     const auto connections{generate_network_connections_default(vertices, true)};
@@ -33,10 +34,10 @@ Network AdrcmModel::generate_finite_network() const
     return network;
 }
 
-std::vector<AdrcmModel::Vertex> AdrcmModel::create_vertices() const
+std::vector<AdrcmModel::Point> AdrcmModel::create_vertices() const
 {
     // generate nodes, nodes are added to this container in the order of their birth
-    std::vector<AdrcmModel::Vertex> vertices;
+    std::vector<AdrcmModel::Point> vertices;
     vertices.reserve(parameters.num_of_nodes);
 
     const auto birth_times{create_birth_times()};
@@ -46,7 +47,7 @@ std::vector<AdrcmModel::Vertex> AdrcmModel::create_vertices() const
     for (auto id{0U}; id < parameters.num_of_nodes; ++id)
     {
         const auto position{position_distribution(random_number_generator)};
-        vertices.push_back(AdrcmModel::Vertex{
+        vertices.push_back(AdrcmModel::Point{
             id,
             birth_times.at(id) / time,
             position});
@@ -54,7 +55,7 @@ std::vector<AdrcmModel::Vertex> AdrcmModel::create_vertices() const
     return vertices;
 }
 
-std::vector<float> AdrcmModel::create_birth_times() const
+auto AdrcmModel::create_birth_times() const
 {
     std::vector<float> birth_times;
     birth_times.reserve(parameters.num_of_nodes);
@@ -72,7 +73,7 @@ std::vector<float> AdrcmModel::create_birth_times() const
 }
 
 connections AdrcmModel::generate_network_connections_default(
-    const std::vector<AdrcmModel::Vertex> &vertices,
+    const std::vector<AdrcmModel::Point> &vertices,
     const bool is_finite) const
 {
     const auto torus_size{vertices.back().birth_time()};
@@ -100,32 +101,30 @@ connections AdrcmModel::generate_network_connections_default(
     return connections;
 }
 
-Network AdrcmModel::create_finite_network(const std::vector<AdrcmModel::Vertex> &vertices, const connections &connections) const
+auto AdrcmModel::create_finite_network(const std::vector<AdrcmModel::Point> &vertices, const connections &connections) const
 {
-    skeleton_blocker simplicial_complex{};
+    std::vector<Simplex> simplices{};
     for (const auto &vertex : vertices)
     {
-        simplicial_complex.add_vertex();
+        simplices.push_back(Simplex(Vertex(vertex.id())));
     }
     for (const auto &connection : connections)
     {
-        simplicial_complex.add_edge_without_blockers(vertex_handle(connection.first), vertex_handle(connection.second));
+        simplices.push_back(Simplex(Vertex(connection.first), Vertex(connection.second)));
     }
+
+    const SimplicialComplex simplicial_complex{simplices.begin(), simplices.end(), true};
     const Network network{simplicial_complex};
     return network;
 }
 
-std::vector<py::array_t<int>> AdrcmModel::generate_infinite_network_connections_default_interface(
-    const py::array_t<double> &model_parameters_input,
-    const uint32_t num_of_infinite_networks,
-    const uint32_t seed)
+auto AdrcmModel::generate_infinite_networks(
+    const uint32_t num_of_infinite_networks) const
 {
-    auto model_parameters{ModelParameters(model_parameters_input)};
-    std::vector<py::array_t<int>> result{};
-    const auto b{model_parameters.beta};
-    const auto g{model_parameters.gamma};
+    std::vector<connections> result{};
+    const auto b{parameters.beta};
+    const auto g{parameters.gamma};
 
-    std::mt19937 random_number_generator{seed};
     constexpr auto minimum_u_to_simulate{1e-7};
     std::uniform_real_distribution<> uniform_distribution_u(minimum_u_to_simulate, 1.);
     std::uniform_real_distribution<> uniform_distribution_y(-1., 1.);
@@ -152,12 +151,12 @@ std::vector<py::array_t<int>> AdrcmModel::generate_infinite_network_connections_
                 0.5 * uniform_distribution_y(random_number_generator) *
                 b * std::pow(v, -g) * std::pow(u, g - 1.))};
             // create point and save it
-            nodes.push_back(Point{v, y});
+            nodes.push_back(Point{nodes.size(), v, y});
             // increment w to arrive to the next birth time (before transformation)
             w_older += w_interarrival_time_distribution_older_nodes(random_number_generator);
         }
 
-        nodes.push_back(Point(u, 0.));
+        nodes.push_back(Point(nodes.size(), u, 0.));
 
         // generate younger nodes which connect to (u, 0)
         // w is a random variable that is later transformed to be the birth time
@@ -173,13 +172,13 @@ std::vector<py::array_t<int>> AdrcmModel::generate_infinite_network_connections_
                 0.5 * uniform_distribution_y(random_number_generator) *
                 b * std::pow(u, -g) * std::pow(v, g - 1.))};
             // create point and save it
-            nodes.push_back(Point{v, y});
+            nodes.push_back(Point{nodes.size(), v, y});
             // increment w to arrive to the next birth time (before transformation)
             w_younger += w_interarrival_time_distribution_younger_nodes(random_number_generator);
         }
 
-        const auto connections{generate_network_connections_default(nodes, false, model_parameters)};
-        result.push_back(vector_of_pairs_to_numpy<int>(connections));
+        const auto connections{generate_network_connections_default(nodes, false)};
+        result.push_back(connections);
     }
 
     return result;

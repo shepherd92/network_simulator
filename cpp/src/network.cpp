@@ -1,86 +1,130 @@
+#include <gudhi/Skeleton_blocker.h>
+
 #include "network.h"
 #include "typedefs.h"
 
-Network::Network(const simplicial_complex &simplicial_complex) : simplicial_complex_(simplicial_complex)
+Network::Network(const SimplicialComplex &simplicial_complex)
+    : simplicial_complex_(simplicial_complex)
 {
 }
 
-Complex complex(Gudhi::skeleton_blocker::make_complex_from_top_faces<Complex>(simplices.begin(), simplices.end()));
+Network::Network(const std::vector<Simplex> &interactions)
+    : simplicial_complex_(Gudhi::skeleton_blocker::make_complex_from_top_faces<SimplicialComplex>(interactions.begin(), interactions.end()))
+{
+}
 
 auto Network::facets() const
 {
-    return simplicial_complex_.maximal_simplices();
+    for (const auto &simplex : simplices())
+    {
+        const auto link{simplicial_complex_.link(simplex)};
+        if (link.)
+        {
+        }
+        for (const auto &link_simplex : link.complex_simplex_range())
+        {
+            if (link_simplex.dimension() == codimension)
+            {
+                ++degree;
+            }
+        }
+
+        degree_sequence.push_back(degree);
+    }
 }
 
 auto Network::simplices() const
 {
-    return simplicial_complex_.;
+    return simplicial_complex_.complex_simplex_range();
 }
 
-std::vector<int32_t> Network::calc_degree_sequence(
+auto Network::num_vertices() const
+{
+    return simplicial_complex_.num_simplices(0);
+}
+
+auto Network::num_edges() const
+{
+    return simplicial_complex_.num_simplices(1);
+}
+
+auto Network::num_triangles() const
+{
+    return simplicial_complex_.num_simplices(2);
+}
+
+auto Network::num_simplices() const
+{
+    return simplicial_complex_.num_simplices();
+}
+
+auto Network::calc_degree_sequence(
     const dimension simplex_dimension,
     const dimension neighbor_dimension) const
 {
-    const auto selected_simplices{select_simplices_by_dimension(simplex_dimension)};
-
-    std::vector<std::vector<int32_t>> possible_neighbors;
-    copy_if(facets.begin(), facets.end(),
-            back_inserter(possible_neighbors),
-            [neighbor_dimension](const std::vector<int32_t> &facet)
-            { return facet.size() > neighbor_dimension; });
-
-    const auto sorted_possible_neighbors{sort_simplices(possible_neighbors)};
-
-    std::vector<int32_t> degree_sequence;
-
-    for (const auto &simplex : selected_simplices)
+    std::vector<uint32_t> degree_sequence{};
+    const auto codimension{neighbor_dimension - simplex_dimension};
+    for (const auto &simplex : simplices())
     {
-        // Container of vertices with which the simplex forms a simplex of neighbor dimension
-        std::set<std::vector<int32_t>> combinations_of_remaining_vertices;
-
-        // iterate over all facets
-        for (const auto &facet : sorted_possible_neighbors)
+        if (simplex.dimension() != simplex_dimension)
         {
-            // check if the facet includes the vertices of the simplex
-            if (includes(facet.begin(), facet.end(), simplex.begin(), simplex.end()))
+            // we only care about simplices with simplex_dimension
+            continue;
+        }
+
+        const auto link{simplicial_complex_.link(simplex)};
+        auto degree{0U};
+        for (const auto &link_simplex : link.complex_simplex_range())
+        {
+            if (link_simplex.dimension() == codimension)
             {
-                std::vector<int32_t> remaining_vertices; // vertices of facet that are not in the simplex
-                std::set_difference(
-                    facet.begin(), facet.end(),
-                    simplex.begin(), simplex.end(),
-                    std::back_inserter(remaining_vertices));
-                std::sort(remaining_vertices.begin(), remaining_vertices.end());
-
-                std::vector<int32_t> temp_combination;
-
-                combinations(
-                    remaining_vertices,
-                    neighbor_dimension - simplex_dimension,
-                    combinations_of_remaining_vertices,
-                    temp_combination,
-                    0U);
+                ++degree;
             }
         }
-        degree_sequence.push_back(combinations_of_remaining_vertices.size());
+
+        degree_sequence.push_back(degree);
     }
 
     return degree_sequence;
 }
 
-std::vector<simplex> Network::select_simplices_by_dimension(
-    const dimension dimension)
+auto Network::get_simplices_by_dimension(
+    const dimension dimension) const
 {
-    std::vector<std::vector<int32_t>> selected_simplices;
-
-    for (const auto &simplex : simplices)
+    std::vector<Simplex> selected_simplices;
+    if (dimension == 0U)
     {
-        if (simplex.size() == dimension + 1)
+        for (const auto &vertex : simplicial_complex_.vertex_range())
         {
-            selected_simplices.push_back(simplex);
+            selected_simplices.push_back(Simplex(vertex));
+        }
+    }
+    else if (dimension == 1U)
+    {
+        for (const auto &edge : simplicial_complex_.edge_range())
+        {
+            selected_simplices.push_back(Simplex(Vertex(edge.m_source), Vertex(edge.m_target)));
+        }
+    }
+    else if (dimension == 2U)
+    {
+        for (const auto &triangle : simplicial_complex_.triangle_range())
+        {
+            selected_simplices.push_back(triangle);
+        }
+    }
+    else
+    {
+        for (const auto &simplex : simplices())
+        {
+            if (simplex.dimension() == dimension)
+            {
+                selected_simplices.push_back(simplex);
+            }
         }
     }
 
-    return sort_simplices(selected_simplices);
+    return selected_simplices;
 }
 
 void Network::combinations(
