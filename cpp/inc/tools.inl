@@ -1,5 +1,7 @@
-#ifndef _NUMPY_CPP_CONVERSION_INL_
-#define _NUMPY_CPP_CONVERSION_INL_
+#ifndef _TOOLS_INL_
+#define _TOOLS_INL_
+
+#include <algorithm>
 
 #include <vector>
 #include <pybind11/numpy.h>
@@ -94,9 +96,11 @@ py::array_t<T, py::array::c_style | py::array::forcecast> vector_of_pairs_to_num
     return numpy_array;
 }
 
-inline double profile_function(const double argument, const double alpha)
+inline bool is_close(const double first, const double second)
 {
-    return argument <= alpha ? 1. / (2. * alpha) : 0.;
+    constexpr auto relative_difference_factor = 1e-4;
+    const auto greater_magnitude = std::max(abs(first), abs(second));
+    return (abs(first - second) < relative_difference_factor * greater_magnitude);
 }
 
 #endif

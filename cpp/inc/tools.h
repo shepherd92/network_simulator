@@ -1,5 +1,5 @@
-#ifndef _NUMPY_CPP_CONVERSION_H_
-#define _NUMPY_CPP_CONVERSION_H_
+#ifndef _TOOLS_H_
+#define _TOOLS_H_
 
 #include <pybind11/numpy.h>
 
@@ -20,6 +20,8 @@ py::array_t<T, py::array::c_style | py::array::forcecast> vector_to_numpy_2d(con
 template <typename T>
 py::array_t<T, py::array::c_style | py::array::forcecast> vector_of_pairs_to_numpy(const std::vector<std::pair<T, T>> &vector_of_pairs);
 
-#include "numpy_cpp_conversion.inl"
+bool is_close(const double first, const double second);
+
+#include "tools.inl"
 
 #endif

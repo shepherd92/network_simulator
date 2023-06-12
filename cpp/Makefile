@@ -1,5 +1,5 @@
 # project name
-PROJECT := adrcm
+PROJECT := cpp_library
 
 # suppress Makefile output
 # .SILENT :
@@ -16,10 +16,10 @@ LD       := g++
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
 CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC
-LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
+LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.11/config-3.11-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
 
 # directories
-ROOT        := ..
+ROOT        := .
 MODULE_ROOT := .
 BLDDIR      := $(ROOT)/build
 INCDIRNAME  := inc
