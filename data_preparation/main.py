@@ -29,17 +29,32 @@ def main() -> None:
     }
 
     degree_distribution_directories = {
-        # 'infinite': input_base_path / '20230603_090700',
-        '10':       input_base_path / '20230606_194220',
-        '100':      input_base_path / '20230606_194238',
-        '1000':     input_base_path / '20230606_195454',
-        '10000':    input_base_path / '20230606_195655',
-        '100000':   input_base_path / '20230606_214805',
-        'infinite': input_base_path / '20230605_103841',
+        '10':       input_base_path / '20230610_092933',
+        '100':      input_base_path / '20230610_092951',
+        '1000':     input_base_path / '20230610_093131',
+        '10000':    input_base_path / '20230610_093202',
+        '100000':   input_base_path / '20230610_095550',
+        'infinite': input_base_path / '20230610_130000',
+    }
+
+    betti_number_directories = {
+        # the key is the value of gamma * 100
+        # '10': input_base_path / '20230608_191114',
+        # '20': input_base_path / '20230608_191120',
+        '25': input_base_path / '20230609_212258',
+        # '30': input_base_path / '20230608_191124',
+        # '40': input_base_path / '20230608_191128',
+        '50': input_base_path / '20230609_212245',
+        # '60': input_base_path / '20230608_205831',
+        # '70': input_base_path / '20230608_205839',
+        '75': input_base_path / '20230609_142002',
+        # '80': input_base_path / '20230608_205845',
+        # '90': input_base_path / '20230608_205850',
     }
 
     prepare_data_analysis_data(data_analysis_directories, output_path)
     prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
+    prepare_simulation_betti_number_data(betti_number_directories, output_path)
 
 
 def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -54,6 +69,41 @@ def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -
 def prepare_simulation_degree_distribution_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare all information related to the higher-order degree distributions."""
     _merge_ho_degree_exponents(directories, output_dir)
+
+
+def prepare_simulation_betti_number_data(directories: dict[str, Path], output_dir: Path) -> None:
+    """Prepare all information related to the Betti numbers."""
+    for dimension in range(3):
+        _merge_histograms(
+            directories,
+            f'model_test/betti_number_{dimension}_normal',
+            output_dir / f'betti_number_{dimension}_histograms.csv',
+        )
+        _merge_value_sequence(
+            directories,
+            f'model_test/betti_number_{dimension}_normal',
+            output_dir / f'betti_number_{dimension}_value_sequences.csv',
+        )
+        _merge_distribution_info(
+            directories,
+            f'model_test/betti_number_{dimension}_normal',
+            output_dir / f'betti_number_{dimension}_normal_distribution_info.csv',
+        )
+        _merge_distribution_info(
+            directories,
+            f'model_test/betti_number_{dimension}_stable',
+            output_dir / f'betti_number_{dimension}_stable_distribution_info.csv',
+        )
+        _merge_qq_plots(
+            directories,
+            f'model_test/betti_number_{dimension}_stable',
+            output_dir / f'betti_number_{dimension}_stable_qq_plot.csv',
+        )
+        _merge_qq_plots(
+            directories,
+            f'model_test/betti_number_{dimension}_normal',
+            output_dir / f'betti_number_{dimension}_normal_qq_plot.csv',
+        )
 
 
 def _merge_ho_degree_exponents(directories: dict[str, Path], output_dir: Path):
@@ -142,7 +192,7 @@ def create_dimension_distributions(directories: dict[str, Path], output_dir: Pat
 def copy_network_plots(directories: dict[str, Path], output_path: Path) -> None:
     """Copy network plots to the output path."""
     for dataset_name, directory in directories.items():
-        file_name = output_path / f'{dataset_name}_network.png'
+        file_name = directory / 'data' / 'network.png'
         if not file_name.is_file():
             continue
 
@@ -159,7 +209,7 @@ def _merge_value_counts(directories: dict[str, Path], subdirectory_name: str, ou
             continue
 
         current_distribution = pd.read_csv(
-            directory / subdirectory_name / 'value_counts.csv',
+            file_name,
             index_col=0,
             header=None,
             dtype=int
@@ -177,12 +227,97 @@ def _merge_value_counts(directories: dict[str, Path], subdirectory_name: str, ou
         merged_data_frame.astype(int).to_csv(output_path)
 
 
+def _merge_histograms(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:
+    """Merge linearly binned histograms."""
+    data_frames: list[pd.DataFrame] = []
+
+    for dataset_name, directory in directories.items():
+        file_name = directory / subdirectory_name / 'histogram_linear.csv'
+        if not file_name.is_file():
+            continue
+
+        current_distribution = pd.read_csv(file_name)
+        if current_distribution.empty:
+            continue
+
+        current_distribution.columns = [f'{dataset_name}_bin_left_limit', f'{dataset_name}_value']
+        data_frames.append(current_distribution)
+
+    if data_frames:
+        merged_data_frame = pd.concat(data_frames, axis=1)
+        merged_data_frame.to_csv(output_path, index=False)
+
+
+def _merge_value_sequence(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:
+    """Crete higher order degree distributions."""
+    data_frames: list[pd.DataFrame] = []
+
+    for dataset_name, directory in directories.items():
+        file_name = directory / subdirectory_name / 'value_sequence.csv'
+        if not file_name.is_file():
+            continue
+
+        current_distribution = pd.read_csv(file_name, header=None,)
+        if current_distribution.empty:
+            continue
+
+        current_distribution.columns = [dataset_name]
+        data_frames.append(current_distribution)
+
+    if data_frames:
+        merged_data_frame = pd.concat(data_frames, axis=1)
+        merged_data_frame.to_csv(output_path, index=False)
+
+
+def _merge_qq_plots(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:
+    """Crete higher order degree distributions."""
+    data_frames: list[pd.DataFrame] = []
+
+    for dataset_name, directory in directories.items():
+        file_name = directory / subdirectory_name / 'qq_plot_points.csv'
+        if not file_name.is_file():
+            continue
+
+        current_distribution = pd.read_csv(file_name,)
+        if current_distribution.empty:
+            continue
+
+        current_distribution.columns = ['_'.join([dataset_name, column_name])
+                                        for column_name in current_distribution.columns]
+        data_frames.append(current_distribution)
+
+    if data_frames:
+        merged_data_frame = pd.concat(data_frames, axis=1)
+        merged_data_frame.to_csv(output_path, index=False)
+
+
+def _merge_empirical_pdfs(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:
+    """Crete higher order degree distributions."""
+    data_frames: list[pd.DataFrame] = []
+
+    for dataset_name, directory in directories.items():
+        file_name = directory / subdirectory_name / 'pdfs.csv'
+        if not file_name.is_file():
+            continue
+
+        current_distribution = pd.read_csv(file_name, usecols=[0, 1])
+        if current_distribution.empty:
+            continue
+
+        current_distribution.columns = [f'{dataset_name}_value', f'{dataset_name}_pdf']
+        data_frames.append(current_distribution)
+
+    if data_frames:
+        merged_data_frame = pd.concat(data_frames, axis=1)
+        merged_data_frame.to_csv(output_path, index=False)
+
+
 def _merge_distribution_info(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:
     """Create and merge info."""
     data_frames: list[pd.DataFrame] = []
 
     for dataset_name, directory in directories.items():
-        if not (directory / 'data').is_dir():
+        if not (directory / subdirectory_name).is_dir():
             continue
 
         current_info = pd.read_csv(directory / subdirectory_name / 'distribution_info.csv')

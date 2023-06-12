@@ -58,7 +58,7 @@ def create_fitting_method(
     raise NotImplementedError
 
 
-def create_fitting_parameters(
+def create_default_fitting_parameters(
     distribution_type: TheoreticalDistribution.Type
 ) -> TheoreticalDistribution.FittingParameters:
     """Create a given theoretical distributions."""

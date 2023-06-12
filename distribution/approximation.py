@@ -98,19 +98,20 @@ class DistributionApproximation:
         points = self.generate_qq_plot_points()
         return self._calc_r_squared_value(points)
 
-    def generate_qq_plot_points(self) -> npt.NDArray[np.float_]:
+    def generate_qq_plot_points(self, normalize: bool = True) -> npt.NDArray[np.float_]:
         """Return the points of the probability points."""
         number_of_quantiles = len(np.unique(self.empirical.value_sequence))
         quantiles_to_calculate = np.linspace(0., 1., number_of_quantiles, endpoint=True)
         theoretical_quantiles = self.theoretical.calc_quantiles(quantiles_to_calculate)
         empirical_quantiles = self.empirical.calc_quantiles(quantiles_to_calculate)
         points = np.c_[theoretical_quantiles, empirical_quantiles]
+        finite_points = points[np.isfinite(points).all(axis=1)]
         mean = self.empirical.value_sequence.mean()
         std = self.empirical.value_sequence.std()
-        return (points - mean) / std
+        return (finite_points - mean) / std if normalize else finite_points
 
     def save(self, save_directory: Path) -> None:
-        """Save all information of the aroximation."""
+        """Save all information of the approximation."""
         save_directory.mkdir(parents=True, exist_ok=True)
         self.save_info(save_directory / 'distribution_info.csv')
 
@@ -123,6 +124,15 @@ class DistributionApproximation:
             value_counts = self.empirical.calc_value_counts()
             np.savetxt(save_directory / 'value_counts.csv', value_counts, delimiter=',')
 
+        self.empirical.save_histogram(
+            EmpiricalDistribution.HistogramType.LINEAR,
+            save_directory / 'histogram_linear.csv'
+        )
+        self.empirical.save_histogram(
+            EmpiricalDistribution.HistogramType.LOGARITHMIC,
+            save_directory / 'histogram_logarithmic.csv'
+        )
+
         confidence_levels = [0.9, 0.95, 0.99]
         confidence_intervals = self.get_confidence_intervals(confidence_levels)
         confidence_intervals.to_csv(save_directory / 'confidence_intervals.csv', float_format='%.4f')
@@ -132,9 +142,16 @@ class DistributionApproximation:
         quantiles.to_csv(save_directory / 'quantiles.csv', float_format='%.4f')
 
         probability_plot_points = self.generate_probability_plot_points()
-        np.savetxt(save_directory / 'probability_plot_points.csv', probability_plot_points, delimiter=',')
+        pd.DataFrame(
+            probability_plot_points,
+            columns=['theoretical', 'empirical']
+        ).to_csv(save_directory / 'probability_plot_points.csv', float_format='%.4f', index=False)
+
         qq_plot_points = self.generate_qq_plot_points()
-        np.savetxt(save_directory / 'qq_plot_points.csv', qq_plot_points, delimiter=',')
+        pd.DataFrame(
+            qq_plot_points,
+            columns=['theoretical', 'empirical']
+        ).to_csv(save_directory / 'qq_plot_points.csv', float_format='%.4f', index=False)
 
     def _get_pdfs(self) -> pd.DataFrame:
         """Get the pdfs of the two distributions."""

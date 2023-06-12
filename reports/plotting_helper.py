@@ -22,7 +22,7 @@ from scipy.spatial import ConvexHull
 from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_fitting_parameters
+from distribution.factory import create_default_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.finite_network import FiniteNetwork
 
@@ -95,7 +95,7 @@ def approximate_distribution(
 ) -> DistributionApproximation:
     """Approximate an empirical distribution with the given theoretical distribution."""
     distribution_pair = DistributionApproximation(empirical_distribution, theoretical_distribution_type)
-    default_fitting_parameters = create_fitting_parameters(theoretical_distribution_type)
+    default_fitting_parameters = create_default_fitting_parameters(theoretical_distribution_type)
     distribution_pair.fit(default_fitting_parameters)
     return distribution_pair
 

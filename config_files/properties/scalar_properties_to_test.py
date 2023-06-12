@@ -6,7 +6,7 @@ import numpy as np
 from config_files.model_config.age_dependent_random_simplex_config import AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_fitting_parameters
+from distribution.factory import create_default_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.normal_distribution import NormalDistribution
 from distribution.theoretical.poisson_distribution import PoissonDistribution
@@ -17,14 +17,14 @@ from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
 def _get_power_law_exponent(empirical_distribution: EmpiricalDistribution) -> float:
     approximation = DistributionApproximation(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
-    approximation.fit(create_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW))
+    approximation.fit(create_default_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW))
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
 
 
 def _get_poisson_parameter(empirical_distribution: EmpiricalDistribution) -> float:
     approximation = DistributionApproximation(empirical_distribution, TheoreticalDistribution.Type.POISSON)
-    approximation.fit(create_fitting_parameters(TheoreticalDistribution.Type.POISSON))
+    approximation.fit(create_default_fitting_parameters(TheoreticalDistribution.Type.POISSON))
     assert isinstance(approximation.theoretical, PoissonDistribution)
     return approximation.theoretical.parameters.lambda_
 
@@ -95,25 +95,8 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
             BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=NormalDistribution.FittingParameters(
-            NormalDistribution.Parameters(),
-            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-        ),
-        calculator=_get_power_law_exponent
-    ),
-    DerivedNetworkProperty(
-        name='vertex_degree_exponent_poisson',
-        source_base_property=BaseNetworkProperty(
-            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            # BaseNetworkProperty.CalculationMethod.NETWORK,
-            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
-        ),
-        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=NormalDistribution.FittingParameters(
-            NormalDistribution.Parameters(),
-            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-        ),
-        calculator=_get_poisson_parameter
+        fitting_parameters=create_default_fitting_parameters(TheoreticalDistribution.Type.NORMAL),
+        calculator=_get_power_law_exponent,
     ),
     DerivedNetworkProperty(
         name='edge_degree_exponent',
@@ -123,10 +106,7 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
             BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=NormalDistribution.FittingParameters(
-            NormalDistribution.Parameters(),
-            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-        ),
+        fitting_parameters=create_default_fitting_parameters(TheoreticalDistribution.Type.NORMAL),
         calculator=lambda distribution: _get_power_law_exponent(distribution)
     ),
     DerivedNetworkProperty(
@@ -137,70 +117,49 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
             BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=NormalDistribution.FittingParameters(
-            NormalDistribution.Parameters(),
-            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-        ),
+        fitting_parameters=create_default_fitting_parameters(TheoreticalDistribution.Type.NORMAL),
         calculator=lambda distribution: _get_power_law_exponent(distribution)
     ),
     # DerivedNetworkProperty(
     #     name='betti_number_0_normal',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-    #     fitting_parameters=NormalDistribution.FittingParameters(
-    #         NormalDistribution.Parameters(),
-    #         NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-    #     ),
+    #     fitting_parameters=create_fitting_parameters(TheoreticalDistribution.Type.NORMAL),
     #     calculator=lambda betti_numbers: betti_numbers[0, 1],
     # ),
     # DerivedNetworkProperty(
     #     name='betti_number_0_stable',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-    #     fitting_parameters=StableDistribution.FittingParameters(
-    #         StableDistribution.Parameters(),
-    #         StableDistribution.FittingMethod.MLE_SCIPY,
-    #     ),
+    #     fitting_parameters=create_fitting_parameters(TheoreticalDistribution.Type.STABLE),
     #     calculator=lambda betti_numbers: betti_numbers[0, 1],
     # ),
     # DerivedNetworkProperty(
     #     name='betti_number_1_normal',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-    #     fitting_parameters=NormalDistribution.FittingParameters(
-    #         NormalDistribution.Parameters(),
-    #         NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-    #     ),
+    #     fitting_parameters=create_fitting_parameters(TheoreticalDistribution.Type.NORMAL),
     #     calculator=lambda betti_numbers: betti_numbers[1, 1],
     # ),
     # DerivedNetworkProperty(
     #     name='betti_number_1_stable',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-    #     fitting_parameters=StableDistribution.FittingParameters(
-    #         StableDistribution.Parameters(),
-    #         StableDistribution.FittingMethod.MLE_SCIPY,
-    #     ),
+    #     fitting_parameters=create_fitting_parameters(TheoreticalDistribution.Type.STABLE),
     #     calculator=lambda betti_numbers: betti_numbers[1, 1],
     # ),
     # DerivedNetworkProperty(
     #     name='betti_number_2_normal',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-    #     fitting_parameters=NormalDistribution.FittingParameters(
-    #         NormalDistribution.Parameters(),
-    #         NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-    #     ),
+    #     fitting_parameters=create_fitting_parameters(TheoreticalDistribution.Type.NORMAL),
     #     calculator=lambda betti_numbers: betti_numbers[2, 1],
     # ),
     # DerivedNetworkProperty(
     #     name='betti_number_2_stable',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-    #     fitting_parameters=StableDistribution.FittingParameters(
-    #         StableDistribution.Parameters(),
-    #         StableDistribution.FittingMethod.MLE_SCIPY,
-    #     ),
+    #     fitting_parameters=create_fitting_parameters(TheoreticalDistribution.Type.STABLE),
     #     calculator=lambda betti_numbers: betti_numbers[2, 1],
     # ),
 )

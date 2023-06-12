@@ -10,7 +10,7 @@ from scipy.stats import levy_stable
 
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_fitting_parameters
+from distribution.factory import create_default_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
 from reports.plotting_helper import (
@@ -111,7 +111,7 @@ class PlottingHelperTest(unittest.TestCase):
     def _get_dist_approximation(type_: TheoreticalDistribution.Type) -> DistributionApproximation:
 
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
-        fitting_params = create_fitting_parameters(type_)
+        fitting_params = create_default_fitting_parameters(type_)
         approximation.fit(fitting_params)
         return approximation
 

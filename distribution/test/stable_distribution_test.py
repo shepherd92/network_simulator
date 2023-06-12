@@ -8,7 +8,7 @@ import numpy as np
 from scipy.stats import levy_stable
 
 from distribution.approximation import DistributionApproximation
-from distribution.factory import create_fitting_parameters
+from distribution.factory import create_default_fitting_parameters
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.stable_distribution import StableDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -45,7 +45,7 @@ class StableDistributionTest(unittest.TestCase):
         kolmogorov_smirnov_threshold = 0.1
 
         approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.STABLE)
-        fitting_parameters = create_fitting_parameters(TheoreticalDistribution.Type.STABLE)
+        fitting_parameters = create_default_fitting_parameters(TheoreticalDistribution.Type.STABLE)
         approximation.fit(fitting_parameters)
 
         test_results = approximation.run_test()

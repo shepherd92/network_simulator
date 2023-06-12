@@ -3,7 +3,7 @@
 
 import argparse
 import cProfile
-from enum import Enum, auto
+from enum import Enum
 import io
 import logging
 from logging import basicConfig, info

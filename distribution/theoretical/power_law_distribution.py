@@ -147,8 +147,8 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def _determine_domain_logarithmic_ratio(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the minimum degree from which the power-law holds."""
-        min_ratio = 0.5
-        max_ratio = 0.9
+        min_ratio = 0.8
+        max_ratio = 1.0
         self._domain.min_ = empirical_distribution.domain.max_ ** min_ratio
         self._domain.max_ = empirical_distribution.domain.max_ ** max_ratio
 
