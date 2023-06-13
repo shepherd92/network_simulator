@@ -9,21 +9,28 @@
 class Network
 {
 public:
-    Network(const SimplicialComplex &simplicial_complex);
-    Network(const std::vector<Simplex> &interactions);
+    Network() = default;
+    explicit Network(const SimplicialComplex &simplicial_complex);
+    explicit Network(const std::vector<Vertex> &vertices, const std::vector<Simplex> &interactions);
+    explicit Network(const std::vector<vertex_id> &vertices, const std::vector<std::vector<vertex_id>> &interactions);
 
-    auto calc_degree_sequence(
+    void add_simplices(const std::vector<std::vector<vertex_id>> &simplices);
+
+    std::vector<uint32_t> calc_degree_sequence(
         const dimension simplex_dimension,
         const dimension neighbor_dimension) const;
-    auto get_simplices_by_dimension(const dimension dimension) const;
+    std::vector<Simplex> get_simplices_by_dimension(const dimension dimension) const;
 
-    auto facets() const;
-    auto simplices() const;
+    SimplexIterator simplices() const;
+    const std::vector<Simplex> &facets();
+    const std::vector<Simplex> &interactions();
+    void interactions(const std::vector<Simplex> &interactions);
+    void max_dimension(const dimension &max_dimension);
 
-    auto num_vertices() const;
-    auto num_edges() const;
-    auto num_triangles() const;
-    auto num_simplices() const;
+    uint32_t num_vertices() const;
+    uint32_t num_edges() const;
+    uint32_t num_triangles() const;
+    uint32_t num_simplices() const;
 
 private:
     void combinations(
@@ -33,8 +40,12 @@ private:
         std::vector<int32_t> &out,
         const uint32_t i);
 
+    std::vector<Simplex> get_simplex_skeleton_for_max_dimension(const Simplex &simplex) const;
+
     SimplicialComplex simplicial_complex_;
-    std::vector<Simplex> interactions;
+    std::vector<Simplex> interactions_;
+    std::vector<Simplex> facets_;
+    dimension max_dimension_;
 };
 
 #endif

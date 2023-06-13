@@ -25,7 +25,7 @@ public:
     };
 
     AdrcmModel(const Parameters &parameters, const uint32_t seed);
-    auto generate_finite_network() const;
+    Network generate_finite_network() const;
     auto generate_infinite_networks(const uint32_t num_of_infinite_networks) const;
 
 private:
@@ -34,14 +34,14 @@ private:
     public:
         Point(const vertex_id id, const float birth_time, const float position);
 
-        inline auto distance(const Point &other) const;
-        inline auto torus_distance(const Point &other, const double torus_size) const;
+        inline float distance(const Point &other) const;
+        inline float torus_distance(const Point &other, const double torus_size) const;
 
-        inline auto id() const;
-        inline const auto &birth_time() const;
-        inline const auto &position() const;
+        inline vertex_id id() const;
+        inline const float &birth_time() const;
+        inline const float &position() const;
 
-        inline auto operator<(const Point &other) const;
+        inline bool operator<(const Point &other) const;
 
     private:
         vertex_id id_;
@@ -50,13 +50,13 @@ private:
     };
 
     std::vector<Point> create_vertices() const;
-    connections AdrcmModel::generate_network_connections_default(
+    connections generate_network_connections_default(
         const std::vector<AdrcmModel::Point> &vertices,
         const bool is_finite) const;
-    auto create_finite_network(const std::vector<Point> &vertices, const connections &connections) const;
+    Network create_finite_network(const std::vector<Point> &vertices, const connections &connections) const;
 
-    auto create_birth_times() const;
-    inline auto profile_function(const double argument) const;
+    std::vector<float> create_birth_times() const;
+    inline double profile_function(const double argument) const;
 
     const Parameters parameters;
     mutable std::mt19937 random_number_generator;

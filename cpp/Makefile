@@ -15,8 +15,9 @@ LD       := g++
 # MMD: list user-defined include files
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
-CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC
-LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.11/config-3.11-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
+CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC \
+	-Wno-deprecated-copy -Wno-sign-compare -Wno-unused-parameter
+LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
 
 # directories
 ROOT        := .
@@ -24,7 +25,11 @@ MODULE_ROOT := .
 BLDDIR      := $(ROOT)/build
 INCDIRNAME  := inc
 SRCDIR      := $(MODULE_ROOT)/src
-EXTERNAL_INC_DIRS = /usr/include/python3.10/
+EXTERNAL_INC_DIRS = \
+	/usr/include/python3.10/ \
+	/home/au725389/save/research/tda/code/gudhi/gudhi-devel/src/Skeleton_blocker/include/ \
+	/home/au725389/save/research/tda/code/gudhi/gudhi-devel/src/common/include/
+
 
 # definition of extenstions
 SRCEXT := cpp
