@@ -4,7 +4,7 @@
         "runtime_profiling": false,
         "memory_profiling": false,
         "tracing": false,
-        "num_of_processes": 1,
+        "num_of_processes": 8,
         "directories": {
             "root": "/home/au725389/save/research/tda/code/",
             "output": "../output"
@@ -27,8 +27,6 @@
             "SIMPLEX_DIMENSION_DISTRIBUTION",
             "FACET_DIMENSION_DISTRIBUTION",
             "DEGREE_DISTRIBUTION",
-            "IN_DEGREE_DISTRIBUTION",
-            "OUT_DEGREE_DISTRIBUTION",
             "HIGHER_ORDER_DEGREE_DISTRIBUTION_1",
             "HIGHER_ORDER_DEGREE_DISTRIBUTION_2",
             "HIGHER_ORDER_DEGREE_DISTRIBUTION_3",
@@ -40,8 +38,8 @@
         "fitting": {},
         "testing": {
             "test_against_data_set": false,
-            "num_of_simulations": 10,
-            "num_of_infinite_networks": 500000
+            "num_of_simulations": 1000,
+            "num_of_infinite_networks": 100000
         },
         "analysis": {
             "component_index_from_largest": -1,

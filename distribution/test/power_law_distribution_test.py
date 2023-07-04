@@ -33,7 +33,6 @@ class PowerLawDistributionTest(unittest.TestCase):
         """Test if the fitting method gives a reasonably good fit."""
         approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
         fitting_parameters = create_default_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW)
-        fitting_parameters.fitting_method = PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_MLE_DOMAIN
         approximation.fit(fitting_parameters)
 
         self.assertAlmostEqual(approximation.theoretical.parameters.exponent, 2.5, delta=0.2)

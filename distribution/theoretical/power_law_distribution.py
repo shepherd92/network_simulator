@@ -118,15 +118,14 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def _determine_domain_deterministic(self) -> None:
         """Find the domain at which the power-law holds."""
-        # calculate the intersection of the domains so that at least 25% of the domain remains above the minimum
-        self._domain.min_ = np.round(50)
+        self._domain.min_ = 30.
+        self._domain.max_ = np.inf
 
     def _determine_domain_mle(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the domain at which the power-law holds.
 
         min_bounds: minimum and maximum vlues of the domain minimum
         """
-        # calculate the intersection of the domains so that at least 25% of the domain remains above the minimum
         min_bounds = Distribution.Domain(1, 100)
         low = max(empirical_distribution.domain.min_, 1.)
         high = empirical_distribution.domain.max_
