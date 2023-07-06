@@ -18,8 +18,8 @@ import numpy as np
 from tqdm import tqdm
 
 from configuration.configuration import Configuration
-from config_files.properties.scalar_properties_to_fit import SCALAR_PROPERTY_PARAMS_TO_FIT
-from config_files.properties.scalar_properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
+from config_files.model_fitting import SCALAR_PROPERTY_PARAMS_TO_FIT
+from config_files.properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
 from data_set.factory import load_data
 from distribution.approximation import DistributionApproximation
 from model.model import Model
@@ -52,12 +52,12 @@ def main(mode: Mode, configuration: Configuration) -> None:
 
     if mode == Mode.ANALYSIS:
         data_set = load_data(data_set_type)
-        (configuration.general.directories.output / 'data').mkdir(parents=True, exist_ok=True)
+        (configuration.general.output_dir / 'data').mkdir(parents=True, exist_ok=True)
         analyze_finite_network(
             data_set,
             configuration.data_set_analysis.properties_to_calculate,
             configuration.data_set_analysis.plot,
-            configuration.general.directories.output / 'data',
+            configuration.general.output_dir / 'data',
         )
     elif mode == Mode.FITTING:
 
@@ -128,7 +128,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
 
             scalar_property_reports.append(scalar_property_report)
 
-        model_test_save_dir = (configuration.general.directories.output / 'model_test')
+        model_test_save_dir = (configuration.general.output_dir / 'model_test')
         model_test_save_dir.mkdir(parents=True, exist_ok=True)
 
         for scalar_network_property_report in scalar_property_reports:
@@ -146,7 +146,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
-        model_analysis_save_dir = (configuration.general.directories.output / 'model_analysis')
+        model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis')
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
         typical_finite_network = model.generate_finite_network()
@@ -192,16 +192,15 @@ def create_parser() -> argparse.ArgumentParser:
 def main_wrapper(params: argparse.Namespace) -> None:
     """Wrap the main function to separate profiling, logging, etc. from actual algorithm."""
     configuration = Configuration()
-    configuration.load(params.config_dir / 'config.json')
-    configuration.general.directories.output.mkdir(parents=True, exist_ok=True)
+    configuration.general.output_dir.mkdir(parents=True, exist_ok=True)
     copytree(
         params.config_dir,
-        configuration.general.directories.output / 'config_files',
+        configuration.general.output_dir / 'config_files',
         ignore=ignore_patterns('__pycache__', '__init__.py')
     )
 
     basicConfig(
-        filename=configuration.general.directories.output / 'log.txt',
+        filename=configuration.general.output_dir / 'log.txt',
         filemode='w',
         encoding='utf-8',
         level=getattr(logging, configuration.general.log_level),
@@ -235,7 +234,7 @@ def main_wrapper(params: argparse.Namespace) -> None:
         memory_usage_snapshot = tracemalloc.take_snapshot()
         tracemalloc.stop()
 
-        profile_output_dir = configuration.general.directories.output / 'profile_statistics'
+        profile_output_dir = configuration.general.output_dir / 'profile_statistics'
         profile_output_dir.mkdir(parents=True, exist_ok=True)
 
         project_root_dir = Path(__file__).parent
@@ -252,13 +251,13 @@ def main_wrapper(params: argparse.Namespace) -> None:
     if configuration.general.runtime_profiling:
         runtime_profiler.disable()
 
-        profile_output_dir = configuration.general.directories.output / 'profile_statistics'
+        profile_output_dir = configuration.general.output_dir / 'profile_statistics'
         profile_output_dir.mkdir(parents=True, exist_ok=True)
 
         stream = io.StringIO()
 
         runtime_statistics = Stats(runtime_profiler, stream=stream).sort_stats(SortKey.CUMULATIVE)
-        runtime_statistics.print_stats(str(configuration.general.directories.root), 100)
+        runtime_statistics.print_stats(str(configuration.general.root_dir), 100)
         runtime_statistics.dump_stats(profile_output_dir / 'runtime_profile_results.prof')
         runtime_profile_log_file = profile_output_dir / 'runtime_profile_results.txt'
         with open(runtime_profile_log_file, 'w', encoding='utf-8') as profile_log_file:

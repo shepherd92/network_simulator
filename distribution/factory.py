@@ -51,6 +51,7 @@ def create_fitting_method(
         return PoissonDistribution.FittingMethod.MAXIMUM_LIKELIHOOD
     if distribution_type == TheoreticalDistribution.Type.POWER_LAW:
         return PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_DETERMINISTIC_DOMAIN
+        # return PowerLawDistribution.FittingMethod.LINEAR_REGRESSION
     if distribution_type == TheoreticalDistribution.Type.STABLE:
         return StableDistribution.FittingMethod.MLE_SCIPY
     if distribution_type == TheoreticalDistribution.Type.UNIFORM:

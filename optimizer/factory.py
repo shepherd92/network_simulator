@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
+"""Factory methods for the model optimizer."""
 
 from model.model import Model
 
-from config_files.model_config.erdos_renyi_config import ErdosRenyiParameterOptions
-from config_files.model_config.watts_strogatz_config import WattsStrogatzParameterOptions
-from config_files.model_config.preferential_attachment_config import PreferentialAttachmentParameterOptions
-from config_files.model_config.price_config import PriceParameterOptions
-from config_files.model_config.network_geometry_with_flavor_config import NetworkGeometryWithFlavorParameterOptions
-from config_files.model_config.age_dependent_random_simplex_config import AgeDependentRandomSimplexParameterOptions
+from config_files.model_fitting import AgeDependentRandomSimplexParameterOptions
+from config_files.model_fitting import ErdosRenyiParameterOptions
+from config_files.model_fitting import NetworkGeometryWithFlavorParameterOptions
+from config_files.model_fitting import PreferentialAttachmentParameterOptions
+from config_files.model_fitting import PriceParameterOptions
+from config_files.model_fitting import WattsStrogatzParameterOptions
 from data_set.data_set import DataSet
 from optimizer.parameter_option import ModelParameterOptions
 

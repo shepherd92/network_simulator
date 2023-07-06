@@ -104,28 +104,28 @@ def plot_distribution_approximation(distribution_pair: DistributionApproximation
     """Plot the distribution and its approximation on a given axes."""
     # standardize the plots if the theoretical distribution is normal or stable
     if distribution_pair.type == TheoreticalDistribution.Type.POISSON:
-        _plot_approximation(
+        plot_approximation(
             distribution_pair,
             EmpiricalDistribution.HistogramType.INTEGERS,
             PaddingSide.RIGHT,
             axes
         )
     elif distribution_pair.type == TheoreticalDistribution.Type.NORMAL:
-        _plot_approximation_standardized(
+        plot_approximation_standardized(
             distribution_pair,
             EmpiricalDistribution.HistogramType.LINEAR,
             PaddingSide.BOTH,
             axes
         )
     elif distribution_pair.type == TheoreticalDistribution.Type.POWER_LAW:
-        _plot_approximation_log(
+        plot_approximation_log(
             distribution_pair,
-            EmpiricalDistribution.HistogramType.LOGARITHMIC,
+            EmpiricalDistribution.HistogramType.INTEGERS,
             PaddingSide.NONE,
             axes
         )
     elif distribution_pair.type == TheoreticalDistribution.Type.STABLE:
-        _plot_approximation_standardized(
+        plot_approximation_standardized(
             distribution_pair,
             EmpiricalDistribution.HistogramType.LINEAR,
             PaddingSide.BOTH,
@@ -160,7 +160,7 @@ def _get_simplex_colors(simplices: list[list[int]], color_map_name: str):
     return face_colors
 
 
-def _plot_approximation(
+def plot_approximation(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
     padding: PaddingSide,
@@ -194,7 +194,7 @@ def _plot_approximation(
     print_info([distribution_pair, test_result], axes)
 
 
-def _plot_approximation_standardized(
+def plot_approximation_standardized(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
     padding: PaddingSide,
@@ -237,7 +237,7 @@ def _plot_approximation_standardized(
     return values_plotted_empirical, values_plotted_theoretical
 
 
-def _plot_approximation_log(
+def plot_approximation_log(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
     padding: PaddingSide,

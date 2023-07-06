@@ -14,18 +14,13 @@ def main() -> None:
     output_path.mkdir(parents=True, exist_ok=True)
 
     data_analysis_directories = {
-        # 'finance':     input_base_path / '20230606_074218',
-        # 'biology':     input_base_path / '20230606_074555',
-        # 'statistics':  input_base_path / '20230606_075103',
-        # 'mathematics': input_base_path / '20230606_075318',
-        # 'economics':   input_base_path / '20230606_080916',
-        # 'engineering': input_base_path / '20230606_081030',
-        'finance':     input_base_path / '20230606_184218',  # average degree: 3.2621
-        'biology':     input_base_path / '20230606_184236',  # average degree: 6.2481
-        'statistics':  input_base_path / '20230606_184248',  # average degree: 5.0948
-        'mathematics': input_base_path / '20230606_185539',  # average degree: 4.5596
-        'economics':   input_base_path / '20230606_184303',  # average degree: 3.0593
-        'engineering': input_base_path / '20230606_185553',  # average degree: 7.0446
+        'finance':          input_base_path / '20230706_101351',
+        'biology':          input_base_path / '20230706_101448',
+        'statistics':       input_base_path / '20230706_101457',
+        'mathematics':      input_base_path / '20230706_101507',
+        'economics':        input_base_path / '20230706_101527',
+        'engineering':      input_base_path / '20230706_101729',
+        'computer_science': input_base_path / '20230706_101735',
     }
 
     degree_distribution_directories = {
@@ -124,6 +119,16 @@ def create_degree_distributions(directories: dict[str, Path], output_dir: Path) 
 
 
 def create_dimension_distributions(directories: dict[str, Path], output_dir: Path) -> None:
+    """Create dimension distributions."""
+    for property_name in [
+        'simplex_dimension_distribution',
+        'interaction_dimension_distribution',
+        'facet_dimension_distribution',
+    ]:
+        _merge_property_tables(directories, f'data/{property_name}', output_dir)
+
+
+def create_betti_number_distributions(directories: dict[str, Path], output_dir: Path) -> None:
     """Create dimension distributions."""
     for property_name in [
         'simplex_dimension_distribution',

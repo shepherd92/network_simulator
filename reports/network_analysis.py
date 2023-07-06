@@ -16,9 +16,11 @@ from network.finite_network import FiniteNetwork
 from network.infinite_network import InfiniteNetwork
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
+    PaddingSide,
     approximate_distribution,
     check_calculated,
-    plot_distribution_approximation,
+    plot_approximation,
+    plot_approximation_log,
     plot_finite_network,
     plot_persistence_barcode_,
     plot_persistence_diagram_,
@@ -255,7 +257,12 @@ def _report_total_degree_distribution(
 
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
     approximation.save(save_directory / 'total_degree_distribution')
-    plot_distribution_approximation(approximation, axes)
+    plot_approximation_log(
+        approximation,
+        EmpiricalDistribution.HistogramType.LOGARITHMIC,
+        PaddingSide.NONE,
+        axes
+    )
     axes.set_title('Total Degree Distribution')
 
 
@@ -268,7 +275,12 @@ def _report_in_degree_distribution(
 
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
     approximation.save(save_directory / 'in_degree_distribution')
-    plot_distribution_approximation(approximation, axes)
+    plot_approximation_log(
+        approximation,
+        EmpiricalDistribution.HistogramType.LOGARITHMIC,
+        PaddingSide.NONE,
+        axes
+    )
     axes.set_title('In Degree Distribution')
 
 
@@ -280,8 +292,14 @@ def _report_out_degree_distribution(
 ) -> None:
 
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
+
     approximation.save(save_directory / 'out_degree_distribution')
-    plot_distribution_approximation(approximation, axes)
+    plot_approximation(
+        approximation,
+        EmpiricalDistribution.HistogramType.LOGARITHMIC,
+        PaddingSide.RIGHT,
+        axes
+    )
     axes.set_title('Out Degree Distribution')
 
 
@@ -294,7 +312,12 @@ def _report_ho_1_degree_distribution(
 
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
     approximation.save(save_directory / 'ho_degree_distribution_1')
-    plot_distribution_approximation(approximation, axes)
+    plot_approximation_log(
+        approximation,
+        EmpiricalDistribution.HistogramType.LOGARITHMIC,
+        PaddingSide.NONE,
+        axes
+    )
     axes.set_title('Higher-Order Degree Distribution - Dimension 1')
 
 
@@ -307,7 +330,12 @@ def _report_ho_2_degree_distribution(
 
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
     approximation.save(save_directory / 'ho_degree_distribution_2')
-    plot_distribution_approximation(approximation, axes)
+    plot_approximation_log(
+        approximation,
+        EmpiricalDistribution.HistogramType.LOGARITHMIC,
+        PaddingSide.NONE,
+        axes
+    )
     axes.set_title('Higher-Order Degree Distribution - Dimension 2')
 
 
@@ -320,7 +348,12 @@ def _report_ho_3_degree_distribution(
 
     approximation = approximate_distribution(empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
     approximation.save(save_directory / 'ho_degree_distribution_3')
-    plot_distribution_approximation(approximation, axes)
+    plot_approximation_log(
+        approximation,
+        EmpiricalDistribution.HistogramType.LOGARITHMIC,
+        PaddingSide.NONE,
+        axes
+    )
     axes.set_title('Higher-Order Degree Distribution - Dimension 3')
 
 

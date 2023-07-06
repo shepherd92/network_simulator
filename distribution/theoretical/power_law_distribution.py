@@ -69,7 +69,6 @@ class PowerLawDistribution(TheoreticalDistribution):
     ) -> None:
         if fitting_parameters.fitting_method in [
             PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_LOGARITHMIC_RATIO_DOMAIN,
-            PowerLawDistribution.FittingMethod.LINEAR_REGRESSION,
         ]:
             self._determine_domain_logarithmic_ratio(empirical_distribution)
         elif fitting_parameters.fitting_method in [
@@ -81,9 +80,10 @@ class PowerLawDistribution(TheoreticalDistribution):
         ]:
             self._determine_domain_mle(empirical_distribution)
         elif fitting_parameters.fitting_method in [
+            PowerLawDistribution.FittingMethod.LINEAR_REGRESSION,
             PowerLawDistribution.FittingMethod.MAXIMUM_LIKELIHOOD_DETERMINISTIC_DOMAIN,
         ]:
-            self._determine_domain_deterministic()
+            self._determine_domain_deterministic(empirical_distribution)
         else:
             assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
 
@@ -116,10 +116,11 @@ class PowerLawDistribution(TheoreticalDistribution):
         else:
             assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
 
-    def _determine_domain_deterministic(self) -> None:
+    def _determine_domain_deterministic(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the domain at which the power-law holds."""
-        self._domain.min_ = 30.
+        self._domain.min_ = 10.
         self._domain.max_ = np.inf
+        # self._domain.max_ = empirical_distribution.domain.max_ ** 0.8
 
     def _determine_domain_mle(self, empirical_distribution: EmpiricalDistribution) -> None:
         """Find the domain at which the power-law holds.
@@ -173,7 +174,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         estimate = 1. + len(value_sequence) / (sum(np.log(value_sequence / (self.domain.min_ - 0.5))))
         return estimate
 
-    def _estimate_exponent_linear_regression(
+    def _estimate_exponent_linear_regression_bkp(
         self,
         empirical_distribution: EmpiricalDistribution
     ) -> float:
@@ -181,15 +182,38 @@ class PowerLawDistribution(TheoreticalDistribution):
         x_values = np.unique(empirical_distribution.value_sequence)
         pdf = empirical_distribution.pdf(x_values)
 
-        x_values = x_values[pdf > 0.]
-        pdf = pdf[pdf > 1e-9]
+        mask = (x_values > 0.) & (pdf > 1e-9)
+        x_values = x_values[mask]
+        pdf = pdf[mask]
 
         if len(x_values) < 3:
             error(f'Value counts is {len(x_values)} in domain [{self.domain.min_}, {self.domain.max_}].')
-            return PowerLawDistribution.Parameters(np.nan)
+            return np.nan
         assert (x_values > 0.).all(), 'Non positive values occured in power law distribution.'
 
         coefficients = np.polyfit(np.log(x_values), np.log(pdf), 1)
+
+        return - coefficients[0]
+
+    def _estimate_exponent_linear_regression(
+        self,
+        empirical_distribution: EmpiricalDistribution
+    ) -> float:
+        """Estimate the power law exponent."""
+        value_counts = empirical_distribution.calc_value_counts()
+        x_values = value_counts[:, 0]
+        y_values = value_counts[:, 1]
+
+        mask = (x_values > 1e-10) & (y_values > 1e-10)
+        x_values = x_values[mask]
+        y_values = y_values[mask]
+
+        if len(x_values) < 3:
+            error(f'Value counts is {len(x_values)} in domain [{self.domain.min_}, {self.domain.max_}].')
+            return np.nan
+        assert (x_values > 0.).all(), 'Non positive values occured in power law distribution.'
+
+        coefficients = np.polyfit(np.log(x_values), np.log(y_values), 1)
 
         return - coefficients[0]
 

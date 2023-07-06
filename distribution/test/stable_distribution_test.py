@@ -40,12 +40,36 @@ class StableDistributionTest(unittest.TestCase):
         assert stable_distributed_numbers is not None
         self.empirical_distribution = EmpiricalDistribution(stable_distributed_numbers.tolist())
 
-    def test_fitting(self):
+    def test_fitting_general(self):
         """Test if the fitting method gives a reasonably good fit."""
         kolmogorov_smirnov_threshold = 0.1
 
         approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.STABLE)
         fitting_parameters = create_default_fitting_parameters(TheoreticalDistribution.Type.STABLE)
+        approximation.fit(fitting_parameters)
+
+        test_results = approximation.run_test()
+        # self._plot_pdfs()
+
+        self.assertLess(
+            test_results.kolmogorov_smirnov,
+            kolmogorov_smirnov_threshold,
+            f'Kolmogorov-Smirnov statistic is {test_results.kolmogorov_smirnov}, ' +
+            f'which should be less than {kolmogorov_smirnov_threshold}.'
+        )
+
+    def test_fitting_fixed_alpha_beta(self):
+        """Test if the fitting method gives a reasonably good fit."""
+        kolmogorov_smirnov_threshold = 0.1
+
+        approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.STABLE)
+        fitting_parameters = create_default_fitting_parameters(TheoreticalDistribution.Type.STABLE)
+        fitting_parameters.fixed_parameters = StableDistribution.Parameters(
+            alpha=self.parameters.alpha,
+            beta=self.parameters.beta,
+            location=np.nan,
+            scale=np.nan,
+        )
         approximation.fit(fitting_parameters)
 
         test_results = approximation.run_test()

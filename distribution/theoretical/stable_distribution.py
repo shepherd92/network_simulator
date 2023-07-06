@@ -89,9 +89,9 @@ class StableDistribution(TheoreticalDistribution):
         fitting_parameters: FittingParameters
     ) -> None:
         if fitting_parameters.fitting_method == StableDistribution.FittingMethod.MLE_SCIPY:
-            warning(f'{fitting_parameters.fitting_method} cannot handle fixed parameters.')
             self._parameters = self._estimate_parameters_mle_scipy(
                 empirical_distribution,
+                fitting_parameters.fixed_parameters,
             )
         elif fitting_parameters.fitting_method == StableDistribution.FittingMethod.QUICK_FIT:
             warning(f'{fitting_parameters.fitting_method} cannot handle fixed parameters.')
@@ -108,12 +108,23 @@ class StableDistribution(TheoreticalDistribution):
 
     def _estimate_parameters_mle_scipy(
         self,
-        empirical_distribution: EmpiricalDistribution
+        empirical_distribution: EmpiricalDistribution,
+        fixed_parameters: Parameters,
     ) -> Parameters:
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
 
+        kwargs: dict[str, np.float_] = {}
+        if not np.isnan(fixed_parameters.alpha):
+            kwargs['f0'] = fixed_parameters.alpha
+        if not np.isnan(fixed_parameters.beta):
+            kwargs['f1'] = fixed_parameters.beta
+        if not np.isnan(fixed_parameters.location):
+            kwargs['floc'] = fixed_parameters.location
+        if not np.isnan(fixed_parameters.scale):
+            kwargs['fscale'] = fixed_parameters.scale
+
         try:
-            params = levy_stable.fit(value_sequence)
+            params = levy_stable.fit(value_sequence, **kwargs)
         except FitError:
             # sometimes the fitting converges to parameters outside the domain
             params = (np.nan, np.nan, np.nan, np.nan)

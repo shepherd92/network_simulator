@@ -4,10 +4,10 @@
 from logging import info
 from pathlib import Path
 
-from config_files.data_set_config.arxiv_config import ARXIV_DATA_SET_PARAMETERS
-from config_files.data_set_config.bianconi_config import BIANCONI_DATA_SET_PARAMETERS
-from config_files.data_set_config.nature_config import NATURE_DATA_SET_PARAMETERS
-from config_files.data_set_config.test_config import TEST_DATA_SET_PARAMETERS
+from config_files.data_set_config import ARXIV_DATA_SET_PARAMETERS
+from config_files.data_set_config import BIANCONI_DATA_SET_PARAMETERS
+from config_files.data_set_config import NATURE_DATA_SET_PARAMETERS
+from config_files.data_set_config import TEST_DATA_SET_PARAMETERS
 
 from data_set.data_set import DataSet
 from data_set.arxiv_data_set import ArxivDataSet
