@@ -27,7 +27,11 @@ from model.factory import create_model, load_default_parameters
 from network.property import ScalarNetworkPropertyReport
 from optimizer.model_optimizer import ModelOptimizer
 from optimizer.factory import create_parameter_options
-from reports.network_analysis import analyze_finite_network, analyze_infinite_network_set
+from reports.data_set_network_analysis import analyze_data_set_network
+from reports.model_example_network_analysis import (
+    analyze_model_example_finite_network,
+    analyze_model_example_infinite_network_set,
+)
 from reports.model_analysis import create_model_test_report
 from tools.debugger import debugger_is_active
 
@@ -53,7 +57,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
     if mode == Mode.ANALYSIS:
         data_set = load_data(data_set_type)
         (configuration.general.output_dir / 'data').mkdir(parents=True, exist_ok=True)
-        analyze_finite_network(
+        analyze_data_set_network(
             data_set,
             configuration.data_set_analysis.properties_to_calculate,
             configuration.data_set_analysis.plot,
@@ -150,18 +154,19 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
         typical_finite_network = model.generate_finite_network()
-        analyze_finite_network(
+        analyze_model_example_finite_network(
             typical_finite_network,
-            configuration.model.analysis.properties_to_calculate,
+            configuration.model.analysis.properties_to_calculate_finite,
+            configuration.model.analysis.plot,
             model_analysis_save_dir,
         )
         typical_infinite_network_set = model.generate_infinite_network_set(
             configuration.model.analysis.num_of_infinite_networks,
             seed=0,
         )
-        analyze_infinite_network_set(
+        analyze_model_example_infinite_network_set(
             typical_infinite_network_set,
-            configuration.model.analysis.properties_to_calculate,
+            configuration.model.analysis.properties_to_calculate_infinite,
             model_analysis_save_dir,
         )
 

@@ -6,9 +6,11 @@ import numpy as np
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_default_fitting_parameters
+from distribution.factory import (
+    create_fitting_parameters_normal,
+    create_fitting_parameters_power_law_adrcm,
+)
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-from distribution.theoretical.normal_distribution import NormalDistribution
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 from optimizer.parameter_option import ModelParameterOptions, ParameterOption
@@ -18,10 +20,7 @@ SCALAR_PROPERTY_PARAMS_TO_FIT: tuple[DerivedNetworkProperty, ...] = (
     DerivedNetworkProperty(
         name='num_of_edges',
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_EDGES),
-        fitting_parameters=NormalDistribution.FittingParameters(
-            fixed_parameters=NormalDistribution.Parameters(),
-            fitting_method=NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-        ),
+        fitting_parameters=create_fitting_parameters_normal(),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
     ),
 )
@@ -37,9 +36,12 @@ class AgeDependentRandomSimplexParameterOptions(ModelParameterOptions):
         in_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
             BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION
         )
-        approximation = DistributionApproximation(in_degree_distribution, TheoreticalDistribution.Type.POWER_LAW)
+        approximation = DistributionApproximation(
+            in_degree_distribution,
+            TheoreticalDistribution.Type.POWER_LAW
+        )
         assert isinstance(approximation.theoretical, PowerLawDistribution)
-        approximation.fit(create_default_fitting_parameters(TheoreticalDistribution.Type.POWER_LAW))
+        approximation.fit(create_fitting_parameters_power_law_adrcm())
         gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 

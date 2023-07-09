@@ -10,7 +10,12 @@ from scipy.stats import levy_stable
 
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_default_fitting_parameters
+from distribution.factory import (
+    create_fitting_parameters_normal,
+    create_fitting_parameters_power_law_adrcm,
+    create_fitting_parameters_poisson,
+    create_fitting_parameters_stable,
+)
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
 from reports.plotting_helper import (
@@ -31,29 +36,35 @@ class PlottingHelperTest(unittest.TestCase):
         figure, ((axes_poisson, axes_power_law), (axes_normal, axes_stable)) = plt.subplots(2, 2)
         figure.set_size_inches(20, 10)
 
+        data_set_value = 3.
+
         axes_poisson.set_title('Poisson Distribution')
-        plot_distribution_approximation(
-            PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.POISSON),
-            axes_poisson
-        )
+        type_ = TheoreticalDistribution.Type.POISSON
+        approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
+        fitting_params = create_fitting_parameters_poisson()
+        approximation.fit(fitting_params)
+        plot_distribution_approximation(approximation, data_set_value, axes_poisson)
 
         axes_power_law.set_title('Power law Distribution')
-        plot_distribution_approximation(
-            PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.POWER_LAW),
-            axes_power_law
-        )
+        type_ = TheoreticalDistribution.Type.POWER_LAW
+        approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
+        fitting_params = create_fitting_parameters_power_law_adrcm()
+        approximation.fit(fitting_params)
+        plot_distribution_approximation(approximation, data_set_value, axes_power_law)
 
         axes_normal.set_title('Normal Distribution')
-        plot_distribution_approximation(
-            PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.NORMAL),
-            axes_normal
-        )
+        type_ = TheoreticalDistribution.Type.NORMAL
+        approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
+        fitting_params = create_fitting_parameters_normal()
+        approximation.fit(fitting_params)
+        plot_distribution_approximation(approximation, data_set_value, axes_normal)
 
         axes_stable.set_title('Stable Distribution')
-        plot_distribution_approximation(
-            PlottingHelperTest._get_dist_approximation(TheoreticalDistribution.Type.STABLE),
-            axes_stable
-        )
+        type_ = TheoreticalDistribution.Type.STABLE
+        approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
+        fitting_params = create_fitting_parameters_stable()
+        approximation.fit(fitting_params)
+        plot_distribution_approximation(approximation, data_set_value, axes_stable)
 
         figure.tight_layout()
         plt.show()
@@ -106,14 +117,6 @@ class PlottingHelperTest(unittest.TestCase):
         )
         plt.show()
         plt.cla()
-
-    @staticmethod
-    def _get_dist_approximation(type_: TheoreticalDistribution.Type) -> DistributionApproximation:
-
-        approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
-        fitting_params = create_default_fitting_parameters(type_)
-        approximation.fit(fitting_params)
-        return approximation
 
     @ staticmethod
     def _get_empirical_dist(type_: TheoreticalDistribution.Type) -> EmpiricalDistribution:

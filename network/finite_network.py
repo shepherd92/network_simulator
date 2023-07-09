@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from logging import debug
+from logging import debug, info
 from typing import Any
 
 from gudhi.simplex_tree import SimplexTree
@@ -74,12 +74,12 @@ class FiniteNetwork(Network):
         properties_to_calculate: list[BaseNetworkProperty.Type]
     ) -> dict[BaseNetworkProperty.Type, Any]:
         """Calculate the summary of the network."""
-        debug('Summary calculation started.')
+        info('Finite network summary calculation started.')
         summary: dict[BaseNetworkProperty.Type, Any] = {
             property_type: self.calc_base_property(property_type)
             for property_type in properties_to_calculate
         }
-        debug('Summary calculation finished.')
+        info('Finite network summary calculation finished.')
         return summary
 
     def calc_scalar_property(

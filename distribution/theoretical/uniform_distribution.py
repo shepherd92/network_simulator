@@ -22,16 +22,20 @@ class UniformDistribution(TheoreticalDistribution):
         """Parameters of the uniform distribution."""
 
     @dataclass
-    class FittingParameters(TheoreticalDistribution.FittingParameters):
-        """Parameters of how the fitting should be done."""
+    class DomainCalculation(TheoreticalDistribution.FittingParameters.DomainCalculation):
+        """Parameters of domain calculation."""
 
+    @dataclass
+    class ParameterFitting(TheoreticalDistribution.FittingParameters.ParameterFitting):
+        """Parameters of fitting."""
+
+        class Method(Enum):
+            """Method used for fitting the uniform distribution."""
+
+            DEFAULT: int = auto()
+
+        method: Method
         fixed_parameters: UniformDistribution.Parameters
-        fitting_method: UniformDistribution.FittingMethod
-
-    class FittingMethod(Enum):
-        """Method used for fitting the uniform distribution."""
-
-        DEFAULT: int = auto()
 
     def __init__(self) -> None:
         """Create a default uniform distribution."""
@@ -56,26 +60,24 @@ class UniformDistribution(TheoreticalDistribution):
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        domain_calculation_parameters: DomainCalculation,
     ) -> None:
         """Estimate the parameters of the uniform distribution."""
-        if fitting_parameters.fitting_method == UniformDistribution.FittingMethod.DEFAULT:
-            self._domain.min_ = empirical_distribution.value_sequence.min()
-            self._domain.max_ = empirical_distribution.value_sequence.max()
-        else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+        self._domain.min_ = empirical_distribution.value_sequence.min()
+        self._domain.max_ = empirical_distribution.value_sequence.max()
 
     def _fit_parameters(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        parameter_fitting_parameters: ParameterFitting
     ) -> None:
         """Estimate the parameters of the uniform distribution."""
         # value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
-        if fitting_parameters.fitting_method == UniformDistribution.FittingMethod.DEFAULT:
+        Method = UniformDistribution.ParameterFitting.Method
+        if parameter_fitting_parameters.method == Method.DEFAULT:
             return
         else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+            assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the PDF of the distribution evaluted at the given x_values."""
@@ -87,7 +89,7 @@ class UniformDistribution(TheoreticalDistribution):
         cdf_values = uniform.cdf(x_values, *astuple(self._parameters))
         return cdf_values
 
-    @property
+    @ property
     def parameters(self) -> UniformDistribution.Parameters:
         """Return the parameters of the distribution."""
         return self._parameters

@@ -31,18 +31,22 @@ class StableDistribution(TheoreticalDistribution):
         scale: float = np.nan
 
     @dataclass
-    class FittingParameters(TheoreticalDistribution.FittingParameters):
-        """Parameters of how the fitting should be done."""
+    class DomainCalculation(TheoreticalDistribution.FittingParameters.DomainCalculation):
+        """Parameters of domain calculation."""
 
+    @dataclass
+    class ParameterFitting(TheoreticalDistribution.FittingParameters.ParameterFitting):
+        """Parameters of fitting."""
+
+        class Method(Enum):
+            """Method used for fitting the power law distribution."""
+
+            QUICK_FIT = auto()
+            MLE_SCIPY = auto()
+            OPTIMIZATION = auto()
+
+        method: Method
         fixed_parameters: StableDistribution.Parameters
-        fitting_method: StableDistribution.FittingMethod
-
-    class FittingMethod(Enum):
-        """Method used for fitting the stable distribution."""
-
-        QUICK_FIT = auto()
-        MLE_SCIPY = auto()
-        OPTIMIZATION = auto()
 
     def __init__(self) -> None:
         """Create a default stable distribution."""
@@ -72,39 +76,33 @@ class StableDistribution(TheoreticalDistribution):
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        domain_calculation_parameters: DomainCalculation,
     ) -> None:
-        if fitting_parameters.fitting_method in [
-            StableDistribution.FittingMethod.MLE_SCIPY,
-            StableDistribution.FittingMethod.QUICK_FIT,
-            StableDistribution.FittingMethod.OPTIMIZATION,
-        ]:
-            self._domain = Distribution.Domain(-np.inf, np.inf)
-        else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+        self._domain = Distribution.Domain(-np.inf, np.inf)
 
     def _fit_parameters(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        parameter_fitting_parameters: ParameterFitting
     ) -> None:
-        if fitting_parameters.fitting_method == StableDistribution.FittingMethod.MLE_SCIPY:
+        Method = StableDistribution.ParameterFitting.Method
+        if parameter_fitting_parameters.method == Method.MLE_SCIPY:
             self._parameters = self._estimate_parameters_mle_scipy(
                 empirical_distribution,
-                fitting_parameters.fixed_parameters,
+                parameter_fitting_parameters.fixed_parameters,
             )
-        elif fitting_parameters.fitting_method == StableDistribution.FittingMethod.QUICK_FIT:
-            warning(f'{fitting_parameters.fitting_method} cannot handle fixed parameters.')
+        elif parameter_fitting_parameters.method == Method.QUICK_FIT:
+            warning(f'{Method.QUICK_FIT} cannot handle fixed parameters.')
             self._parameters = self._estimate_parameters_quick_fit(
                 empirical_distribution,
             )
-        elif fitting_parameters.fitting_method == StableDistribution.FittingMethod.OPTIMIZATION:
-            warning(f'{fitting_parameters.fitting_method} cannot handle fixed parameters.')
+        elif parameter_fitting_parameters.method == Method.OPTIMIZATION:
+            warning(f'{Method.OPTIMIZATION} cannot handle fixed parameters.')
             self._parameters = self._estimate_parameters_optimization(
                 empirical_distribution,
             )
         else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+            assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
     def _estimate_parameters_mle_scipy(
         self,

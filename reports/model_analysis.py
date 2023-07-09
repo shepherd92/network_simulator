@@ -31,9 +31,7 @@ def _plot_property_report(property_report: ScalarNetworkPropertyReport, axes: pl
     axes.set_title(f'{property_report.params.name} distribution')
 
     distribution_pair = property_report.distributions
-    plot_distribution_approximation(distribution_pair, axes)
-
-    axes.axvline(x=property_report.data_point, color='green')
+    plot_distribution_approximation(distribution_pair, property_report.data_point, axes)
 
 
 def _plot_probability_plot(property_report: ScalarNetworkPropertyReport, axes: plt.Axes) -> None:

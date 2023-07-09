@@ -8,7 +8,6 @@ import numpy as np
 from scipy.stats import levy_stable
 
 from distribution.approximation import DistributionApproximation
-from distribution.factory import create_default_fitting_parameters
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.stable_distribution import StableDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -45,7 +44,13 @@ class StableDistributionTest(unittest.TestCase):
         kolmogorov_smirnov_threshold = 0.1
 
         approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.STABLE)
-        fitting_parameters = create_default_fitting_parameters(TheoreticalDistribution.Type.STABLE)
+        fitting_parameters = StableDistribution.FittingParameters(
+            StableDistribution.DomainCalculation(),
+            StableDistribution.ParameterFitting(
+                StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                StableDistribution.Parameters()
+            )
+        )
         approximation.fit(fitting_parameters)
 
         test_results = approximation.run_test()
@@ -62,18 +67,26 @@ class StableDistributionTest(unittest.TestCase):
         """Test if the fitting method gives a reasonably good fit."""
         kolmogorov_smirnov_threshold = 0.1
 
-        approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.STABLE)
-        fitting_parameters = create_default_fitting_parameters(TheoreticalDistribution.Type.STABLE)
-        fitting_parameters.fixed_parameters = StableDistribution.Parameters(
-            alpha=self.parameters.alpha,
-            beta=self.parameters.beta,
-            location=np.nan,
-            scale=np.nan,
+        approximation = DistributionApproximation(
+            self.empirical_distribution,
+            TheoreticalDistribution.Type.STABLE
+        )
+        fitting_parameters = StableDistribution.FittingParameters(
+            StableDistribution.DomainCalculation(),
+            StableDistribution.ParameterFitting(
+                StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                StableDistribution.Parameters(
+                    alpha=self.parameters.alpha,
+                    beta=self.parameters.beta,
+                    location=np.nan,
+                    scale=np.nan,
+                )
+            )
         )
         approximation.fit(fitting_parameters)
 
         test_results = approximation.run_test()
-        # self._plot_pdfs()
+        # self._plot_pdfs(approximation)
 
         self.assertLess(
             test_results.kolmogorov_smirnov,
@@ -82,7 +95,7 @@ class StableDistributionTest(unittest.TestCase):
             f'which should be less than {kolmogorov_smirnov_threshold}.'
         )
 
-    def _plot_pdfs(self):
+    def _plot_pdfs(self, approximation: DistributionApproximation) -> None:
 
         x_min = levy_stable.ppf(
             0.001,
@@ -100,8 +113,8 @@ class StableDistributionTest(unittest.TestCase):
         )
         x_values = np.linspace(x_min, x_max, 1000, endpoint=True)
 
-        empirical_pdf = self.approximation.empirical.pdf(x_values)
-        theoretical_pdf = self.approximation.theoretical.pdf(x_values)
+        empirical_pdf = approximation.empirical.pdf(x_values)
+        theoretical_pdf = approximation.theoretical.pdf(x_values)
         plt.plot(x_values, empirical_pdf)
         plt.plot(x_values, theoretical_pdf)
         plt.show()

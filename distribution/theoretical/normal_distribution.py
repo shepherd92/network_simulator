@@ -11,7 +11,6 @@ import numpy as np
 import numpy.typing as npt
 from scipy.stats import norm
 
-from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
@@ -27,17 +26,27 @@ class NormalDistribution(TheoreticalDistribution):
         std: float = np.nan
 
     @dataclass
-    class FittingParameters(TheoreticalDistribution.FittingParameters):
-        """Parameters of how the fitting should be done."""
+    class DomainCalculation(TheoreticalDistribution.FittingParameters.DomainCalculation):
+        """Parameters of domain calculation."""
 
+    @dataclass
+    class ParameterFitting(TheoreticalDistribution.FittingParameters.ParameterFitting):
+        """Parameters of fitting."""
+
+        class Method(Enum):
+            """Method used for fitting the normal distribution."""
+
+            MAXIMUM_LIKELIHOOD: int = auto()
+            MATCH_QUANTILE = auto()
+
+        method: Method
         fixed_parameters: NormalDistribution.Parameters
-        fitting_method: NormalDistribution.FittingMethod
 
-    class FittingMethod(Enum):
-        """Method used for fitting the normal distribution."""
+    @dataclass
+    class ParameterFittingMatchQuantile(ParameterFitting):
+        """Parameters of the match percentile fitting."""
 
-        MAXIMUM_LIKELIHOOD = auto()
-        MATCH_2_DOT_5_PERCENTILE = auto()
+        quantile: float
 
     def __init__(self) -> None:
         """Create a default normal distribution."""
@@ -64,28 +73,24 @@ class NormalDistribution(TheoreticalDistribution):
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        domain_calculation_parameters: DomainCalculation,
     ) -> None:
-        if fitting_parameters.fitting_method in [
-            NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD,
-            NormalDistribution.FittingMethod.MATCH_2_DOT_5_PERCENTILE,
-        ]:
-            self._domain = Distribution.Domain(-np.inf, np.inf)
-        else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+        self._domain.min_ = -np.inf
+        self._domain.max_ = +np.inf
 
     def _fit_parameters(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        fitting_parameters: ParameterFitting,
     ) -> None:
         """Estimate the parameters of the normal distribution."""
-        if fitting_parameters.fitting_method == NormalDistribution.FittingMethod.MAXIMUM_LIKELIHOOD:
+        Method = NormalDistribution.ParameterFitting.Method
+        if fitting_parameters.method == Method.MAXIMUM_LIKELIHOOD:
             self._parameters = self._fit_maximum_likelihood(empirical_distribution, fitting_parameters)
-        elif fitting_parameters.fitting_method == NormalDistribution.FittingMethod.MATCH_2_DOT_5_PERCENTILE:
-            self._parameters = self._fit_match_quantile(empirical_distribution, fitting_parameters, 0.025)
+        elif fitting_parameters.method == Method.MATCH_QUANTILE:
+            self._parameters = self._fit_match_quantile(empirical_distribution, fitting_parameters)
         else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+            assert False, f'Unknown fitting method: {fitting_parameters.method}.'
 
         if np.isclose(self._parameters.std, 0.):
             warning('Normal distribution fitting is invalid as data has 0 standard deviation.')
@@ -93,7 +98,7 @@ class NormalDistribution(TheoreticalDistribution):
     def _fit_maximum_likelihood(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        fitting_parameters: ParameterFitting
     ) -> Parameters:
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         mean = value_sequence.mean() \
@@ -105,8 +110,7 @@ class NormalDistribution(TheoreticalDistribution):
     def _fit_match_quantile(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters,
-        quantile_to_compute: float
+        fitting_parameters: ParameterFittingMatchQuantile,
     ) -> Parameters:
         """Set the variance so that the specified quantiles match.
 
@@ -119,9 +123,10 @@ class NormalDistribution(TheoreticalDistribution):
         mean = value_sequence.mean() \
             if np.isnan(fitting_parameters.fixed_parameters.mean) else fitting_parameters.fixed_parameters.mean
 
+        quantile = fitting_parameters.quantile
         if np.isnan(fitting_parameters.fixed_parameters.std):
-            quantile_of_data = empirical_distribution.calc_quantiles(np.array([quantile_to_compute]))[0]
-            std = (quantile_of_data - mean) / norm.ppf(quantile_to_compute)
+            quantile_of_data = empirical_distribution.calc_quantiles(np.array([quantile]))[0]
+            std = (quantile_of_data - mean) / norm.ppf(quantile)
         else:
             std = fitting_parameters.fixed_parameters.std
 

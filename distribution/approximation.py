@@ -21,6 +21,7 @@ class DistributionApproximation:
 
         probability_plot_r_value: float = np.nan
         qq_plot_r_value: float = np.nan
+        point_value: float = np.nan
         point_p_value: float = np.nan
         kolmogorov_smirnov: float = np.nan
 
@@ -66,8 +67,9 @@ class DistributionApproximation:
         test_result = DistributionApproximation.TestResult(
             probability_plot_r_value=probability_plot_r_value,
             qq_plot_r_value=qq_plot_r_value,
-            point_p_value=p_value,
             kolmogorov_smirnov=kolmogorov_smirnov,
+            point_value=point_value,
+            point_p_value=p_value,
         )
 
         return test_result
@@ -219,6 +221,8 @@ class DistributionApproximation:
         joint_info['kolmogorov_smirnov'] = test_result.kolmogorov_smirnov
         joint_info['probability_plot_r_value'] = test_result.probability_plot_r_value
         joint_info['qq_plot_r_value'] = test_result.qq_plot_r_value
+        joint_info['point_value'] = test_result.point_value
+        joint_info['point_p_value'] = test_result.point_p_value
 
         return joint_info
 

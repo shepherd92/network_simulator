@@ -17,10 +17,11 @@ from cpp_modules.build.adrcm import (
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
+from distribution.factory import create_fitting_parameters_power_law_data_set
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from model.model import Model
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetwork
+from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 
 
@@ -64,7 +65,8 @@ class AgeDependentRandomSimplexModel(Model):
             degree_distribution,
             TheoreticalDistribution.Type.POWER_LAW
         )
-        approximation.fit()
+        fitting_parameters = create_fitting_parameters_power_law_data_set()
+        approximation.fit(fitting_parameters)
         gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 
@@ -75,6 +77,15 @@ class AgeDependentRandomSimplexModel(Model):
         self._parameters.beta = beta_guess
         self._parameters.gamma = gamma_guess
 
+        print('\n'.join([
+            '\nADRCM model paramerers after setting from data set:',
+            f'N       = {self._parameters.num_nodes}',
+            f'max_dim = {self._parameters.max_dimension}',
+            f'alpha   = {self._parameters.alpha:4f}',
+            f'beta    = {self._parameters.beta:4f}',
+            f'gamma   = {self._parameters.gamma:4f}\n',
+        ]))
+
     def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
@@ -84,7 +95,8 @@ class AgeDependentRandomSimplexModel(Model):
         node_ids = np.array(range(self.parameters.num_nodes))[:, np.newaxis]
         random_number_generator = np.random.default_rng(seed)
 
-        interarrival_times: npt.NDArray[np.float_] = random_number_generator.exponential(size=self.parameters.num_nodes)
+        interarrival_times: npt.NDArray[np.float_] = \
+            random_number_generator.exponential(size=self.parameters.num_nodes)
         time = interarrival_times.sum()
         birth_times = interarrival_times.cumsum() / time
         self.parameters.torus_size = time
@@ -104,21 +116,25 @@ class AgeDependentRandomSimplexModel(Model):
 
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> list[InfiniteNetwork]:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Generate a list of infinite networks."""
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
         assert self.parameters.torus_dimension == 1, \
             f'Torus dimension must be 1, but it is {self.parameters.torus_dimension}'
 
         connections_set: list[npt.NDArray[np.float_]] = \
-            generate_infinite_network_connections_default(self.parameters.to_numpy(), num_of_networks, seed)
+            generate_infinite_network_connections_default(
+                self.parameters.to_numpy(),
+                num_of_networks,
+                seed
+        )
 
-        infinite_networks = [
+        infinite_network_set = InfiniteNetworkSet([
             self.generate_infinite_network(connections)
             for connections in connections_set
-        ]
+        ])
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed} done.')
-        return infinite_networks
+        return infinite_network_set
 
     def generate_infinite_network(self, connections: npt.NDArray[np.int_]) -> InfiniteNetwork:
         """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""

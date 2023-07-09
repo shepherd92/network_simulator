@@ -16,7 +16,7 @@ import numpy.typing as npt
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetwork
+from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 import tools.istarmap  # pylint: disable=unused-import # noqa: F401
 
@@ -85,7 +85,7 @@ class Model:
         """Build a network of the model."""
         raise NotImplementedError
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> list[InfiniteNetwork]:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Generate a set of "infinite" networks."""
         raise NotImplementedError
 
@@ -188,7 +188,7 @@ class Model:
     ) -> list[Any]:
         """Build a single network of the model and return its summary."""
         finite_network: FiniteNetwork | None = None
-        infinite_network_set: list[InfiniteNetwork] | None = None
+        infinite_network_set: InfiniteNetworkSet | None = None
         property_values: list[Any] = []
         for property_ in base_properties:
             if property_.calculation_method == BaseNetworkProperty.CalculationMethod.NETWORK:
@@ -198,7 +198,7 @@ class Model:
                 infinite_network_set = \
                     self.generate_infinite_network_set(num_of_infinite_networks, seed) \
                     if infinite_network_set is None else infinite_network_set
-                property_value = self._calc_typical_property_distribution(infinite_network_set, property_.property_type)
+                property_value = infinite_network_set.calc_typical_property_distribution(property_.property_type)
             else:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)
@@ -211,22 +211,6 @@ class Model:
             PROGRESS_BAR.refresh()
 
         return property_values
-
-    def _calc_typical_property_distribution(
-        self,
-        infinite_networks: list[InfiniteNetwork],
-        property_type: BaseNetworkProperty.Type,
-    ) -> EmpiricalDistribution:
-        """Generate typical properties of the given type."""
-        typical_property_sets = [
-            infinite_network.calc_base_property_value_set(property_type)
-            for infinite_network in infinite_networks
-        ]
-
-        distribution = EmpiricalDistribution([
-            value for property_set in typical_property_sets for value in property_set
-        ])
-        return distribution
 
     @property
     def parameters(self) -> Model.Parameters:

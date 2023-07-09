@@ -10,7 +10,6 @@ import numpy as np
 import numpy.typing as npt
 from scipy.stats import poisson
 
-from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
@@ -25,16 +24,20 @@ class PoissonDistribution(TheoreticalDistribution):
         lambda_: float = np.nan
 
     @dataclass
-    class FittingParameters(TheoreticalDistribution.FittingParameters):
-        """Parameters of how the fitting should be done."""
+    class DomainCalculation(TheoreticalDistribution.FittingParameters.DomainCalculation):
+        """Parameters of domain calculation."""
 
+    @dataclass
+    class ParameterFitting(TheoreticalDistribution.FittingParameters.ParameterFitting):
+        """Parameters of fitting."""
+
+        class Method(Enum):
+            """Method used for fitting the Poisson distribution."""
+
+            MAXIMUM_LIKELIHOOD: int = auto()
+
+        method: Method.MAXIMUM_LIKELIHOOD
         fixed_parameters: PoissonDistribution.Parameters
-        fitting_method: PoissonDistribution.FittingMethod
-
-    class FittingMethod(Enum):
-        """Method used for fitting the Poisson distribution."""
-
-        MAXIMUM_LIKELIHOOD = auto()
 
     def __init__(self) -> None:
         """Create a default Poisson distribution."""
@@ -45,7 +48,7 @@ class PoissonDistribution(TheoreticalDistribution):
         """Return the CDF of the distribution evaluted at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
-        return poisson.ppf(quantiles_to_calculate)
+        return poisson.ppf(quantiles_to_calculate, mu=self.parameters.lambda_)
 
     def get_info_as_dict(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
@@ -60,29 +63,28 @@ class PoissonDistribution(TheoreticalDistribution):
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        domain_calculation_parameters: DomainCalculation,
     ) -> None:
-        if fitting_parameters.fitting_method == PoissonDistribution.FittingMethod.MAXIMUM_LIKELIHOOD:
-            self._domain = Distribution.Domain(0., np.inf)
-        else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+        self._domain.min_ = 0.
+        self._domain.max_ = np.inf
 
     def _fit_parameters(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        parameter_fitting_parameters: ParameterFitting,
     ) -> None:
         """Calculate the parameter of the Poisson degree distribution."""
-        if not np.isnan(fitting_parameters.fixed_parameters.lambda_):
-            self._parameters = fitting_parameters
+        if not np.isnan(parameter_fitting_parameters.fixed_parameters.lambda_):
+            self._parameters = parameter_fitting_parameters.fixed_parameters
             return
 
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
 
-        if fitting_parameters.fitting_method == PoissonDistribution.FittingMethod.MAXIMUM_LIKELIHOOD:
+        Method = PoissonDistribution.ParameterFitting.Method
+        if parameter_fitting_parameters.method == Method.MAXIMUM_LIKELIHOOD:
             self._parameters = PoissonDistribution.Parameters(value_sequence.mean())
         else:
-            assert False, f'Unknown fitting method: {fitting_parameters.fitting_method}.'
+            assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the PDF of the distribution evaluted at the given x_values."""

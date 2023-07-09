@@ -22,7 +22,6 @@ from scipy.spatial import ConvexHull
 from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_default_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.finite_network import FiniteNetwork
 
@@ -89,45 +88,42 @@ def plot_finite_network(network: FiniteNetwork, axes: plt.Axes) -> None:
     axes.set_axis_off()
 
 
-def approximate_distribution(
-    empirical_distribution: EmpiricalDistribution,
-    theoretical_distribution_type: TheoreticalDistribution.Type
-) -> DistributionApproximation:
-    """Approximate an empirical distribution with the given theoretical distribution."""
-    distribution_pair = DistributionApproximation(empirical_distribution, theoretical_distribution_type)
-    default_fitting_parameters = create_default_fitting_parameters(theoretical_distribution_type)
-    distribution_pair.fit(default_fitting_parameters)
-    return distribution_pair
-
-
-def plot_distribution_approximation(distribution_pair: DistributionApproximation, axes: plt.Axes) -> None:
+def plot_distribution_approximation(
+    distribution_pair: DistributionApproximation,
+    data_set_value: float,
+    axes: plt.Axes,
+) -> None:
     """Plot the distribution and its approximation on a given axes."""
     # standardize the plots if the theoretical distribution is normal or stable
     if distribution_pair.type == TheoreticalDistribution.Type.POISSON:
-        plot_approximation(
+        plot_approximation_histogram(
             distribution_pair,
             EmpiricalDistribution.HistogramType.INTEGERS,
+            data_set_value,
             PaddingSide.RIGHT,
             axes
         )
     elif distribution_pair.type == TheoreticalDistribution.Type.NORMAL:
-        plot_approximation_standardized(
+        plot_approximation_histogram_standardized(
             distribution_pair,
             EmpiricalDistribution.HistogramType.LINEAR,
+            data_set_value,
             PaddingSide.BOTH,
             axes
         )
     elif distribution_pair.type == TheoreticalDistribution.Type.POWER_LAW:
-        plot_approximation_log(
+        plot_approximation_histogram_log(
             distribution_pair,
             EmpiricalDistribution.HistogramType.INTEGERS,
+            data_set_value,
             PaddingSide.NONE,
             axes
         )
     elif distribution_pair.type == TheoreticalDistribution.Type.STABLE:
-        plot_approximation_standardized(
+        plot_approximation_histogram_standardized(
             distribution_pair,
             EmpiricalDistribution.HistogramType.LINEAR,
+            data_set_value,
             PaddingSide.BOTH,
             axes
         )
@@ -160,9 +156,10 @@ def _get_simplex_colors(simplices: list[list[int]], color_map_name: str):
     return face_colors
 
 
-def plot_approximation(
+def plot_approximation_histogram(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
+    data_set_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> None:
@@ -183,20 +180,23 @@ def plot_approximation(
         theoretical_x_values, theoretical_pdf = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
+    test_result = distribution_pair.run_test(data_set_value)
+    _plot_point_value(data_set_value, axes)
+
+    # merge all values to be plotted
     _set_linear_scale_limits(
-        x_values=np.r_[bins, theoretical_x_values],  # merge all x coordinates to be plotted
-        y_values=np.r_[histogram, theoretical_pdf],  # merge all y coordinates to be plotted
+        x_values=np.r_[bins, theoretical_x_values, data_set_value],
+        y_values=np.r_[histogram, theoretical_pdf],
         axes=axes
     )
-
-    test_result = distribution_pair.run_test()
 
     print_info([distribution_pair, test_result], axes)
 
 
-def plot_approximation_standardized(
+def plot_approximation_histogram_standardized(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
+    data_set_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
@@ -222,13 +222,23 @@ def plot_approximation_standardized(
         standardized_theoretical_x_values, standardized_theoretical_pdf = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
+    test_result = distribution_pair.run_test(data_set_value)
+    _plot_point_value((data_set_value - mu) / std, axes)
+
+    # merge all coordinates to be plotted
     _set_linear_scale_limits(
-        x_values=np.r_[standardized_bins, standardized_theoretical_x_values],  # merge all x coordinates to be plotted
-        y_values=np.r_[standardized_histogram, standardized_theoretical_pdf],  # merge all y coordinates to be plotted
+        x_values=np.r_[
+            standardized_bins,
+            standardized_theoretical_x_values,
+            (data_set_value - mu) / std,
+        ],
+        y_values=np.r_[
+            standardized_histogram,
+            standardized_theoretical_pdf,
+        ],
         axes=axes
     )
 
-    test_result = distribution_pair.run_test()
     print_info([distribution_pair, test_result], axes)
 
     values_plotted_empirical = np.c_[standardized_bins[:-1], standardized_histogram]
@@ -237,9 +247,71 @@ def plot_approximation_standardized(
     return values_plotted_empirical, values_plotted_theoretical
 
 
-def plot_approximation_log(
+def plot_approximation_value_counts_log(
+    distribution_pair: DistributionApproximation,
+    data_set_value: float,
+    padding: PaddingSide,
+    axes: plt.Axes
+) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
+
+    if distribution_pair.empirical.valid:
+        value_counts = distribution_pair.empirical.calc_value_counts()
+        plot_value_counts(value_counts, axes)
+    else:
+        value_counts = np.empty((0, 2))
+        warning('Empirical distribution to be plotted is invalid.')
+
+    if distribution_pair.theoretical.valid:
+        domain_intersection = distribution_pair.theoretical.domain.intersect(distribution_pair.empirical.domain)
+
+        theoretical_x_values = _get_theoretical_x_values(domain_intersection, padding)
+        theoretical_pdf = distribution_pair.theoretical.pdf(theoretical_x_values)
+
+        theoretical_integral = \
+            distribution_pair.theoretical.cdf(np.array([domain_intersection.max_])) - \
+            distribution_pair.theoretical.cdf(np.array([domain_intersection.min_]))
+
+        empirical_integral = value_counts[
+            (value_counts[:, 0] >= domain_intersection.min_) &
+            (value_counts[:, 0] <= domain_intersection.max_)
+        ][:, 1].sum()
+
+        # correct for not identical domains: pdf-s should match in the domain intersection
+        theoretical_pdf_to_plot = theoretical_pdf * empirical_integral / theoretical_integral
+        _plot_pdf(theoretical_x_values, theoretical_pdf_to_plot, axes)
+    else:
+        theoretical_x_values, theoretical_pdf_to_plot = np.empty((0,)), np.empty((0,))
+        warning('Theoretical distribution to be plotted is invalid.')
+
+    test_result = distribution_pair.run_test(data_set_value)
+    _plot_point_value(data_set_value, axes)
+
+    # merge all values to be plotted
+    _set_logarithmic_scale_limits(
+        x_values=np.r_[
+            value_counts[:, 0],
+            theoretical_x_values,
+            data_set_value,
+        ],
+        y_values=np.r_[
+            value_counts[:, 1],
+            theoretical_pdf_to_plot,
+        ],
+        axes=axes
+    )
+
+    print_info([distribution_pair, test_result], axes)
+
+    values_plotted_empirical = value_counts
+    values_plotted_theoretical = np.c_[theoretical_x_values, theoretical_pdf_to_plot]
+
+    return values_plotted_empirical, values_plotted_theoretical
+
+
+def plot_approximation_histogram_log(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
+    data_set_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
@@ -271,13 +343,16 @@ def plot_approximation_log(
         theoretical_x_values, theoretical_pdf_to_plot = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
+    test_result = distribution_pair.run_test(data_set_value)
+    _plot_point_value(data_set_value, axes)
+
+    # merge all values to be plotted
     _set_logarithmic_scale_limits(
-        x_values=np.r_[bins, theoretical_x_values],  # merge all x_values to be plotted
-        y_values=np.r_[histogram, theoretical_pdf_to_plot],  # merge all y_values to be plotted
+        x_values=np.r_[bins, theoretical_x_values, data_set_value],
+        y_values=np.r_[histogram, theoretical_pdf_to_plot],
         axes=axes
     )
 
-    test_result = distribution_pair.run_test()
     print_info([distribution_pair, test_result], axes)
 
     values_plotted_empirical = np.c_[bins[:-1], histogram]
@@ -333,7 +408,15 @@ def _plot_histogram(
     axes.bar(centers, histogram, align='center', width=widths)
 
 
-def plot_empirical_distribution_value_counts(distribution: EmpiricalDistribution, axes: plt.Axes) -> None:
+def _plot_point_value(value: float, axes: plt.Axes) -> None:
+    """Plot a vertical line to the point value on the given axes."""
+    axes.axvline(x=value, color='green')
+
+
+def plot_empirical_distribution_value_counts(
+    distribution: EmpiricalDistribution,
+    axes: plt.Axes
+) -> None:
     """Plot the empirical density with value counts on the given axes."""
     axes.set_xlabel('value')
     axes.set_ylabel('value counts')
@@ -557,3 +640,15 @@ def _calc_linear_scale_plot_limits(values_single_axis: npt.NDArray[np.float_ | n
     assert not np.isnan(lower_limit) and not np.isnan(upper_limit)
 
     return lower_limit, upper_limit
+
+
+def plot_giant_component(network: FiniteNetwork, save_path: Path):
+    """Plot the giant component of the network."""
+    plt.rcParams["text.usetex"] = False
+
+    debug('Plotting simplicial complex started.')
+    simplicial_complex_figure, simplicial_complex_axes = plt.subplots(1, 1, figsize=(50, 50))
+    plot_finite_network(network, simplicial_complex_axes)
+    simplicial_complex_figure.savefig(save_path)
+    simplicial_complex_figure.clf()
+    debug('Plotting simplicial complex finished.')

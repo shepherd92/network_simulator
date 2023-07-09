@@ -124,7 +124,7 @@ class Distribution:
         if not self.valid:
             return np.full(test_values.shape, np.nan)
 
-        p_values = 2 * np.nanmin(np.c_[self.cdf(test_values), 1 - self.cdf(test_values)], axis=1)
+        p_values = 2. * np.nanmin(np.c_[self.cdf(test_values), 1. - self.cdf(test_values)], axis=1)
         return p_values
 
     def get_info_as_dict(self) -> dict[str, int | float]:

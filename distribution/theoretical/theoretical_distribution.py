@@ -34,11 +34,16 @@ class TheoreticalDistribution(Distribution):
     class FittingParameters:
         """Parameters of how the fitting should be done."""
 
-        fixed_parameters: TheoreticalDistribution.Parameters
-        fitting_method: TheoreticalDistribution.FittingMethod
+        @dataclass
+        class DomainCalculation:
+            """Parameters of domain calculation."""
 
-    class FittingMethod(Enum):
-        """Method used for fitting the uniform distribution."""
+        @dataclass
+        class ParameterFitting:
+            """Parameters of domain calculation."""
+
+        domain_calculation: DomainCalculation
+        parameter_fitting: ParameterFitting
 
     def __init__(self) -> None:
         """Create a default theoretical distribution."""
@@ -53,11 +58,11 @@ class TheoreticalDistribution(Distribution):
             self._valid = False  # pylint: disable=attribute-defined-outside-init
             return
 
-        self._fit_domain(empirical_distribution, fitting_parameters)
+        self._fit_domain(empirical_distribution, fitting_parameters.domain_calculation)
         if not self.domain.valid:
             return
 
-        self._fit_parameters(empirical_distribution, fitting_parameters)
+        self._fit_parameters(empirical_distribution, fitting_parameters.parameter_fitting)
         self._valid = not any(  # pylint: disable=attribute-defined-outside-init
             np.isnan(x)
             for x in astuple(self._parameters)
@@ -66,14 +71,14 @@ class TheoreticalDistribution(Distribution):
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        domain_calculation_parameters: FittingParameters.DomainCalculation,
     ) -> None:
         raise NotImplementedError
 
     def _fit_parameters(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: FittingParameters
+        parameter_fitting_parameters: FittingParameters.ParameterFitting,
     ) -> None:
         raise NotImplementedError
 
