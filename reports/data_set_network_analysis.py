@@ -149,7 +149,7 @@ def _report_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'total_degree_distribution')
-    plot_approximation_value_counts_log(approximation, PaddingSide.NONE, axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Total Degree Distribution')
 
 
@@ -168,7 +168,7 @@ def _report_in_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'in_degree_distribution')
-    plot_approximation_value_counts_log(approximation, PaddingSide.NONE, axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('In Degree Distribution')
 
 
@@ -187,7 +187,7 @@ def _report_out_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'out_degree_distribution')
-    plot_approximation_value_counts_log(approximation, PaddingSide.RIGHT, axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.RIGHT, axes)
     axes.set_title('Out Degree Distribution')
 
 
@@ -206,7 +206,7 @@ def _report_ho_1_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_1')
-    plot_approximation_value_counts_log(approximation, PaddingSide.NONE, axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Higher-Order Degree Distribution - Dimension 1')
 
 
@@ -225,7 +225,7 @@ def _report_ho_2_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_2')
-    plot_approximation_value_counts_log(approximation, PaddingSide.NONE, axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Higher-Order Degree Distribution - Dimension 2')
 
 
@@ -244,7 +244,7 @@ def _report_ho_3_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_3')
-    plot_approximation_value_counts_log(approximation, PaddingSide.NONE, axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Higher-Order Degree Distribution - Dimension 3')
 
 

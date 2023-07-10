@@ -23,7 +23,7 @@ class ModelConfig:
 
         component_index_from_largest: int = -1
         plot: bool = True
-        num_of_infinite_networks: int = 100
+        num_of_infinite_networks: int = 100000
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
             BaseNetworkProperty.Type.NUM_OF_NODES,
             BaseNetworkProperty.Type.NUM_OF_EDGES,
@@ -63,7 +63,7 @@ class ModelConfig:
 
         test_against_data_set: bool = True
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 10000
+        num_of_infinite_networks: int = 100000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX
     analysis = Analysis()
@@ -73,7 +73,7 @@ class ModelConfig:
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
     max_dimension=3,
-    num_nodes=1000,
+    num_nodes=100000,
     torus_dimension=1,
     alpha=0.5,
     beta=1.0,

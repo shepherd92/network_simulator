@@ -32,7 +32,7 @@ from reports.model_example_network_analysis import (
     analyze_model_example_finite_network,
     analyze_model_example_infinite_network_set,
 )
-from reports.model_analysis import create_model_test_report
+from reports.model_testing import create_model_test_report
 from tools.debugger import debugger_is_active
 
 
@@ -150,7 +150,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
-        model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis')
+        model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_finite')
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
         typical_finite_network = model.generate_finite_network()
@@ -160,6 +160,9 @@ def main(mode: Mode, configuration: Configuration) -> None:
             configuration.model.analysis.plot,
             model_analysis_save_dir,
         )
+
+        model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_infinite')
+        model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
         typical_infinite_network_set = model.generate_infinite_network_set(
             configuration.model.analysis.num_of_infinite_networks,
             seed=0,
