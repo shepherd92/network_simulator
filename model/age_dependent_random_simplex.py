@@ -187,6 +187,18 @@ class AgeDependentRandomSimplexModel(Model):
         """Convert a tuple to ModelParamters. Used for model optimization."""
         self.parameters = AgeDependentRandomSimplexModel.Parameters(*parameters_tuple)
 
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the model properties."""
+        return {
+            'num_of_nodes': self.parameters.num_nodes,
+            'max_dimension': self.parameters.max_dimension,
+            'torus_dimension': self.parameters.torus_dimension,
+            'torus_size': self.parameters.torus_size,
+            'parameter_alpha': self.parameters.alpha,
+            'parameter_beta': self.parameters.beta,
+            'parameter_gamma': self.parameters.gamma,
+        }
+
     def _generate_connections(
         self,
         birth_times: npt.NDArray[np.float_],

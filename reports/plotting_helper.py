@@ -434,8 +434,9 @@ def plot_value_counts(
     axes: plt.Axes
 ) -> npt.NDArray[np.float_]:
     """Plot a list of values on a given axes."""
-    markerline, _, _ = axes.stem(value_counts[:, 0], value_counts[:, 1])
-    plt.setp(markerline, markersize=5)
+    # markerline, _, _ = axes.stem(value_counts[:, 0], value_counts[:, 1])
+    # plt.setp(markerline, markersize=5)
+    axes.scatter(value_counts[:, 0], value_counts[:, 1])
     axes.set_xlabel('Index')
     axes.set_ylabel('Value')
     return value_counts

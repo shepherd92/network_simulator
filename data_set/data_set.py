@@ -6,6 +6,7 @@ from enum import Enum, auto
 from pathlib import Path
 
 from network.finite_network import FiniteNetwork
+from network.property import DerivedNetworkProperty
 
 
 class DataSet(FiniteNetwork):
@@ -39,6 +40,24 @@ class DataSet(FiniteNetwork):
         self._read_data()
         self._build_simplicial_complex()
         self.reduce_to_component(self._data_set_properties.component_index_from_largest)
+
+    def calc_scalar_property(
+        self,
+        scalar_property_params: DerivedNetworkProperty,
+    ) -> float | int:
+        """Calculate scalar network properties.
+
+        Note: the parameter of this function contains a callable calculator method.
+        This makes this function impossible to use in parallelized settings.
+        """
+        calculator = scalar_property_params.calculator_data_set \
+            if scalar_property_params.calculator_data_set is not None \
+            else scalar_property_params.calculator_default
+
+        base_network_property_type = scalar_property_params.source_base_property.property_type
+        source_base_property = self.calc_base_property(base_network_property_type)
+        scalar_property_value = calculator(source_base_property)
+        return scalar_property_value
 
     def _read_data(self) -> None:
         """Read data from the disk."""

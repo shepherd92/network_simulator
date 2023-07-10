@@ -7,11 +7,13 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from logging import info
 from multiprocessing import Pool, Value
+from pathlib import Path
 from tqdm import tqdm
 from typing import Any
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -93,6 +95,19 @@ class Model:
         """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         raise NotImplementedError
 
+    def get_info_as_dict(self) -> dict[str, int | float]:
+        """Return a dict representation based on the model properties."""
+        return {
+            'num_of_nodes': self.parameters.num_nodes,
+            'max_dimension': self.parameters.max_dimension,
+        }
+
+    def save_info(self, save_path: Path) -> None:
+        """Save the main parameters to the given file as a pandas data frame."""
+        info = self.get_info_as_dict()
+        data_frame = pd.DataFrame(info, index=[0])
+        data_frame.to_csv(save_path, index=False)
+
     def _simulate_base_properties(
         self,
         base_network_properties: list[BaseNetworkProperty],
@@ -131,7 +146,7 @@ class Model:
         scalar_property_distributions: list[EmpiricalDistribution] = []
         for index, scalar_property_params in enumerate(scalar_property_params_to_calculate):
             scalar_property_values = [
-                scalar_property_params.calculator(this_network_base_properties[index])
+                scalar_property_params.calculator_default(this_network_base_properties[index])
                 for this_network_base_properties in base_network_property_values
             ]
             empirical_distribution = EmpiricalDistribution(scalar_property_values)

@@ -148,6 +148,8 @@ def analyze_model_example_infinite_network_set(
 
     summary = network_set.calc_network_summary(calculated_properties)
     network_with_most_nodes = network_set.get_largest_network()
+    assert network_with_most_nodes is not None, \
+        'Infinite network set to be analyzed has no networks.'
     plot_giant_component(network_with_most_nodes, save_directory / 'largest_infinite_network.png')
 
     axes_grid_height = 4

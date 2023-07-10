@@ -93,7 +93,7 @@ class FiniteNetwork(Network):
         """
         base_network_property_type = scalar_property_params.source_base_property.property_type
         source_base_property = self.calc_base_property(base_network_property_type)
-        scalar_property_value = scalar_property_params.calculator(source_base_property)
+        scalar_property_value = scalar_property_params.calculator_default(source_base_property)
         return scalar_property_value
 
     def collapse(self) -> FiniteNetwork:

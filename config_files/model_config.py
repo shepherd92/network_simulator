@@ -23,7 +23,7 @@ class ModelConfig:
 
         component_index_from_largest: int = -1
         plot: bool = True
-        num_of_infinite_networks: int = 100000
+        num_of_infinite_networks: int = 0
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
             BaseNetworkProperty.Type.NUM_OF_NODES,
             BaseNetworkProperty.Type.NUM_OF_EDGES,

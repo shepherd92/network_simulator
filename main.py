@@ -116,10 +116,9 @@ def main(mode: Mode, configuration: Configuration) -> None:
             )
             distribution_pair.fit(property_params.fitting_parameters)
 
-            if configuration.model.network_testing.test_against_data_set:
-                data_set_value = data_set.calc_scalar_property(property_params)
-            else:
-                data_set_value = np.nan
+            data_set_value = data_set.calc_scalar_property(property_params) \
+                if configuration.model.network_testing.test_against_data_set \
+                else np.nan
 
             test_results = distribution_pair.run_test(data_set_value)
 
@@ -134,10 +133,12 @@ def main(mode: Mode, configuration: Configuration) -> None:
 
         model_test_save_dir = (configuration.general.output_dir / 'model_test')
         model_test_save_dir.mkdir(parents=True, exist_ok=True)
+        model.save_info(model_test_save_dir / 'model_info.csv')
 
         for scalar_network_property_report in scalar_property_reports:
             scalar_property_save_dir = model_test_save_dir / scalar_network_property_report.params.name
             scalar_network_property_report.distributions.save(scalar_property_save_dir)
+            scalar_network_property_report.test_results.save(scalar_property_save_dir)
 
         model_network_report_figure = create_model_test_report(scalar_property_reports)
         model_network_report_figure.savefig(model_test_save_dir / f'{model_type.name.lower()}_report.png')
@@ -161,17 +162,18 @@ def main(mode: Mode, configuration: Configuration) -> None:
             model_analysis_save_dir,
         )
 
-        model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_infinite')
-        model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
-        typical_infinite_network_set = model.generate_infinite_network_set(
-            configuration.model.analysis.num_of_infinite_networks,
-            seed=0,
-        )
-        analyze_model_example_infinite_network_set(
-            typical_infinite_network_set,
-            configuration.model.analysis.properties_to_calculate_infinite,
-            model_analysis_save_dir,
-        )
+        if configuration.model.analysis.num_of_infinite_networks != 0:
+            model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_infinite')
+            model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
+            typical_infinite_network_set = model.generate_infinite_network_set(
+                configuration.model.analysis.num_of_infinite_networks,
+                seed=0,
+            )
+            analyze_model_example_infinite_network_set(
+                typical_infinite_network_set,
+                configuration.model.analysis.properties_to_calculate_infinite,
+                model_analysis_save_dir,
+            )
 
         info('Model analysis finished.')
     else:

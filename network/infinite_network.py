@@ -23,8 +23,11 @@ class InfiniteNetworkSet:
         """Construct an empty network."""
         self._infinite_networks = infinite_networks
 
-    def get_largest_network(self) -> InfiniteNetwork:
+    def get_largest_network(self) -> InfiniteNetwork | None:
         """Return the largest infinite network."""
+        if len(self._infinite_networks) == 0:
+            return None
+
         largest_network = max(
             self._infinite_networks,
             key=lambda network: network.num_vertices

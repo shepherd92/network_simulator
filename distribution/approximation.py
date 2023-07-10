@@ -25,15 +25,33 @@ class DistributionApproximation:
         point_p_value: float = np.nan
         kolmogorov_smirnov: float = np.nan
 
+        def save(self, save_dir: Path) -> None:
+            """Save the main parameters to the given file as a pandas data frame."""
+            info = self.get_info_as_dict()
+            data_frame = pd.DataFrame(info, index=[0])
+            data_frame.to_csv(save_dir / 'test_results.csv', index=False)
+
+        def get_info_as_dict(self) -> dict[str, int | float]:
+            """Return a dict representation based on the distribution properties."""
+            info_dict: dict[str, int | float] = {
+                'probability_plot_r_value': self.probability_plot_r_value,
+                'qq_plot_r_value': self.qq_plot_r_value,
+                'kolmogorov_smirnov_statistic': self.kolmogorov_smirnov,
+                'point_value': self.point_value,
+                'point_p_value': self.point_p_value,
+            }
+
+            return info_dict
+
         def __str__(self) -> str:
             """Return string representation for reporting."""
-            result = \
-                f'probability_plot_r_value: {self.probability_plot_r_value:.4f}\n' + \
-                f'qq_plot_r_value: {self.qq_plot_r_value:.4f}\n' + \
-                f'Kolmogorov-Smirnov statistic: {self.kolmogorov_smirnov:.4f}'
-
-            if not np.isnan(self.point_p_value):
-                result += f'\npoint p-value: {self.point_p_value:.4f}'
+            result = '\n'.join([
+                f'probability_plot_r_value: {self.probability_plot_r_value:.4f}',
+                f'qq_plot_r_value: {self.qq_plot_r_value:.4f}',
+                f'Kolmogorov-Smirnov statistic: {self.kolmogorov_smirnov:.4f}',
+                f'point value: {self.point_value:.4f}',
+                f'point p-value: {self.point_p_value:.4f}',
+            ])
             return result
 
     def __init__(self, empirical: EmpiricalDistribution, theoretical_type: TheoreticalDistribution.Type) -> None:
@@ -135,7 +153,7 @@ class DistributionApproximation:
             save_directory / 'histogram_logarithmic.csv'
         )
 
-        confidence_levels = [0.9, 0.95, 0.99]
+        confidence_levels = [0.90, 0.95, 0.99]
         confidence_intervals = self.get_confidence_intervals(confidence_levels)
         confidence_intervals.to_csv(save_directory / 'confidence_intervals.csv', float_format='%.4f')
 
@@ -216,13 +234,6 @@ class DistributionApproximation:
             joint_info[f'empirical_{key}'] = value
         for key, value in theoretical_info.items():
             joint_info[f'theoretical_{key}'] = value
-
-        test_result = self.run_test()
-        joint_info['kolmogorov_smirnov'] = test_result.kolmogorov_smirnov
-        joint_info['probability_plot_r_value'] = test_result.probability_plot_r_value
-        joint_info['qq_plot_r_value'] = test_result.qq_plot_r_value
-        joint_info['point_value'] = test_result.point_value
-        joint_info['point_p_value'] = test_result.point_p_value
 
         return joint_info
 
