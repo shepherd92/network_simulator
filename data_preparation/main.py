@@ -6,66 +6,67 @@ from shutil import copyfile
 
 import pandas as pd
 
+input_base_path = Path('../output')
+output_path = Path('../output/_prepared_data')
+
+data_analysis_directories = {
+    'computer_science': input_base_path / '20230706_101735',
+    'biology':          input_base_path / '20230706_101448',
+    'economics':        input_base_path / '20230706_101527',
+    'engineering':      input_base_path / '20230706_101729',
+    'finance':          input_base_path / '20230706_101351',
+    'mathematics':      input_base_path / '20230706_101507',
+    'statistics':       input_base_path / '20230706_101457',
+}
+
+degree_distribution_directories = {
+    '10':       input_base_path / '20230614_165042',
+    '100':      input_base_path / '20230614_165118',
+    '1000':     input_base_path / '20230614_165434',
+    '10000':    input_base_path / '20230614_170118',
+    '100000':   input_base_path / '20230614_185624',
+    'infinite': input_base_path / '20230615_074249',
+}
+
+simplex_count_directories = {
+    # the key is the value of gamma * 100
+    '25': input_base_path / '20230615_103808',
+    '40': input_base_path / '20230703_101414',
+    '45': input_base_path / '20230703_130440',
+    '50': input_base_path / '20230616_061230',
+    '60': input_base_path / '20230616_193506',
+    '75': input_base_path / '20230615_204859',
+}
+
+betti_number_directories = {
+    # the key is the value of gamma * 100
+    # '10': input_base_path / '20230608_191114',
+    # '20': input_base_path / '20230608_191120',
+    '25': input_base_path / '20230609_212258',
+    # '30': input_base_path / '20230608_191124',
+    # '40': input_base_path / '20230608_191128',
+    '50': input_base_path / '20230609_212245',
+    # '60': input_base_path / '20230608_205831',
+    # '70': input_base_path / '20230608_205839',
+    '75': input_base_path / '20230609_142002',
+    # '80': input_base_path / '20230608_205845',
+    # '90': input_base_path / '20230608_205850',
+}
+
+hypothesis_testing_directories = {
+    'computer_science': input_base_path / '20230712_075521',
+    'biology':          input_base_path / '20230710_164059',
+    'economics':        input_base_path / '20230710_162805',
+    'engineering':      input_base_path / '20230711_110334',
+    'finance':          input_base_path / '20230710_162239',
+    'mathematics':      input_base_path / '20230710_200618',
+    'statistics':       input_base_path / '20230710_143554',
+}
+
 
 def main() -> None:
     """Prepare all data for publication."""
-    input_base_path = Path('../output')
-    output_path = Path('../output/_prepared_data')
     output_path.mkdir(parents=True, exist_ok=True)
-
-    data_analysis_directories = {
-        'finance':          input_base_path / '20230706_101351',
-        'biology':          input_base_path / '20230706_101448',
-        'statistics':       input_base_path / '20230706_101457',
-        'mathematics':      input_base_path / '20230706_101507',
-        'economics':        input_base_path / '20230706_101527',
-        'engineering':      input_base_path / '20230706_101729',
-        'computer_science': input_base_path / '20230706_101735',
-    }
-
-    degree_distribution_directories = {
-        '10':       input_base_path / '20230614_165042',
-        '100':      input_base_path / '20230614_165118',
-        '1000':     input_base_path / '20230614_165434',
-        '10000':    input_base_path / '20230614_170118',
-        '100000':   input_base_path / '20230614_185624',
-        'infinite': input_base_path / '20230615_074249',
-    }
-
-    simplex_count_directories = {
-        # the key is the value of gamma * 100
-        '25': input_base_path / '20230615_103808',
-        '40': input_base_path / '20230703_101414',
-        '45': input_base_path / '20230703_130440',
-        '50': input_base_path / '20230616_061230',
-        '60': input_base_path / '20230616_193506',
-        '75': input_base_path / '20230615_204859',
-    }
-
-    betti_number_directories = {
-        # the key is the value of gamma * 100
-        # '10': input_base_path / '20230608_191114',
-        # '20': input_base_path / '20230608_191120',
-        '25': input_base_path / '20230609_212258',
-        # '30': input_base_path / '20230608_191124',
-        # '40': input_base_path / '20230608_191128',
-        '50': input_base_path / '20230609_212245',
-        # '60': input_base_path / '20230608_205831',
-        # '70': input_base_path / '20230608_205839',
-        '75': input_base_path / '20230609_142002',
-        # '80': input_base_path / '20230608_205845',
-        # '90': input_base_path / '20230608_205850',
-    }
-
-    hypothesis_testing_directories = {
-        'finance':          input_base_path / '20230710_162239',
-        'biology':          input_base_path / '20230710_164059',
-        'statistics':       input_base_path / '20230710_143554',
-        'mathematics':      input_base_path / '20230710_200618',
-        'economics':        input_base_path / '20230710_162805',
-        'engineering':      input_base_path / '',
-        'computer_science': input_base_path / '',
-    }
 
     prepare_data_analysis_data(data_analysis_directories, output_path)
     prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
@@ -114,6 +115,8 @@ def prepare_simulation_betti_number_data(directories: dict[str, Path], output_di
 
 def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare hypothesis testing data."""
+    _merge_model_info(directories, 'model_test', output_dir / 'hypothesis_test')
+
     for property_name in [
         'vertex_degree_exponent',
         'edge_degree_exponent',
@@ -234,13 +237,36 @@ def _merge_property_tables(
     _merge_test_results(directories, input_subdir, property_name, output_dir)
 
 
+def _merge_model_info(
+    directories: dict[str, Path],
+    input_subdir: str,
+    output_path: Path,
+) -> None:
+    """Create and merge model info."""
+    data_frames: list[pd.DataFrame] = []
+
+    for dataset_name, directory in directories.items():
+        in_file_name = directory / input_subdir / 'model_info.csv'
+        if not in_file_name.is_file():
+            continue
+
+        current_info = pd.read_csv(in_file_name)
+        current_info.index = [dataset_name]
+        data_frames.append(current_info)
+
+    if data_frames:
+        out_file_name = output_path / 'model_info.csv'
+        merged_data_frame = pd.concat(data_frames, axis=0)
+        merged_data_frame.to_csv(out_file_name)
+
+
 def _merge_distribution_info(
     directories: dict[str, Path],
     input_subdir: str,
     property_name: str,
     output_path: Path,
 ) -> None:
-    """Create and merge info."""
+    """Create and merge network info."""
     data_frames: list[pd.DataFrame] = []
 
     for dataset_name, directory in directories.items():

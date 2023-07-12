@@ -177,8 +177,8 @@ class DistributionApproximation:
         """Get the pdfs of the two distributions."""
         num_of_points = 1000
         x_values = np.linspace(
-            self.empirical.domain.min_ - 0.2 * self.empirical.domain.length,
-            self.empirical.domain.max_ + 0.2 * self.empirical.domain.length,
+            self.empirical.domain.min_ - 1.0 * self.empirical.domain.length,
+            self.empirical.domain.max_ + 1.0 * self.empirical.domain.length,
             num_of_points,
             endpoint=True
         )

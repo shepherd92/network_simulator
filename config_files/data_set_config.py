@@ -43,11 +43,11 @@ class DataSetConfig(NamedTuple):
 
 ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     location=Path('../../data/arxiv'),
-    max_dimension=3,
+    max_dimension=2,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2023-12-31')),
-    fields=[ArxivField.engineering],
+    fields=[ArxivField.finance],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

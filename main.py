@@ -22,9 +22,10 @@ from config_files.model_fitting import SCALAR_PROPERTY_PARAMS_TO_FIT
 from config_files.properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
 from data_set.factory import load_data
 from distribution.approximation import DistributionApproximation
+from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from model.model import Model
 from model.factory import create_model, load_default_parameters
-from network.property import ScalarNetworkPropertyReport
+from network.property import DerivedNetworkProperty, ScalarNetworkPropertyReport
 from optimizer.model_optimizer import ModelOptimizer
 from optimizer.factory import create_parameter_options
 from reports.data_set_network_analysis import analyze_data_set_network
@@ -110,10 +111,18 @@ def main(mode: Mode, configuration: Configuration) -> None:
             zip(SCALAR_PROPERTY_PARAMS_TO_TEST, scalar_property_distributions),
             total=len(SCALAR_PROPERTY_PARAMS_TO_TEST),
         ):
+            assert isinstance(property_params, DerivedNetworkProperty)
             distribution_pair = DistributionApproximation(
                 distribution,
                 property_params.theoretical_approximation_type
             )
+
+            # fix the alpha parameter of the stable distributions if the model is the ADRCM
+            if property_params.theoretical_approximation_type == TheoreticalDistribution.Type.STABLE \
+                    and model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
+                property_params.fitting_parameters.parameter_fitting.fixed_parameters.alpha = \
+                    min(1 / model.parameters.gamma, 2.)
+
             distribution_pair.fit(property_params.fitting_parameters)
 
             data_set_value = data_set.calc_scalar_property(property_params) \
