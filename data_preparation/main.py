@@ -11,12 +11,12 @@ output_path = Path('../output/_prepared_data')
 
 data_analysis_directories = {
     'computer_science': input_base_path / '20230706_101735',
-    'biology':          input_base_path / '20230706_101448',
-    'economics':        input_base_path / '20230706_101527',
-    'engineering':      input_base_path / '20230706_101729',
-    'finance':          input_base_path / '20230706_101351',
-    'mathematics':      input_base_path / '20230706_101507',
-    'statistics':       input_base_path / '20230706_101457',
+    'biology':          input_base_path / '20230713_183638',
+    'economics':        input_base_path / '20230713_183827',
+    'engineering':      input_base_path / '20230713_184010',
+    'finance':          input_base_path / '20230713_183856',
+    'mathematics':      input_base_path / '20230713_181538',
+    'statistics':       input_base_path / '20230713_184032',
 }
 
 degree_distribution_directories = {
@@ -115,6 +115,7 @@ def prepare_simulation_betti_number_data(directories: dict[str, Path], output_di
 
 def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare hypothesis testing data."""
+    (output_dir / 'hypothesis_test').mkdir(parents=True, exist_ok=True)
     _merge_model_info(directories, 'model_test', output_dir / 'hypothesis_test')
 
     for property_name in [
@@ -228,7 +229,7 @@ def _merge_property_tables(
 
     _merge_distribution_info(directories, input_subdir, property_name, output_dir)
     _merge_histograms(directories, input_subdir, property_name, output_dir)
-    _merge_value_sequences(directories, input_subdir, property_name, output_dir)
+    # _merge_value_sequences(directories, input_subdir, property_name, output_dir)
     _merge_value_counts(directories, input_subdir, property_name, output_dir)
     _merge_qq_plots(directories, input_subdir, property_name, output_dir)
     _merge_confidence_intervals(directories, input_subdir, property_name, output_dir)
@@ -257,6 +258,7 @@ def _merge_model_info(
     if data_frames:
         out_file_name = output_path / 'model_info.csv'
         merged_data_frame = pd.concat(data_frames, axis=0)
+        merged_data_frame.index.name = 'name'
         merged_data_frame.to_csv(out_file_name)
 
 
@@ -281,6 +283,7 @@ def _merge_distribution_info(
     if data_frames:
         out_file_name = output_path / property_name / 'distribution_info.csv'
         merged_data_frame = pd.concat(data_frames, axis=0)
+        merged_data_frame.index.name = 'name'
         merged_data_frame.to_csv(out_file_name)
 
 
@@ -308,7 +311,7 @@ def _merge_histograms(
     if data_frames:
         out_file_name = output_path / property_name / 'linear_histograms.csv'
         merged_data_frame = pd.concat(data_frames, axis=1)
-        merged_data_frame.to_csv(out_file_name)
+        merged_data_frame.to_csv(out_file_name, index=False)
 
 
 def _merge_value_sequences(
@@ -424,6 +427,7 @@ def _merge_confidence_intervals(
     if data_frames:
         out_file_name = output_path / property_name / 'confidence_intervals.csv'
         merged_data_frame = pd.concat(data_frames, axis=1)
+        merged_data_frame.index.name = 'name'
         merged_data_frame.to_csv(out_file_name)
 
 
@@ -451,6 +455,7 @@ def _merge_quantiles(
     if data_frames:
         out_file_name = output_path / property_name / 'quantiles.csv'
         merged_data_frame = pd.concat(data_frames, axis=1)
+        merged_data_frame.index.name = 'name'
         merged_data_frame.to_csv(out_file_name)
 
 
@@ -502,6 +507,7 @@ def _merge_test_results(
     if data_frames:
         out_file_name = output_path / property_name / 'test_results.csv'
         merged_data_frame = pd.concat(data_frames, axis=0)
+        merged_data_frame.index.name = 'name'
         merged_data_frame.to_csv(out_file_name)
 
 

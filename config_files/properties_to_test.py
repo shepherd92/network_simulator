@@ -161,56 +161,56 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
             ),
         ),
     ),
-    DerivedNetworkProperty(
-        name='betti_number_0_normal',
-        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
-        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=lambda betti_numbers: betti_numbers[0, 1],
-    ),
-    DerivedNetworkProperty(
-        name='betti_number_0_stable',
-        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
-        theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-        fitting_parameters=StableDistribution.FittingParameters(
-            StableDistribution.DomainCalculation(),
-            StableDistribution.ParameterFitting(
-                StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
-                    alpha=min(1 / GAMMA, 2.),
-                    beta=-1.,
-                    location=np.nan,
-                    scale=np.nan
-                ),
-            ),
-        ),
-        calculator_default=lambda betti_numbers: betti_numbers[0, 1],
-    ),
-    DerivedNetworkProperty(
-        name='betti_number_1_normal',
-        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
-        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=lambda betti_numbers: betti_numbers[1, 1],
-    ),
-    DerivedNetworkProperty(
-        name='betti_number_1_stable',
-        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
-        theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-        fitting_parameters=StableDistribution.FittingParameters(
-            StableDistribution.DomainCalculation(),
-            StableDistribution.ParameterFitting(
-                StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
-                    alpha=min(1 / GAMMA, 2.),
-                    beta=-1.,
-                    location=np.nan,
-                    scale=np.nan
-                ),
-            ),
-        ),
-        calculator_default=lambda betti_numbers: betti_numbers[1, 1],
-    ),
+    # DerivedNetworkProperty(
+    #     name='betti_number_0_normal',
+    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+    #     fitting_parameters=create_fitting_parameters_normal(),
+    #     calculator_default=lambda betti_numbers: betti_numbers[0, 1],
+    # ),
+    # DerivedNetworkProperty(
+    #     name='betti_number_0_stable',
+    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+    #     fitting_parameters=StableDistribution.FittingParameters(
+    #         StableDistribution.DomainCalculation(),
+    #         StableDistribution.ParameterFitting(
+    #             StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+    #             StableDistribution.Parameters(
+    #                 alpha=min(1 / GAMMA, 2.),
+    #                 beta=-1.,
+    #                 location=np.nan,
+    #                 scale=np.nan
+    #             ),
+    #         ),
+    #     ),
+    #     calculator_default=lambda betti_numbers: betti_numbers[0, 1],
+    # ),
+    # DerivedNetworkProperty(
+    #     name='betti_number_1_normal',
+    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+    #     fitting_parameters=create_fitting_parameters_normal(),
+    #     calculator_default=lambda betti_numbers: betti_numbers[1, 1],
+    # ),
+    # DerivedNetworkProperty(
+    #     name='betti_number_1_stable',
+    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+    #     fitting_parameters=StableDistribution.FittingParameters(
+    #         StableDistribution.DomainCalculation(),
+    #         StableDistribution.ParameterFitting(
+    #             StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+    #             StableDistribution.Parameters(
+    #                 alpha=min(1 / GAMMA, 2.),
+    #                 beta=-1.,
+    #                 location=np.nan,
+    #                 scale=np.nan
+    #             ),
+    #         ),
+    #     ),
+    #     calculator_default=lambda betti_numbers: betti_numbers[1, 1],
+    # ),
     # DerivedNetworkProperty(
     #     name='betti_number_2_normal',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),

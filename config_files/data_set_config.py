@@ -38,16 +38,19 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
         BaseNetworkProperty.Type.BETTI_NUMBERS,
+        BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
+        BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
+        # BaseNetworkProperty.Type.PERSISTENCE,
     ]
 
 
 ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     location=Path('../../data/arxiv'),
-    max_dimension=2,
-    max_simplex_dimension=20,
+    max_dimension=3,
+    max_simplex_dimension=100000,
     component_index_from_largest=-1,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2023-12-31')),
-    fields=[ArxivField.finance],
+    fields=[ArxivField.engineering],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

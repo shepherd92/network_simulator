@@ -35,6 +35,8 @@ class BaseNetworkProperty:
         HIGHER_ORDER_DEGREE_DISTRIBUTION_2: int = auto()
         HIGHER_ORDER_DEGREE_DISTRIBUTION_3: int = auto()
         BETTI_NUMBERS: int = auto()
+        BETTI_NUMBERS_BY_COMPONENT: int = auto()
+        VERTICES_BY_COMPONENT: int = auto()
         PERSISTENCE: int = auto()
 
     class CalculationMethod(Enum):

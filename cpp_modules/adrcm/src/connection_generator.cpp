@@ -53,6 +53,13 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_default_inte
 
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
     {
+        if ((network_index + 1U) % 10000 == 0)
+        {
+            std::cout << "\rC++: Generating infinite network connections ... "
+                      << network_index + 1U
+                      << " / "
+                      << num_of_infinite_networks;
+        }
         const auto u{uniform_distribution_u(random_number_generator)}; // birth time of the typical node
 
         // generate nodes
@@ -97,6 +104,10 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_default_inte
         const auto connections{generate_network_connections_default(nodes, false, model_parameters)};
         result.push_back(vector_of_pairs_to_numpy<int>(connections));
     }
+    if ((num_of_infinite_networks + 1U) >= 10000)
+    {
+        std::cout << "\n";
+    }
 
     return result;
 }
@@ -128,6 +139,13 @@ std::vector<std::pair<int, int>> generate_network_connections_default(
     std::vector<std::pair<int, int>> connections{};
     for (auto target_node_id{0U}; target_node_id < num_of_nodes; ++target_node_id)
     {
+        if ((target_node_id + 1U) % 10000 == 0)
+        {
+            std::cout << "\rC++: Generating finite network connections ... "
+                      << target_node_id + 1
+                      << " / "
+                      << num_of_nodes;
+        }
         const auto &target_node{nodes[target_node_id]};
         const auto max_distance_at_which_source_nodes_can_connect{
             model_parameters.beta / (2. * target_node.birth_time())};
@@ -152,6 +170,10 @@ std::vector<std::pair<int, int>> generate_network_connections_default(
                 connections.push_back(std::pair(source_node_id, target_node_id));
             }
         }
+    }
+    if ((num_of_nodes + 1U) >= 10000)
+    {
+        std::cout << "\n";
     }
     return connections;
 }

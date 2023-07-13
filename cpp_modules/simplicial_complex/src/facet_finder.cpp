@@ -53,21 +53,16 @@ std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<i
 {
   auto sorted_simplices{sort_simplices(simplices)};
   std::vector<std::vector<int32_t>> facets;
-#ifdef LOGGING
   auto counter{0U};
-#endif
-
   for (auto first = sorted_simplices.begin(); first != sorted_simplices.end(); ++first)
   {
-#ifdef LOGGING
-    if (++counter % 1000 == 0)
+    if (++counter % 10000 == 0)
     {
-      std::cout << "\rC++: extracting facets..."
-                << std::setprecision(3)
-                << static_cast<float>(counter) / static_cast<float>(sorted_simplices.size()) * 100
-                << "%    ";
+      std::cout << "\rC++: Extracting facets ... "
+                << counter
+                << " / "
+                << sorted_simplices.size();
     }
-#endif
 
     auto first_is_subset{false};
     for (auto second{next(first)}; second != sorted_simplices.end(); ++second)
@@ -83,6 +78,10 @@ std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<i
     {
       facets.push_back(*first);
     }
+  }
+  if (counter >= 10000)
+  {
+    std::cout << '\n';
   }
 
   return facets;
@@ -123,8 +122,19 @@ std::vector<int32_t> calc_degree_sequence(
 
   std::vector<int32_t> degree_sequence;
 
+  auto counter{0U};
   for (const auto &simplex : selected_simplices)
   {
+    if (++counter % 10000 == 0)
+    {
+      std::cout << "\rC++: Calculating degree sequence "
+                << "(simplex dimension: "
+                << simplex_dimension
+                << ") neighbor dimension: "
+                << neighbor_dimension
+                << ") ... "
+                << counter << " / " << selected_simplices.size();
+    }
     // Container of vertices with which the simplex forms a simplex of neighbor dimension
     std::set<std::vector<int32_t>> combinations_of_remaining_vertices;
 
@@ -152,6 +162,10 @@ std::vector<int32_t> calc_degree_sequence(
       }
     }
     degree_sequence.push_back(combinations_of_remaining_vertices.size());
+  }
+  if (counter >= 10000)
+  {
+    std::cout << '\n';
   }
 
   return degree_sequence;

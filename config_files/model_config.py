@@ -25,34 +25,36 @@ class ModelConfig:
         plot: bool = True
         num_of_infinite_networks: int = 0
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
-            BaseNetworkProperty.Type.NUM_OF_NODES,
-            BaseNetworkProperty.Type.NUM_OF_EDGES,
-            BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
-            BaseNetworkProperty.Type.AVERAGE_DEGREE,
-            BaseNetworkProperty.Type.MAX_DEGREE,
-            BaseNetworkProperty.Type.AVG_CLUSTERING,
-            BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
-            BaseNetworkProperty.Type.DIMENSION,
-            BaseNetworkProperty.Type.NUM_OF_SIMPLICES,
-            BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
-            BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
-            BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
-            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
-            BaseNetworkProperty.Type.BETTI_NUMBERS,
-            BaseNetworkProperty.Type.PERSISTENCE,
+            # BaseNetworkProperty.Type.NUM_OF_NODES,
+            # BaseNetworkProperty.Type.NUM_OF_EDGES,
+            # BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
+            # BaseNetworkProperty.Type.AVERAGE_DEGREE,
+            # BaseNetworkProperty.Type.MAX_DEGREE,
+            # BaseNetworkProperty.Type.AVG_CLUSTERING,
+            # BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
+            # BaseNetworkProperty.Type.DIMENSION,
+            # BaseNetworkProperty.Type.NUM_OF_SIMPLICES,
+            # BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
+            # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
+            # BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
+            # BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
+            # BaseNetworkProperty.Type.BETTI_NUMBERS,
+            # BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
+            # BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
+            # BaseNetworkProperty.Type.PERSISTENCE,
         ]
         properties_to_calculate_infinite: list[BaseNetworkProperty.Type] = [
-            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
+            # BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
         ]
 
     class Fitting(NamedTuple):
@@ -61,8 +63,8 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        test_against_data_set: bool = True
-        num_of_simulations: int = 100
+        test_against_data_set: bool = False
+        num_of_simulations: int = 1000
         num_of_infinite_networks: int = 100000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX
@@ -72,8 +74,8 @@ class ModelConfig:
 
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
-    max_dimension=2,
-    num_nodes=10000,
+    max_dimension=1,
+    num_nodes=1000000,
     torus_dimension=1,
     alpha=0.5,
     beta=1.0,

@@ -27,6 +27,7 @@ class FiniteNetwork(Network):
         super().__init__(max_dimension)
         self._is_persistence_computed: bool = False
         self._betti_numbers: npt.NDArray[np.int_] | None = None
+        self._components: list[FiniteNetwork] | None = None
 
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
@@ -52,7 +53,7 @@ class FiniteNetwork(Network):
         self.add_simplices_batch(skeleton)
 
     def get_component(self, component_index: int) -> FiniteNetwork:
-        """Reduce the network to the specified component only."""
+        """Return the network of the specified component."""
         reduced_network = FiniteNetwork(self.max_dimension)
 
         if component_index != -1:
@@ -156,6 +157,10 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:
             # property_value = self._calculate_betti_numbers_with_collapse(max_num_of_vertices=1000)
             property_value = self.betti_numbers
+        elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT:
+            property_value = self._calculate_betti_numbers_in_components()
+        elif property_type == BaseNetworkProperty.Type.VERTICES_BY_COMPONENT:
+            property_value = self._calculate_vertices_in_components()
         elif property_type == BaseNetworkProperty.Type.PERSISTENCE:
             property_value = tuple(self.simplicial_complex.persistence())
         else:
@@ -231,6 +236,34 @@ class FiniteNetwork(Network):
 
         return EmpiricalDistribution(degree_sequence)
 
+    def _calculate_betti_numbers_in_components(self) -> npt.NDArray[np.int_]:
+
+        betti_numbers_list: list[npt.NDArray[np.int_]] = [
+            component.calc_base_property(BaseNetworkProperty.Type.BETTI_NUMBERS)[:, 1]
+            for component in tqdm(
+                self.components,
+                desc='Calculating Betti numbers in components',
+                delay=10,
+            )
+        ]
+
+        betti_numbers_by_component = np.vstack(betti_numbers_list)
+        return betti_numbers_by_component
+
+    def _calculate_vertices_in_components(self) -> npt.NDArray[np.int_]:
+
+        vertices_in_components_list: list[int] = [
+            component.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+            for component in tqdm(
+                self.components,
+                desc='Calculating vertices in components',
+                delay=10,
+            )
+        ]
+
+        betti_numbers_by_component = np.array(vertices_in_components_list)
+        return betti_numbers_by_component
+
     def _calculate_betti_numbers_with_collapse(self, max_num_of_vertices: int) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
         if self._betti_numbers:
@@ -270,6 +303,19 @@ class FiniteNetwork(Network):
         degree_sequence = calc_degree_sequence(self.simplices, self.facets, simplex_dimension, neighbor_dimension)
         return degree_sequence
 
+    def _get_all_components(self) -> list[FiniteNetwork]:
+        """Reduce the network to the specified component only."""
+        graph_components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
+
+        components: list[FiniteNetwork] = []
+        for graph_component in graph_components:
+            component = FiniteNetwork(self.max_dimension)
+            component.graph = self._graph.subgraph(graph_component)
+            component.generate_clique_complex_from_graph()
+            components.append(component)
+
+        return components
+
     @ property
     def simplices(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
@@ -284,10 +330,17 @@ class FiniteNetwork(Network):
 
     @property
     def betti_numbers(self) -> npt.NDArray[np.int_]:
-        """Getter of simplicial complex."""
+        """Getter of Betti numbers."""
         if self._betti_numbers is None:
             self._betti_numbers = self._calculate_betti_numbers()
         return self._betti_numbers
+
+    @property
+    def components(self) -> list[FiniteNetwork]:
+        """Getter of Betti numbers."""
+        if self._components is None:
+            self._components = self._get_all_components()
+        return self._components
 
     @simplicial_complex.setter
     def simplicial_complex(self, value: SimplexTree) -> None:

@@ -71,16 +71,17 @@ def plot_finite_network(network: FiniteNetwork, axes: plt.Axes) -> None:
     #     dump(interactions_to_plot, fp)
     # np.save('polygon_coordinates.npy', np.array(polygon_coordinates, dtype=object), allow_pickle=True)
 
-    face_colors = _get_simplex_colors(interactions_to_plot, color_map_name)
+    if len(interactions_to_plot) > 0:
+        face_colors = _get_simplex_colors(interactions_to_plot, color_map_name)
 
-    polygon_collection = PolyCollection(
-        polygon_coordinates,
-        facecolors=face_colors,
-        edgecolors=('black',),
-        linewidths=(0.01,)
-    )
+        polygon_collection = PolyCollection(
+            polygon_coordinates,
+            facecolors=face_colors,
+            edgecolors=('black',),
+            linewidths=(0.01,)
+        )
 
-    axes.add_collection(polygon_collection)
+        axes.add_collection(polygon_collection)
 
     nx.draw_networkx_edges(network.graph, all_node_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.01)
     nx.draw_networkx_nodes(network.graph, all_node_positions, ax=axes, node_color='black', node_size=0.001)
@@ -245,6 +246,22 @@ def plot_approximation_histogram_standardized(
     values_plotted_theoretical = np.c_[standardized_theoretical_x_values, standardized_theoretical_pdf]
 
     return values_plotted_empirical, values_plotted_theoretical
+
+
+def plot_value_counts_log(
+    value_counts: npt.NDArray[np.int_],
+    axes: plt.Axes
+) -> npt.NDArray[np.int_]:
+
+    plot_value_counts(value_counts, axes)
+
+    _set_logarithmic_scale_limits(
+        x_values=value_counts[:, 0],
+        y_values=value_counts[:, 1],
+        axes=axes,
+    )
+
+    return value_counts
 
 
 def plot_approximation_value_counts_log(
@@ -482,13 +499,13 @@ def plot_qq_plot(distribution_pair: DistributionApproximation, axes: plt.Axes) -
 
 def plot_persistence_diagram_(persistence, axes: plt.Axes):
     """Plot the persistence diagram and return the plotted values."""
-    plot_persistence_diagram(persistence)
+    plot_persistence_diagram(persistence, axes=axes)
     return persistence
 
 
 def plot_persistence_barcode_(persistence, axes: plt.Axes):
     """Plot the persistence barcode and return the plotted values."""
-    plot_persistence_barcode(persistence)
+    plot_persistence_barcode(persistence, axes=axes)
     return persistence
 
 

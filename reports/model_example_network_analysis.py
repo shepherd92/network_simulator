@@ -28,6 +28,7 @@ from reports.plotting_helper import (
     plot_persistence_barcode_,
     plot_persistence_diagram_,
     plot_value_counts,
+    plot_value_counts_log,
     print_not_calculated,
 )
 
@@ -75,18 +76,18 @@ def analyze_model_example_finite_network(
 
     subfigure_row_index += 1
 
+    _report_vertices_by_component(
+        summary.get(BaseNetworkProperty.Type.VERTICES_BY_COMPONENT),
+        figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        save_directory
+    )
     _report_ho_1_degree_distribution(
         summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1),
-        figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
     _report_ho_2_degree_distribution(
         summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2),
-        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
-        save_directory
-    )
-    _report_ho_3_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory
     )
@@ -121,8 +122,8 @@ def analyze_model_example_finite_network(
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
-    _report_persistence_barcode(
-        summary.get(BaseNetworkProperty.Type.PERSISTENCE),
+    _report_betti_number_1_by_component(
+        summary.get(BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory
     )
@@ -388,6 +389,51 @@ def _report_betti_numbers(
         columns=['dimension', 'betti_number'],
         dtype=np.int32,
     ).to_csv(save_directory / 'betti_numbers.csv', index=False)
+
+
+@check_calculated
+def _report_betti_number_1_by_component(
+    betti_numbers_by_component: npt.NDArray[np.int_],
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Betti Number 1 by Component')
+    if betti_numbers_by_component.shape[1] < 2:
+        print_not_calculated(axes)
+        return
+
+    values_to_plot = np.c_[
+        np.arange(betti_numbers_by_component.shape[0]),
+        betti_numbers_by_component[:, 1],
+    ]
+    plot_value_counts_log(values_to_plot, axes)
+    data_frame = pd.DataFrame(
+        betti_numbers_by_component,
+        columns=list(range(betti_numbers_by_component.shape[1])),
+        dtype=np.int32,
+    )
+    data_frame.index.name = 'component_index'
+    data_frame.to_csv(save_directory / 'betti_numbers_by_component.csv')
+
+
+@check_calculated
+def _report_vertices_by_component(
+    vertices_by_component: npt.NDArray[np.int_],
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+    axes.set_title('Vertices by Component')
+
+    values_to_plot = np.c_[
+        np.arange(len(vertices_by_component)),
+        vertices_by_component,
+    ]
+    plot_value_counts_log(values_to_plot, axes)
+    pd.DataFrame(
+        values_to_plot,
+        columns=['component_index', 'num_of_vertices'],
+        dtype=np.int32,
+    ).to_csv(save_directory / 'vertices_by_component.csv', index=False)
 
 
 @check_calculated
