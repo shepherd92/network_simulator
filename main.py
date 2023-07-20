@@ -9,6 +9,7 @@ import logging
 from logging import basicConfig, info
 from pathlib import Path
 from pstats import Stats, SortKey
+import random
 from shutil import copytree, ignore_patterns
 from subprocess import Popen, PIPE, call, check_output
 from trace import Trace
@@ -160,10 +161,15 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
+        if configuration.model.analysis.set_params_from_data_set:
+            data_set = load_data(data_set_type)
+            model.set_relevant_parameters_from_data_set(data_set)
+
         model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_finite')
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
-        typical_finite_network = model.generate_finite_network()
+        seed = 0 if debugger_is_active() else random.randint(0, 2**31 - 1)
+        typical_finite_network = model.generate_finite_network(seed)
         analyze_model_example_finite_network(
             typical_finite_network,
             configuration.model.analysis.properties_to_calculate_finite,

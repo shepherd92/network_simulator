@@ -123,6 +123,8 @@ class FiniteNetwork(Network):
                 property_value = 0
             else:
                 property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2][0, 1]
+        elif property_type == BaseNetworkProperty.Type.EDGES:
+            property_value = np.array(self.graph.edges, dtype=int)
         elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
             property_value = self._calculate_average_degree()
         elif property_type == BaseNetworkProperty.Type.MAX_DEGREE:
@@ -163,6 +165,8 @@ class FiniteNetwork(Network):
             property_value = self._calculate_vertices_in_components()
         elif property_type == BaseNetworkProperty.Type.PERSISTENCE:
             property_value = tuple(self.simplicial_complex.persistence())
+        elif property_type == BaseNetworkProperty.Type.PERSISTENCE_PAIRS:
+            property_value = self._calc_persistence_pairs()
         else:
             raise NotImplementedError(
                 f'Requested property type {property_type} is not available.'
@@ -294,6 +298,12 @@ class FiniteNetwork(Network):
             betti_number_array[dimension, 1] = betti_number
 
         return betti_number_array
+
+    def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:
+        if not self.is_persistence_computed:
+            self._compute_persistence()
+        persistence_pairs = self.simplicial_complex.persistence_pairs()
+        return persistence_pairs
 
     def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 

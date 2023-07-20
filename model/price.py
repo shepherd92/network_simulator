@@ -34,7 +34,7 @@ class PriceModel(Model):
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.num_nodes = num_of_nodes
+        self._parameters.network_size = num_of_nodes
         # pylint: enable=attribute-defined-outside-init
 
     def generate_finite_network(self, _: int | None = None) -> FiniteNetwork:
@@ -42,7 +42,7 @@ class PriceModel(Model):
         assert isinstance(self.parameters, PriceModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
 
-        node_ids = np.array(range(self.parameters.num_nodes))
+        node_ids = np.array(range(self.parameters.network_size))
         out_degrees = self._get_outdegrees()
         corrected_in_degrees = \
             np.zeros_like(out_degrees) + self.parameters.probability_degree_constant
@@ -71,11 +71,11 @@ class PriceModel(Model):
 
     def _get_outdegrees(self):
         """Generate out degrees of each node based on a given distribution."""
-        out_degrees = np.random.randint(0, 5, size=self.parameters.num_nodes)
+        out_degrees = np.random.randint(0, 5, size=self.parameters.network_size)
 
         # The outdegree of the i-th node can be at most i.
         effective_outdegrees = \
-            np.min(np.c_[out_degrees, np.array(range(self.parameters.num_nodes))], axis=1)
+            np.min(np.c_[out_degrees, np.array(range(self.parameters.network_size))], axis=1)
 
         return effective_outdegrees
 

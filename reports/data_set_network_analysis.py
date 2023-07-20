@@ -56,6 +56,10 @@ def analyze_data_set_network(
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
     subfigure_row_index = 0
 
+    if BaseNetworkProperty.Type.EDGES in calculated_properties:
+        edges = summary.get(BaseNetworkProperty.Type.EDGES)
+        np.savetxt(save_directory / 'edges.csv', edges, delimiter=',')
+
     _report_degree_distribution(
         summary.get(BaseNetworkProperty.Type.DEGREE_DISTRIBUTION),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
@@ -355,7 +359,7 @@ def _report_vertices_by_component(
     axes.set_title('Vertices by Component')
 
     values_to_plot = np.c_[
-        np.arange(len(vertices_by_component)),
+        np.arange(1, len(vertices_by_component) + 1),
         vertices_by_component,
     ]
     plot_value_counts_log(values_to_plot, axes)

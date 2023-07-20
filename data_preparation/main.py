@@ -9,14 +9,26 @@ import pandas as pd
 input_base_path = Path('../output')
 output_path = Path('../output/_prepared_data')
 
+model_sample_directory = input_base_path / '20230713_204802'
+
 data_analysis_directories = {
-    'computer_science': input_base_path / '20230706_101735',
-    'biology':          input_base_path / '20230713_183638',
-    'economics':        input_base_path / '20230713_183827',
-    'engineering':      input_base_path / '20230713_184010',
-    'finance':          input_base_path / '20230713_183856',
-    'mathematics':      input_base_path / '20230713_181538',
-    'statistics':       input_base_path / '20230713_184032',
+    'computer_science': input_base_path / '20230714_131929',
+    'biology':          input_base_path / '20230714_124427',
+    'economics':        input_base_path / '20230714_124535',
+    'engineering':      input_base_path / '20230714_131441',
+    'finance':          input_base_path / '20230714_124618',
+    'mathematics':      input_base_path / '20230714_125222',
+    'statistics':       input_base_path / '20230714_131150',
+}
+
+model_sample_for_data_directories = {
+    'computer_science': input_base_path / '20230714_173606',
+    'biology':          input_base_path / '20230714_185135',
+    'economics':        input_base_path / '20230714_190142',
+    'engineering':      input_base_path / '20230714_190208',
+    'finance':          input_base_path / '20230714_190228',
+    'mathematics':      input_base_path / '20230714_190308',
+    'statistics':       input_base_path / '20230714_190334',
 }
 
 degree_distribution_directories = {
@@ -69,6 +81,8 @@ def main() -> None:
     output_path.mkdir(parents=True, exist_ok=True)
 
     prepare_data_analysis_data(data_analysis_directories, output_path)
+    prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
+    prepare_model_analysis_data(model_sample_directory, output_path)
     prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
     prepare_simulation_betti_number_data(betti_number_directories, output_path)
     prepare_simulation_simplex_count_data(simplex_count_directories, output_path)
@@ -80,8 +94,18 @@ def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -
     create_degree_distributions(directories, output_dir)
     create_dimension_distributions(directories, output_dir)
     create_betti_numbers(directories, output_dir)
-    copy_network_plots(directories, output_dir)
+    _copy_data_network_plots(directories, output_dir)
     _merge_network_info(directories, 'data', output_dir)
+
+
+def prepare_model_sample_for_data_sets_data(directories: dict[str, Path], output_dir: Path) -> None:
+    """Prepare all information related to the data analysis."""
+    _copy_model_samples_for_data_sets_network_plots(directories, output_dir)
+
+
+def prepare_model_analysis_data(directory: Path, output_dir: Path) -> None:
+    """Prepare all information related to the data analysis."""
+    _copy_model_sample_network_plots(directory, output_dir)
 
 
 def prepare_simulation_degree_distribution_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -208,14 +232,34 @@ def _merge_network_info(directories: dict[str, Path], subdirectory_name: str, ou
         merged_data_frame.to_csv(output_path / 'data' / 'network_info.csv')
 
 
-def copy_network_plots(directories: dict[str, Path], output_path: Path) -> None:
+def _copy_data_network_plots(directories: dict[str, Path], output_path: Path) -> None:
     """Copy network plots to the output path."""
     (output_path / 'data').mkdir(parents=True, exist_ok=True)
     for dataset_name, directory in directories.items():
         file_name = directory / 'data' / 'network.png'
         if not file_name.is_file():
             continue
-        copyfile(directory / 'data' / 'network.png', output_path / 'data' / f'{dataset_name}_network.png')
+        copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.png')
+
+
+def _copy_model_sample_network_plots(directory: Path, output_path: Path) -> None:
+    """Copy network plots to the output path."""
+    (output_path / 'model_sample').mkdir(parents=True, exist_ok=True)
+    file_name = directory / 'model_analysis_finite' / 'network.png'
+    if file_name.is_file():
+        copyfile(file_name, output_path / 'model_sample' / 'finite_network.png')
+
+
+def _copy_model_samples_for_data_sets_network_plots(
+    directories: dict[str, Path],
+    output_path: Path
+) -> None:
+    (output_path / 'data').mkdir(parents=True, exist_ok=True)
+    for dataset_name, directory in directories.items():
+        file_name = directory / 'model_analysis_finite' / 'network.png'
+        if not file_name.is_file():
+            continue
+        copyfile(file_name, output_path / 'data' / f'{dataset_name}_model_sample_network.png')
 
 
 def _merge_property_tables(

@@ -39,7 +39,7 @@ class WattsStrogatzModel(Model):
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.num_nodes = num_of_nodes
+        self._parameters.network_size = num_of_nodes
         # pylint: enable=attribute-defined-outside-init
         self._parameters.edges_of_new_node = edges_of_new_node_guess
 
@@ -49,7 +49,7 @@ class WattsStrogatzModel(Model):
             f'Wrong model parameter type {type(self.parameters)}'
 
         graph: nx.Graph = nx.watts_strogatz_graph(
-            self.parameters.num_nodes,
+            self.parameters.network_size,
             self.parameters.edges_of_new_node,
             self.parameters.rewiring_probability,
             seed=seed

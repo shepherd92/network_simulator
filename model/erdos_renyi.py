@@ -38,14 +38,14 @@ class ErdosRenyiModel(Model):
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.num_nodes = num_of_nodes
+        self._parameters.network_size = num_of_nodes
         # pylint: enable=attribute-defined-outside-init
         self._parameters.edge_probability = edge_probability_guess
 
     def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
         """Build a network of the model."""
         graph: nx.Graph = nx.erdos_renyi_graph(
-            self._parameters.num_nodes,
+            self._parameters.network_size,
             self._parameters.edge_probability,
             seed=seed
         )

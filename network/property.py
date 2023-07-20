@@ -19,6 +19,7 @@ class BaseNetworkProperty:
         NUM_OF_NODES: int = auto()
         NUM_OF_EDGES: int = auto()
         NUM_OF_TRIANGLES: int = auto()
+        EDGES: int = auto()
         AVERAGE_DEGREE: int = auto()
         MAX_DEGREE: int = auto()
         AVG_CLUSTERING: int = auto()
@@ -38,6 +39,7 @@ class BaseNetworkProperty:
         BETTI_NUMBERS_BY_COMPONENT: int = auto()
         VERTICES_BY_COMPONENT: int = auto()
         PERSISTENCE: int = auto()
+        PERSISTENCE_PAIRS: int = auto()
 
     class CalculationMethod(Enum):
         """Represent the calculatable property types of a network."""

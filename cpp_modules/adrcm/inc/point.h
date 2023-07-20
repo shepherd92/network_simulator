@@ -2,21 +2,25 @@
 #define _POINT_H_
 
 #include <cstdlib>
+#include <vector>
+
+typedef std::vector<double> Position;
 
 class Point
 {
 public:
-    Point(const double birth_time, const double position);
+    Point(const double birth_time, const Position &position);
 
     inline double distance(const Point &other) const;
     inline double torus_distance(const Point &other, const double torus_size) const;
 
+    inline uint32_t dimension() const;
     inline const double &birth_time() const;
-    inline const double &position() const;
+    inline const Position &position() const;
 
 private:
     const double birth_time_;
-    const double position_;
+    const Position position_;
 };
 
 #include "point.inl"

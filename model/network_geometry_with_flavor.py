@@ -40,7 +40,7 @@ class NetworkGeometryWithFlavorModel(Model):
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.num_nodes = num_of_nodes
+        self._parameters.network_size = num_of_nodes
         # pylint: enable=attribute-defined-outside-init
         self._parameters.simplex_dimension = data_set.max_dimension
 
@@ -55,18 +55,18 @@ class NetworkGeometryWithFlavorModel(Model):
         dimension = self.parameters.simplex_dimension  # alias
 
         # initialize nodes
-        node_ids = np.array(range(self.parameters.num_nodes))
+        node_ids = np.array(range(self.parameters.network_size))
         node_energies = self._generate_node_energies()
 
         # initialize simplices, all simplices have dimension simplex_dimension
-        num_of_simplices = self.parameters.num_nodes - self.parameters.simplex_dimension
+        num_of_simplices = self.parameters.network_size - self.parameters.simplex_dimension
         simplices = np.zeros((num_of_simplices, self.parameters.simplex_dimension + 1), dtype=int)
         simplices[0, :] = np.array(node_ids[:self.parameters.simplex_dimension + 1])
 
         # initialize faces
         num_of_faces = 1 + \
             self.parameters.simplex_dimension * \
-            (self.parameters.num_nodes - self.parameters.simplex_dimension)
+            (self.parameters.network_size - self.parameters.simplex_dimension)
         # all faces have dimension simplex_dimension - 1
         faces = np.zeros((num_of_faces, self.parameters.simplex_dimension), dtype=int)
         new_faces = np.array([
@@ -145,7 +145,7 @@ class NetworkGeometryWithFlavorModel(Model):
         return network
 
     def _generate_node_energies(self) -> np.ndarray:
-        node_energies = np.random.random_integers(low=0, high=10, size=self.parameters.num_nodes)
+        node_energies = np.random.random_integers(low=0, high=10, size=self.parameters.network_size)
         return node_energies
 
     def _calc_unnormalized_probabilities(

@@ -19,11 +19,12 @@ class DataSetConfig(NamedTuple):
     """Data set configuration."""
 
     type_: DataSet.Type = DataSet.Type.ARXIV
-    plot: bool = False
+    plot: bool = True
     properties_to_calculate: list[BaseNetworkProperty.Type] = [
         BaseNetworkProperty.Type.NUM_OF_NODES,
         BaseNetworkProperty.Type.NUM_OF_EDGES,
         BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
+        BaseNetworkProperty.Type.EDGES,
         BaseNetworkProperty.Type.AVERAGE_DEGREE,
         BaseNetworkProperty.Type.MAX_DEGREE,
         BaseNetworkProperty.Type.AVG_CLUSTERING,
@@ -41,16 +42,17 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
         BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
         # BaseNetworkProperty.Type.PERSISTENCE,
+        # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
     ]
 
 
 ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     location=Path('../../data/arxiv'),
-    max_dimension=3,
-    max_simplex_dimension=100000,
+    max_dimension=2,
+    max_simplex_dimension=20,
     component_index_from_largest=-1,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2023-12-31')),
-    fields=[ArxivField.engineering],
+    fields=[ArxivField.statistics],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

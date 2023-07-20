@@ -47,7 +47,7 @@ class Model:
         """Base class representing the parameters."""
 
         max_dimension: int = 0
-        num_nodes: int = 0
+        network_size: int = 0
 
     def __init__(self) -> None:
         """Create a network model with default parameters."""
@@ -98,7 +98,7 @@ class Model:
     def get_info_as_dict(self) -> dict[str, int | float]:
         """Return a dict representation based on the model properties."""
         return {
-            'num_of_nodes': self.parameters.num_nodes,
+            'num_of_nodes': self.parameters.network_size,
             'max_dimension': self.parameters.max_dimension,
         }
 

@@ -53,6 +53,9 @@ def analyze_model_example_finite_network(
     axes_grid_width = 3
 
     network.save_info(save_directory / 'network_info.csv')
+    if BaseNetworkProperty.Type.EDGES in calculated_properties:
+        edges = summary.get(BaseNetworkProperty.Type.EDGES)
+        np.savetxt(save_directory / 'edges.csv', edges, delimiter=',', fmt='%i')
 
     figure = plt.figure('Network Analysis', figsize=(axes_grid_width * 10, axes_grid_height * 10))
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
@@ -425,7 +428,7 @@ def _report_vertices_by_component(
     axes.set_title('Vertices by Component')
 
     values_to_plot = np.c_[
-        np.arange(len(vertices_by_component)),
+        np.arange(1, len(vertices_by_component) + 1),
         vertices_by_component,
     ]
     plot_value_counts_log(values_to_plot, axes)

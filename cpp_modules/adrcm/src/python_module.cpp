@@ -7,11 +7,11 @@ PYBIND11_MODULE(adrcm, m)
 {
     m.doc() = "pybind11 ADRCM plugin";
     m.def(
-        "generate_finite_network_connections_default",
-        &generate_finite_network_connections_default_interface,
+        "generate_finite_network_connections",
+        &generate_finite_network_connections_interface,
         "Generate connections for the age dependent random simplex model.");
     m.def(
-        "generate_infinite_network_connections_default",
-        &generate_infinite_network_connections_default_interface,
+        "generate_infinite_network_connections",
+        &generate_infinite_network_connections_interface,
         "Generate connections for the age dependent random simplex model.");
 }
