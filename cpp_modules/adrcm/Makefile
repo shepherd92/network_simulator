@@ -16,6 +16,7 @@ LD       := g++
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
 CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC
+CXXFLAGS += $(shell python3.10 -m pybind11 --includes)
 LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
 
 # directories
@@ -24,14 +25,15 @@ MODULE_ROOT := .
 BLDDIR      := $(ROOT)/build
 INCDIRNAME  := inc
 SRCDIR      := $(MODULE_ROOT)/src
-EXTERNAL_INC_DIRS = /usr/include/python3.10/
+TESTDIR     := $(MODULE_ROOT)/test
 
 # definition of extenstions
-SRCEXT := cpp
+SRCEXT   := cpp
 # INLEXT := inl
-OBJEXT := so
+OBJEXT   := o
+SHOBJEXT := $(shell python3.10-config --extension-suffix)
 
-TARGETS := __all release debug clean
+TARGETS := __all release debug test clean
 
 # remove files generated when there was an error
 .DELETE_ON_ERROR :
@@ -45,11 +47,9 @@ MAKEFLAGS += --no-print-directory
 SUFFIXES += .d
 
 # find source files
-SRCS := $(shell find $(SRCDIR) -type f -iname "*.$(SRCEXT)")
+SRCS     := $(shell find $(SRCDIR)  -type f -name "*.$(SRCEXT)")
+TESTSRCS := $(shell find $(TESTDIR) -type f -name "*.$(SRCEXT)")
 # INLS := $(shell find $(INCDIR) -type f -iname "*.$(INLEXT)")
-
-# create object names from source filenames
-EXEOBJS  := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.$(OBJEXT))
 
 # create dependency file names from object filenames
 DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
@@ -58,21 +58,28 @@ DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
 -include $(DEPS)
 
 # construct include directory compiler flags
-INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME) $(EXTERNAL_INC_DIRS)
+INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME)
 CXXFLAGS += $(addprefix -I , $(INCDIRS))
 
 __all : release
 
 # set target specific compiler and linker flags
-debug   : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG
-debug   : LDFLAGS  += -pg -lgcov
-release : CXXFLAGS += -O3
+debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG -lpython3.10
+debug test : LDFLAGS  += -pg -lgcov -lpython3.10
+release    : CXXFLAGS += -O3
 
-release debug : $(BLDDIR)/$(PROJECT).$(OBJEXT)
+release debug : $(BLDDIR)/$(PROJECT)$(SHOBJEXT)
+test          : $(BLDDIR)/$(PROJECT)$(SHOBJEXT) $(BLDDIR)/$(PROJECT)_test
 
-$(BLDDIR)/$(PROJECT).$(OBJEXT) : $(SRCS) | $(BLDDIR)
+$(BLDDIR)/$(PROJECT)$(SHOBJEXT) : $(SRCS) | $(BLDDIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 	@touch $(BLDDIR)/__init__.py
+
+$(BLDDIR)/$(PROJECT)_test : $(BLDDIR)/$(PROJECT)_test.$(OBJEXT) | $(BLDDIR)
+	$(CXX) $(LDFLAGS) -lpython3.10 $(shell python3.10 -m pybind11 --includes) -l adrcm.cpython-310-x86_64-linux-gnu.so -L$(BLDDIR) $^ -o $@
+
+$(BLDDIR)/$(PROJECT)_test.$(OBJEXT) : $(TESTSRCS) | $(BLDDIR)
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
 # make directories
 $(BLDDIR):

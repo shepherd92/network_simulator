@@ -1,8 +1,8 @@
 #include <iostream>
 #include <numeric>
 #include <random>
-#include "pybind11/pybind11.h"
-#include "pybind11/numpy.h"
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
 
 #include "connection_generator.h"
 #include "model_parameters.h"
@@ -211,6 +211,7 @@ std::vector<std::pair<int, int>> generate_network_connections(
 {
     // create aliases
     const auto a{model_parameters.alpha};
+    const auto is_default_a{is_close(a, 0.5)};
     const auto b{model_parameters.beta};
     const auto g{model_parameters.gamma};
     const auto d{model_parameters.torus_dimension};
@@ -220,30 +221,50 @@ std::vector<std::pair<int, int>> generate_network_connections(
 
     std::uniform_real_distribution<> uniform_distribution(0., 1.);
     std::vector<std::pair<int, int>> connections{};
+    auto counter{0U};
     for (auto target_node_id{0U}; target_node_id < num_of_nodes; ++target_node_id)
     {
         const auto &target_node{nodes[target_node_id]};
         const auto s{target_node.birth_time()};
 
+        const auto size_of_neighborhood{std::pow((a * b / s), 1. / d)};
+
         for (auto source_node_id{target_node_id + 1U}; source_node_id < num_of_nodes; ++source_node_id)
         {
             const auto &source_node{nodes[source_node_id]};
-            const auto t{source_node.birth_time()};
             const auto distance{
                 is_finite ? source_node.torus_distance(target_node, model_parameters.torus_size_in_1_dimension) : source_node.distance(target_node)};
+            if (distance > size_of_neighborhood)
+            {
+                continue;
+            }
 
+            const auto t{source_node.birth_time()};
             const auto max_distance_of_connection{
                 std::pow((a * b / t) * std::pow(t / s, g), 1. / d)};
 
             if (distance < max_distance_of_connection)
             {
-                const auto random_number{uniform_distribution(random_number_generator)};
-                if (random_number < 1 / (2. * a))
+                if (is_default_a)
                 {
                     connections.push_back(std::pair(source_node_id, target_node_id));
                 }
+                else
+                {
+                    const auto random_number{uniform_distribution(random_number_generator)};
+                    if (random_number < 1 / (2. * a))
+                    {
+                        connections.push_back(std::pair(source_node_id, target_node_id));
+                    }
+                }
             }
         }
+        if (counter % 1000 == 0)
+        {
+            std::cout << "\rGenerating connections: " << counter << " / " << num_of_nodes;
+        }
+        ++counter;
     }
+    std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes << std::endl;
     return connections;
 }

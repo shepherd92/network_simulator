@@ -59,6 +59,25 @@ std::vector<std::array<T, N>> numpy_to_vector_of_arrays(const py::array_t<T, py:
 }
 
 template <typename T>
+py::array_t<T, py::array::c_style | py::array::forcecast> vector_to_numpy_1d(const std::vector<T> &data)
+{
+    const auto elements{data.size()};
+    const std::vector<ssize_t> shape{static_cast<ssize_t>(elements)};
+
+    py::array_t<T, py::array::c_style | py::array::forcecast> result(shape);
+
+    const auto resultPtr{result.mutable_data()};
+
+    // Copy the data from the vector of vectors to the NumPy array
+    for (auto i{0U}; i < elements; ++i)
+    {
+        resultPtr[i] = data[i];
+    }
+
+    return result;
+}
+
+template <typename T>
 py::array_t<T, py::array::c_style | py::array::forcecast> vector_to_numpy_2d(const std::vector<std::vector<T>> &data)
 {
     const auto rows{data.size()};
@@ -67,7 +86,7 @@ py::array_t<T, py::array::c_style | py::array::forcecast> vector_to_numpy_2d(con
 
     py::array_t<T, py::array::c_style | py::array::forcecast> result(shape);
 
-    const auto resultPtr = result.mutable_data();
+    const auto resultPtr{result.mutable_data()};
 
     // Copy the data from the vector of vectors to the NumPy array
     for (auto i{0U}; i < rows; ++i)

@@ -16,6 +16,7 @@ LD       := g++
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
 CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fwrapv -fstack-protector-strong -fPIC
+CXXFLAGS += $(shell python3.10 -m pybind11 --includes)
 LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
 
 # directories
@@ -24,12 +25,12 @@ MODULE_ROOT := .
 BLDDIR      := $(ROOT)/build
 INCDIRNAME  := inc
 SRCDIR      := $(MODULE_ROOT)/src
-EXTERNAL_INC_DIRS = /usr/include/python3.10/
 
 # definition of extenstions
 SRCEXT := cpp
 # INLEXT := inl
-OBJEXT := so
+OBJEXT   := o
+SHOBJEXT := $(shell python3.10-config --extension-suffix)
 
 TARGETS := __all release debug clean
 
@@ -58,7 +59,7 @@ DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
 -include $(DEPS)
 
 # construct include directory compiler flags
-INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME) $(EXTERNAL_INC_DIRS)
+INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME)
 CXXFLAGS += $(addprefix -I , $(INCDIRS))
 
 __all : release
@@ -68,9 +69,9 @@ debug   : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG
 debug   : LDFLAGS  += -pg -lgcov
 release : CXXFLAGS += -O3
 
-release debug : $(BLDDIR)/$(PROJECT).$(OBJEXT)
+release debug : $(BLDDIR)/$(PROJECT)$(SHOBJEXT)
 
-$(BLDDIR)/$(PROJECT).$(OBJEXT) : $(SRCS) | $(BLDDIR)
+$(BLDDIR)/$(PROJECT)$(SHOBJEXT) : $(SRCS) | $(BLDDIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
 	@touch $(BLDDIR)/__init__.py
 

@@ -15,6 +15,9 @@ template <typename T, uint32_t D>
 std::vector<std::array<T, D>> numpy_to_vector_of_arrays(const py::array_t<T, py::array::c_style | py::array::forcecast> &array);
 
 template <typename T>
+py::array_t<T, py::array::c_style | py::array::forcecast> vector_to_numpy_1d(const std::vector<T> &vector);
+
+template <typename T>
 py::array_t<T, py::array::c_style | py::array::forcecast> vector_to_numpy_2d(const std::vector<std::vector<T>> &vector_of_vectors);
 
 template <typename T>

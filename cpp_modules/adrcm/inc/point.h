@@ -19,6 +19,11 @@ public:
     inline const Position &position() const;
 
 private:
+    inline double distance_1d(const Point &other) const;
+    inline double distance_general(const Point &other) const;
+    inline double torus_distance_1d(const Point &other, const double torus_size) const;
+    inline double torus_distance_general(const Point &other, const double torus_size) const;
+
     const double birth_time_;
     const Position position_;
 };

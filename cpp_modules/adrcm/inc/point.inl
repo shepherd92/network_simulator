@@ -11,20 +11,15 @@ Point::Point(const double birth_time, const Position &position)
 
 inline double Point::distance(const Point &other) const
 {
-    const auto this_position{position()};
-    const auto that_position{other.position()};
-
-    auto sum_of_squared_coordinate_distances{0.};
-    for (auto index{0U}; index < dimension(); ++index)
-    {
-        sum_of_squared_coordinate_distances += std::pow(
-            this_position[index] - that_position[index],
-            2U);
-    }
-    return std::pow(sum_of_squared_coordinate_distances, 0.5);
+    return dimension() == 1 ? distance_1d(other) : distance_general(other);
 }
 
 inline double Point::torus_distance(const Point &other, const double torus_size) const
+{
+    return dimension() == 1 ? torus_distance_1d(other, torus_size) : torus_distance_general(other, torus_size);
+}
+
+inline double Point::torus_distance_general(const Point &other, const double torus_size) const
 {
     const auto this_position{position()};
     const auto that_position{other.position()};
@@ -37,6 +32,40 @@ inline double Point::torus_distance(const Point &other, const double torus_size)
             current_dimension_distance_inside < 0.5 * torus_size ? current_dimension_distance_inside : torus_size - current_dimension_distance_inside};
         sum_of_squared_coordinate_distances += std::pow(
             current_dimension_distance,
+            2U);
+    }
+    return std::pow(sum_of_squared_coordinate_distances, 0.5);
+}
+
+inline double Point::torus_distance_1d(const Point &other, const double torus_size) const
+{
+    const auto this_position{position()};
+    const auto that_position{other.position()};
+
+    const auto distance_inside{abs(this_position[0] - that_position[0])};
+
+    const auto distance{
+        distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside};
+
+    return distance;
+}
+
+inline double Point::distance_1d(const Point &other) const
+{
+    const auto this_position{position()};
+    const auto that_position{other.position()};
+    return abs(this_position[0] - that_position[0]);
+}
+
+inline double Point::distance_general(const Point &other) const
+{
+    const auto this_position{position()};
+    const auto that_position{other.position()};
+    auto sum_of_squared_coordinate_distances{0.};
+    for (auto index{0U}; index < dimension(); ++index)
+    {
+        sum_of_squared_coordinate_distances += std::pow(
+            this_position[index] - that_position[index],
             2U);
     }
     return std::pow(sum_of_squared_coordinate_distances, 0.5);
