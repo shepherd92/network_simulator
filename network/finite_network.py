@@ -196,7 +196,7 @@ class FiniteNetwork(Network):
     def _calculate_average_degree(self) -> float:
         num_of_nodes = self.graph.number_of_nodes()
         num_of_edges = self.graph.number_of_edges()
-        average_degree = num_of_edges / num_of_nodes
+        average_degree = num_of_edges / num_of_nodes * 2
         return average_degree
 
     def _compute_persistence(self) -> None:

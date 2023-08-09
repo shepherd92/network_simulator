@@ -125,12 +125,12 @@ std::vector<int32_t> calc_degree_sequence(
   auto counter{0U};
   for (const auto &simplex : selected_simplices)
   {
-    if (++counter % 10000 == 0)
+    if (++counter % 100000 == 0 && selected_simplices.size() > 1000000U)
     {
       std::cout << "\rC++: Calculating degree sequence "
                 << "(simplex dimension: "
                 << simplex_dimension
-                << ") neighbor dimension: "
+                << "; neighbor dimension: "
                 << neighbor_dimension
                 << ") ... "
                 << counter << " / " << selected_simplices.size();

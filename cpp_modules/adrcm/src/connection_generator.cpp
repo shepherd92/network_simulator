@@ -259,12 +259,12 @@ std::vector<std::pair<int, int>> generate_network_connections(
                 }
             }
         }
-        if (counter % 1000 == 0)
+        if (counter % 10000 == 0 && num_of_nodes > 1000000U)
         {
             std::cout << "\rGenerating connections: " << counter << " / " << num_of_nodes;
         }
         ++counter;
     }
-    std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes << std::endl;
+    // std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes << std::endl;
     return connections;
 }

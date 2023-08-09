@@ -2,23 +2,36 @@
 """Merge results from different runs for easier comparison and analysis."""
 
 from pathlib import Path
-from shutil import copyfile
+from shutil import copyfile, copytree
 
 import pandas as pd
 
 input_base_path = Path('../output')
 output_path = Path('../output/_prepared_data')
 
-model_sample_directory = input_base_path / '20230713_204802'
+model_sample_directory = input_base_path / '20230724_112745'
+model_sample_directory_plot = input_base_path / '20230713_204802'
+
+parameter_a_directories = {
+    # the key is the value of "a" * 100
+    '50':  input_base_path / '20230805_172644',
+    '60':  input_base_path / '20230805_172653',
+    '70':  input_base_path / '20230805_172704',
+    '80':  input_base_path / '20230805_172714',
+    '90':  input_base_path / '20230805_172723',
+    '100': input_base_path / '20230805_172733',
+    '150': input_base_path / '20230805_172912',
+    '200': input_base_path / '20230805_172921',
+}
 
 data_analysis_directories = {
-    'computer_science': input_base_path / '20230714_131929',
-    'biology':          input_base_path / '20230714_124427',
-    'economics':        input_base_path / '20230714_124535',
-    'engineering':      input_base_path / '20230714_131441',
-    'finance':          input_base_path / '20230714_124618',
-    'mathematics':      input_base_path / '20230714_125222',
-    'statistics':       input_base_path / '20230714_131150',
+    'computer_science': input_base_path / '20230806_072356',
+    'biology':          input_base_path / '20230806_132128',
+    'economics':        input_base_path / '20230806_132156',
+    'engineering':      input_base_path / '20230806_103601',
+    'finance':          input_base_path / '20230806_132203',
+    'mathematics':      input_base_path / '20230806_121756',
+    'statistics':       input_base_path / '20230806_121816',
 }
 
 model_sample_for_data_directories = {
@@ -42,11 +55,11 @@ degree_distribution_directories = {
 
 simplex_count_directories = {
     # the key is the value of gamma * 100
-    '25': input_base_path / '20230615_103808',
+    '25': input_base_path / '20230801_200720',
     '40': input_base_path / '20230703_101414',
     '45': input_base_path / '20230703_130440',
-    '50': input_base_path / '20230616_061230',
-    '60': input_base_path / '20230616_193506',
+    '50': input_base_path / '20230801_100128',
+    '60': input_base_path / '20230731_124944',
     '75': input_base_path / '20230615_204859',
 }
 
@@ -54,25 +67,25 @@ betti_number_directories = {
     # the key is the value of gamma * 100
     # '10': input_base_path / '20230608_191114',
     # '20': input_base_path / '20230608_191120',
-    '25': input_base_path / '20230609_212258',
+    '25': input_base_path / '20230609_212258',  # 20230804_115431
     # '30': input_base_path / '20230608_191124',
     # '40': input_base_path / '20230608_191128',
-    '50': input_base_path / '20230609_212245',
-    # '60': input_base_path / '20230608_205831',
+    '50': input_base_path / '20230609_212245',  # 20230803_105044
+    # '60': input_base_path / '20230608_205831',  # 20230803_100554
     # '70': input_base_path / '20230608_205839',
-    '75': input_base_path / '20230609_142002',
+    '75': input_base_path / '20230609_142002',  # 20230804_115418
     # '80': input_base_path / '20230608_205845',
     # '90': input_base_path / '20230608_205850',
 }
 
 hypothesis_testing_directories = {
-    'computer_science': input_base_path / '20230712_075521',
-    'biology':          input_base_path / '20230710_164059',
-    'economics':        input_base_path / '20230710_162805',
-    'engineering':      input_base_path / '20230711_110334',
-    'finance':          input_base_path / '20230710_162239',
-    'mathematics':      input_base_path / '20230710_200618',
-    'statistics':       input_base_path / '20230710_143554',
+    'computer_science': input_base_path / '20230807_181159',  # 20230712_075521
+    # 'biology':          input_base_path / '',  # 20230710_164059
+    # 'economics':        input_base_path / '',  # 20230710_162805
+    'engineering':      input_base_path / '20230806_210326',  # 20230711_110334
+    # 'finance':          input_base_path / '',  # 20230710_162239
+    'mathematics':      input_base_path / '20230806_200515',  # 20230710_200618
+    'statistics':       input_base_path / '20230806_205545',  # 20230710_143554
 }
 
 
@@ -82,6 +95,7 @@ def main() -> None:
 
     prepare_data_analysis_data(data_analysis_directories, output_path)
     prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
+    prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path)
     prepare_model_analysis_data(model_sample_directory, output_path)
     prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
     prepare_simulation_betti_number_data(betti_number_directories, output_path)
@@ -105,7 +119,19 @@ def prepare_model_sample_for_data_sets_data(directories: dict[str, Path], output
 
 def prepare_model_analysis_data(directory: Path, output_dir: Path) -> None:
     """Prepare all information related to the data analysis."""
-    _copy_model_sample_network_plots(directory, output_dir)
+    (output_dir / 'model_sample').mkdir(parents=True, exist_ok=True)
+
+    directory_name = directory / 'model_analysis_finite' / 'total_degree_distribution'
+    if directory_name.is_dir():
+        copytree(directory_name, output_dir / 'model_sample' / 'total_degree_distribution', dirs_exist_ok=True)
+
+    directory_name = directory / 'model_analysis_finite' / 'ho_degree_distribution_1'
+    if directory_name.is_dir():
+        copytree(directory_name, output_dir / 'model_sample' / 'ho_degree_distribution_1', dirs_exist_ok=True)
+
+    directory_name = directory / 'model_analysis_finite' / 'ho_degree_distribution_2'
+    if directory_name.is_dir():
+        copytree(directory_name, output_dir / 'model_sample' / 'ho_degree_distribution_2', dirs_exist_ok=True)
 
 
 def prepare_simulation_degree_distribution_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -242,7 +268,7 @@ def _copy_data_network_plots(directories: dict[str, Path], output_path: Path) ->
         copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.png')
 
 
-def _copy_model_sample_network_plots(directory: Path, output_path: Path) -> None:
+def prepare_model_analysis_sample_plot(directory: Path, output_path: Path) -> None:
     """Copy network plots to the output path."""
     (output_path / 'model_sample').mkdir(parents=True, exist_ok=True)
     file_name = directory / 'model_analysis_finite' / 'network.png'

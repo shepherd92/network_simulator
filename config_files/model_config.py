@@ -23,7 +23,7 @@ class ModelConfig:
 
         component_index_from_largest: int = -1
         plot: bool = True
-        set_params_from_data_set: bool = False
+        set_params_from_data_set: bool = True
         num_of_infinite_networks: int = 0
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
             BaseNetworkProperty.Type.NUM_OF_NODES,
@@ -66,8 +66,8 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        test_against_data_set: bool = False
-        num_of_simulations: int = 1000
+        test_against_data_set: bool = True
+        num_of_simulations: int = 100
         num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX
@@ -77,7 +77,7 @@ class ModelConfig:
 
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
-    max_dimension=3,
+    max_dimension=2,
     network_size=100000,  # expected number of nodes
     torus_dimension=1,
     alpha=0.5,
