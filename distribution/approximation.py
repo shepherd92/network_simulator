@@ -120,10 +120,10 @@ class DistributionApproximation:
 
     def generate_qq_plot_points(self, normalize: bool = True) -> npt.NDArray[np.float_]:
         """Return the points of the probability points."""
-        number_of_quantiles = 2 * len(self.empirical.value_sequence)
-        quantiles_to_calculate = np.linspace(0., 1., number_of_quantiles, endpoint=True)
+        number_of_values = len(self.empirical.value_sequence)
+        quantiles_to_calculate = np.linspace(1. / number_of_values, 1., number_of_values, endpoint=True)
         theoretical_quantiles = self.theoretical.calc_quantiles(quantiles_to_calculate)
-        empirical_quantiles = self.empirical.calc_quantiles(quantiles_to_calculate)
+        empirical_quantiles = self.empirical.value_sequence
         points = np.c_[theoretical_quantiles, empirical_quantiles]
         finite_points = points[np.isfinite(points).all(axis=1)]
         mean = self.empirical.value_sequence.mean()
