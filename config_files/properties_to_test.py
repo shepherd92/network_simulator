@@ -125,12 +125,12 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
     #         ),
     #     ),
     # ),
-    # DerivedNetworkProperty(
-    #     name='num_of_triangles_normal_mle',
-    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_TRIANGLES),
-    #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-    #     fitting_parameters=create_fitting_parameters_normal(),
-    # ),
+    DerivedNetworkProperty(
+        name='num_of_triangles_normal_mle',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_TRIANGLES),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=create_fitting_parameters_normal(),
+    ),
     # DerivedNetworkProperty(
     #     name='num_of_triangles_normal_match_quantile',
     #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_TRIANGLES),

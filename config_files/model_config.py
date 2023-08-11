@@ -67,7 +67,7 @@ class ModelConfig:
         """Model testing configuration for networks."""
 
         test_against_data_set: bool = True
-        num_of_simulations: int = 100
+        num_of_simulations: int = 1000
         num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX
@@ -82,7 +82,7 @@ AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.P
     torus_dimension=1,
     alpha=0.5,
     beta=1.0,
-    gamma=0.7,
+    gamma=0.67,
 )
 
 

@@ -217,6 +217,7 @@ class Model:
             else:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)
+            print(f'\nProperty value: {property_value}')
 
         global SIMULATIONS_DONE
         global PROGRESS_BAR
