@@ -14,6 +14,6 @@ class GeneralConfig:
     runtime_profiling = False
     memory_profiling = False
     tracing = False
-    num_of_processes: int = 4
-    root_dir = Path('/home/au725389/save/research/tda/code/')
+    num_of_processes: int = 1
+    root_dir = Path('/home/au725389/save/research/higher_order_adrcm/code/')
     output_dir = Path('../output')

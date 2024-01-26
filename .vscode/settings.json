@@ -15,15 +15,15 @@
     "python.analysis.extraPaths": [
         "/home/au725389/venv/tda/lib/python3.10/site-packages",
         "/home/au725389/venv/tda/lib/python3.10/site-packages/gudhi",
-        "/home/au725389/save/research/tda/code/modeling/cpp/build/cpp_library",
-        "/home/au725389/save/research/tda/code/modeling/cpp_modules/build/",
+        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build/cpp_library",
+        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
     ],
     "python.analysis.indexing": true,
     "python.autoComplete.extraPaths": [
         "/home/au725389/venv/tda/lib/python3.10/site-packages",
         "/home/au725389/venv/tda/lib/python3.10/site-packages/gudhi",
-        "/home/au725389/save/research/tda/code/modeling/cpp/build",
-        "/home/au725389/save/research/tda/code/modeling/cpp_modules/build/",
+        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build",
+        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
     ],
     "python.defaultInterpreterPath": "/home/au725389/venv/tda/bin/python3",
     "python.formatting.provider": "autopep8",
@@ -40,14 +40,15 @@
         "--max-line-length=120",
         "--extension-pkg-whitelist=scipy, gudhi"
     ],
-    "python.linting.flake8Enabled": true,
+    "python.linting.flake8Enabled": false,
+    "python.linting.flake8Path": "~/venv/tda/bin/flake8",
     "python.linting.flake8Args": [
         "--max-line-length=120"
     ],
     "python.linting.mypyEnabled": false,
-    "python.linting.pydocstyleEnabled": true,
-    "python.linting.banditEnabled": true,
-    "python.linting.pycodestyleEnabled": true,
+    "python.linting.pydocstyleEnabled": false,
+    "python.linting.banditEnabled": false,
+    "python.linting.pycodestyleEnabled": false,
     "python.linting.pycodestyleArgs": [
         "--max-line-length=120"
     ],

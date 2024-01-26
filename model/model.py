@@ -40,6 +40,7 @@ class Model:
         PRICE = auto()
         NETWORK_GEOMETRY_WITH_FLAVOR = auto()
         AGE_DEPENDENT_RANDOM_SIMPLEX = auto()
+        AGE_DEPENDENT_RANDOM_HYPERGRAPH = auto()
         INVALID = auto()
 
     @dataclass
@@ -217,7 +218,7 @@ class Model:
             else:
                 raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
             property_values.append(property_value)
-            print(f'\nProperty value: {property_value}')
+            # print(f'\nProperty value: {property_value}')
 
         global SIMULATIONS_DONE
         global PROGRESS_BAR

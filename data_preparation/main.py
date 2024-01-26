@@ -25,13 +25,20 @@ parameter_a_directories = {
 }
 
 data_analysis_directories = {
-    'computer_science': input_base_path / '20230806_072356',
-    'biology':          input_base_path / '20230806_132128',
-    'economics':        input_base_path / '20230806_132156',
-    'engineering':      input_base_path / '20230806_103601',
-    'finance':          input_base_path / '20230806_132203',
-    'mathematics':      input_base_path / '20230806_121756',
-    'statistics':       input_base_path / '20230806_121816',
+    # 'computer_science': input_base_path / '20231208_080033',
+    # 'biology':          input_base_path / '20231208_083044',
+    # 'economics':        input_base_path / '20231208_083202',
+    # 'engineering':      input_base_path / '20231208_083229',
+    # 'finance':          input_base_path / '20231208_083259',
+    # 'mathematics':      input_base_path / '20231208_075316',
+    # 'statistics':       input_base_path / '20231208_074547',
+    'computer_science': input_base_path / '20240126_144648_cs',
+    'biology':          input_base_path / '20231208_083044',
+    'economics':        input_base_path / '20231208_083202',
+    'engineering':      input_base_path / '20240126_190028_eess',
+    'finance':          input_base_path / '20231208_083259',
+    'mathematics':      input_base_path / '20240126_183746_math',
+    'statistics':       input_base_path / '20240126_174310_stat',
 }
 
 model_sample_for_data_directories = {
@@ -81,10 +88,10 @@ betti_number_directories = {
 
 hypothesis_testing_directories = {
     'computer_science': input_base_path / '20230807_181159',  # 20230712_075521
-    # 'biology':          input_base_path / '',  # 20230710_164059
-    # 'economics':        input_base_path / '',  # 20230710_162805
+    'biology':          input_base_path / '20230710_164059',  # 20230710_164059
+    'economics':        input_base_path / '20230710_162805',  # 20230710_162805
     'engineering':      input_base_path / '20230806_210326',  # 20230711_110334
-    # 'finance':          input_base_path / '',  # 20230710_162239
+    'finance':          input_base_path / '20230710_162239',  # 20230710_162239
     'mathematics':      input_base_path / '20230806_200515',  # 20230710_200618
     'statistics':       input_base_path / '20230806_205545',  # 20230710_143554
 }
@@ -200,6 +207,7 @@ def create_degree_distributions(directories: dict[str, Path], output_dir: Path) 
     """Create higher order degree distributions."""
     for property_name in [
         'total_degree_distribution',
+        'interaction_degree_distribution',
         'ho_degree_distribution_1',
         'ho_degree_distribution_2',
         'ho_degree_distribution_3',
@@ -438,6 +446,7 @@ def _merge_value_counts(
         merged_data_frame = pd.concat(data_frames, axis=1)
         merged_data_frame.index.name = 'value'
         merged_data_frame.fillna(0, inplace=True)
+        merged_data_frame.sort_index(inplace=True)
         merged_data_frame.astype(int).to_csv(out_file_name)
 
 

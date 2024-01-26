@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/python3.10",
-                "${workspaceFolder}/cpp/inc/**",
+                "${workspaceFolder}/cpp_modules/inc/**",
                 "${workspaceFolder}/cpp_modules/**",
                 "${workspaceFolder}/../gudhi/gudhi-devel/src/**"
             ],

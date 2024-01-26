@@ -25,6 +25,8 @@ from reports.plotting_helper import (
     check_calculated,
     plot_approximation_value_counts_log,
     plot_giant_component,
+    plot_hypergraph_determined_positions,
+    plot_network_determined_positions,
     plot_persistence_barcode_,
     plot_persistence_diagram_,
     plot_value_counts,
@@ -46,6 +48,8 @@ def analyze_model_example_finite_network(
 
     if plot:
         plot_giant_component(network.get_component(0), save_directory / 'network.png')
+        plot_network_determined_positions(network, save_directory / 'network_fixed_vertex_positions.png')
+        plot_hypergraph_determined_positions(network, save_directory / 'hypergraph_fixed_positions.png')
 
     summary = network.calc_network_summary(calculated_properties)
 
@@ -102,8 +106,13 @@ def analyze_model_example_finite_network(
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory
     )
-    _report_facet_dimension_distribution(
-        summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION),
+    # _report_facet_dimension_distribution(
+    #     summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION),
+    #     figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+    #     save_directory
+    # )
+    _report_interaction_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
@@ -358,6 +367,25 @@ def _report_facet_dimension_distribution(
     approximation.save(save_directory / 'facet_dimension_distribution')
     plot_value_counts(empirical_distribution.calc_value_counts(), axes)
     axes.set_title('Facet dimension distribution')
+
+
+@check_calculated
+def _report_interaction_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    approximation = DistributionApproximation(
+        empirical_distribution,
+        TheoreticalDistribution.Type.POWER_LAW
+    )
+    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    approximation.fit(fitting_parameters)
+
+    approximation.save(save_directory / 'interaction_degree_distribution')
+    plot_value_counts(empirical_distribution.calc_value_counts(), axes)
+    axes.set_title('Interaction degree distribution')
 
 
 @check_calculated

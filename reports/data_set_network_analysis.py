@@ -101,8 +101,13 @@ def analyze_data_set_network(
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory
     )
-    _report_facet_dimension_distribution(
-        summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION),
+    # _report_facet_dimension_distribution(
+    #     summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION),
+    #     figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+    #     save_directory
+    # )
+    _report_interaction_degree_distribution(
+        summary.get(BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
@@ -308,6 +313,25 @@ def _report_interaction_dimension_distribution(
     approximation.save(save_directory / 'interaction_dimension_distribution')
     plot_value_counts(empirical_distribution.calc_value_counts(), axes)
     axes.set_title('Interaction dimension distribution')
+
+
+@check_calculated
+def _report_interaction_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path
+) -> None:
+
+    approximation = DistributionApproximation(
+        empirical_distribution,
+        TheoreticalDistribution.Type.POWER_LAW
+    )
+    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    approximation.fit(fitting_parameters)
+
+    approximation.save(save_directory / 'interaction_degree_distribution')
+    plot_approximation_value_counts_log(empirical_distribution.calc_value_counts(), axes)
+    axes.set_title('Interaction degree distribution')
 
 
 @check_calculated

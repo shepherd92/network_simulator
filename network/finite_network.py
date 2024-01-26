@@ -55,20 +55,34 @@ class FiniteNetwork(Network):
     def get_component(self, component_index: int) -> FiniteNetwork:
         """Return the network of the specified component."""
         reduced_network = FiniteNetwork(self.max_dimension)
-
         if component_index != -1:
             components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
-            reduced_network.graph = self._graph.subgraph(components[component_index])
-            reduced_network.generate_clique_complex_from_graph()
-
+            node_ids_in_component = components[component_index]
+            reduced_network.graph = self.graph.subgraph(node_ids_in_component)
+            reduced_network.simplicial_complex = self.simplicial_complex
+            reduced_network.filter_simplicial_complex_from_graph()
+            if self.vertex_positions is not None:
+                reduced_network.vertex_positions = {
+                    node_id: position
+                    for node_id, position in self.vertex_positions.items()
+                    if node_id in node_ids_in_component
+                }
+            reduced_network.interaction_positions = None
         return reduced_network
 
     def reduce_to_component(self, component_index: int) -> None:
         """Reduce the network to the specified component only."""
         if component_index != -1:
             components = sorted(nx.connected_components(self._graph), key=len, reverse=True)
-            self.graph = self.graph.subgraph(components[component_index])
+            node_ids_in_component = components[component_index]
+            self.graph = self.graph.subgraph(node_ids_in_component)
             self.filter_simplicial_complex_from_graph()
+            if self.vertex_positions is not None:
+                self.vertex_positions = {
+                    node_id: position
+                    for node_id, position in self.vertex_positions.items()
+                    if node_id in node_ids_in_component
+                }
 
     def calc_network_summary(
         self,
@@ -132,6 +146,8 @@ class FiniteNetwork(Network):
             property_value = oridnary_degree_distributions.domain.max_
         elif property_type == BaseNetworkProperty.Type.DEGREE_DISTRIBUTION:
             property_value = self._calculate_degree_distribution()
+        elif property_type == BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION:
+            property_value = self._calculate_interaction_degree_distribution()
         elif property_type == BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION:
             property_value = self._calculate_in_degree_distribution()
         elif property_type == BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION:
@@ -364,11 +380,11 @@ class FiniteNetwork(Network):
         return self._is_persistence_computed
 
     def __copy__(self):
-        """Produce collapsed version of self."""
+        """Shallow copy of self."""
         return self
 
     def __deepcopy__(self, memo):
-        """Produce collapsed version of self."""
+        """Deep copy of self."""
         return self
 
     def __str__(self) -> str:

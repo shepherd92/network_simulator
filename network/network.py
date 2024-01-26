@@ -32,6 +32,8 @@ class Network:
         self._simplicial_complex = SimplexTree()
         self._graph: nx.Graph() | None = None
         self._digraph: nx.DiGraph() | None = None
+        self._vertex_positions: dict[int, tuple[float, ...]] | None = None
+        self._interaction_positions: dict[int, tuple[float, ...]] | None = None
 
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
@@ -57,11 +59,11 @@ class Network:
 
         graph_nodes_set = set(self.graph.nodes)
         interactions: list[list[int]] = [
-            list[set(interaction) & graph_nodes_set]
+            list(set(interaction) & graph_nodes_set)
             for interaction in self.interactions
         ]
         # filter out empty lists
-        self.interactions = list(filter(None, interactions))
+        self._interactions = list(filter(None, interactions))
 
     def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
         """Set graph to represent the simplicial complex."""
@@ -81,7 +83,7 @@ class Network:
 
     def add_simplices_batch(self, simplices: npt.NDArray[np.int]) -> None:
         """Add simplices to the simplicial complex in batch."""
-        assert simplices.shape[1] - 1 <= self.max_dimension, f'Simplices have too high dimension {simplices.shape[1]}.'
+        # assert simplices.shape[1] - 1 <= self.max_dimension, f'Simplices have too high dimension {simplices.shape[1]}.'
         self.simplicial_complex.insert_batch(simplices.T, np.zeros((simplices.shape[0],)))
 
     def add_simplices(self, simplices: list[list[int]]) -> None:
@@ -142,7 +144,7 @@ class Network:
         return facets
 
     def _calculate_simplex_dimension_distribution(self) -> EmpiricalDistribution:
-        """Return the estimated number of simplices for each dimension as a list.
+        """Return the estimated number of simplices for each dimension.
 
         Facets might have nonempty intersections which are estimated to be empty.
         """
@@ -150,12 +152,28 @@ class Network:
         return simplex_dimension_distribution
 
     def _calculate_facet_dimension_distribution(self) -> EmpiricalDistribution:
-        """Return the number of facets for each dimension as a list."""
+        """Return the number of facets for each dimension."""
         facet_dimension_distribution = self._calc_dimension_distribution(self.facets)
         return facet_dimension_distribution
 
+    def _calculate_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        vertices_in_interactions = np.array([
+            vertex_id
+            for interaction in self.interactions
+            for vertex_id in interaction
+        ])
+
+        degree_sequence = np.unique(
+            vertices_in_interactions,
+            return_counts=True
+        )[1]
+
+        interaction_degree_distribution = EmpiricalDistribution(list(degree_sequence))
+        return interaction_degree_distribution
+
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
-        """Return the number of interactions for each dimension as a list."""
+        """Return the number of interactions for each dimension."""
         interaction_dimension_distribution = self._calc_dimension_distribution(self.interactions)
         return interaction_dimension_distribution
 
@@ -276,3 +294,23 @@ class Network:
         if not self._simplex_dimension_distribution:
             self._simplex_dimension_distribution = self._calculate_simplex_dimension_distribution()
         return self._simplex_dimension_distribution
+
+    @ property
+    def vertex_positions(self) -> dict[int, tuple[float, ...]]:
+        """Return vertex positions to plot."""
+        return self._vertex_positions
+
+    @vertex_positions.setter
+    def vertex_positions(self, value: dict[int, tuple[float, ...]]) -> None:
+        """Setter of vertex positions."""
+        self._vertex_positions = value
+
+    @ property
+    def interaction_positions(self) -> dict[int, tuple[float, ...]]:
+        """Return interaction positions to plot."""
+        return self._interaction_positions
+
+    @interaction_positions.setter
+    def interaction_positions(self, value: dict[int, tuple[float, ...]]) -> None:
+        """Setter of interaction positions."""
+        self._interaction_positions = value
