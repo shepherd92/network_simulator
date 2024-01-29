@@ -53,6 +53,7 @@ class AgeDependentRandomSimplexModel(Model):
 
     def __init__(self) -> None:
         """Create a network model with default parameters."""
+        super().__init__()
         self._parameters = AgeDependentRandomSimplexModel.Parameters()
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:

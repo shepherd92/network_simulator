@@ -83,7 +83,8 @@ class Network:
 
     def add_simplices_batch(self, simplices: npt.NDArray[np.int]) -> None:
         """Add simplices to the simplicial complex in batch."""
-        # assert simplices.shape[1] - 1 <= self.max_dimension, f'Simplices have too high dimension {simplices.shape[1]}.'
+        # assert simplices.shape[1] - 1 <= self.max_dimension, \
+        #     f'Simplices have too high dimension {simplices.shape[1]}.'
         self.simplicial_complex.insert_batch(simplices.T, np.zeros((simplices.shape[0],)))
 
     def add_simplices(self, simplices: list[list[int]]) -> None:
@@ -283,10 +284,15 @@ class Network:
 
     @property
     def interactions(self) -> list[list[int]]:
-        """Get the simplices associated to the network."""
+        """Get network interactions."""
         if not self._interactions:
             return self.facets
         return self._interactions
+
+    @interactions.setter
+    def interactions(self, value: list[list[int]]) -> None:
+        """Setter for interactions."""
+        self._interactions = value
 
     @property
     def simplex_dimension_distribution(self) -> EmpiricalDistribution:

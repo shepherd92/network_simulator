@@ -105,8 +105,8 @@ class Model:
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        info = self.get_info_as_dict()
-        data_frame = pd.DataFrame(info, index=[0])
+        information = self.get_info_as_dict()
+        data_frame = pd.DataFrame(information, index=[0])
         data_frame.to_csv(save_path, index=False)
 
     def _simulate_base_properties(
@@ -117,10 +117,10 @@ class Model:
         num_of_processes: int
     ) -> list[list[Any]]:
 
-        global NUM_OF_SIMULATIONS
+        global NUM_OF_SIMULATIONS  # pylint: disable=global-statement
         NUM_OF_SIMULATIONS = num_of_simulations
 
-        global PROGRESS_BAR
+        global PROGRESS_BAR  # pylint: disable=global-statement
         PROGRESS_BAR = tqdm(total=NUM_OF_SIMULATIONS, desc='Simulation')
 
         if num_of_processes > 1:
@@ -220,8 +220,8 @@ class Model:
             property_values.append(property_value)
             # print(f'\nProperty value: {property_value}')
 
-        global SIMULATIONS_DONE
-        global PROGRESS_BAR
+        global SIMULATIONS_DONE  # pylint: disable=global-statement,global-variable-not-assigned
+        global PROGRESS_BAR  # pylint: disable=global-statement,global-variable-not-assigned
         with SIMULATIONS_DONE.get_lock():
             SIMULATIONS_DONE.value += 1
             PROGRESS_BAR.n = SIMULATIONS_DONE.value

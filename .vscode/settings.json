@@ -35,14 +35,14 @@
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": true,
     "python.linting.pylintPath": "~/venv/tda/bin/pylint",
-    "python.linting.pylintArgs": [
+    "pylint.args": [
         "--disable=F0401",
         "--max-line-length=120",
         "--extension-pkg-whitelist=scipy, gudhi"
     ],
-    "python.linting.flake8Enabled": false,
+    "python.linting.flake8Enabled": true,
     "python.linting.flake8Path": "~/venv/tda/bin/flake8",
-    "python.linting.flake8Args": [
+    "flake8.args": [
         "--max-line-length=120"
     ],
     "python.linting.mypyEnabled": false,

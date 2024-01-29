@@ -649,8 +649,8 @@ def _set_logarithmic_scale_limits(
     y_values: npt.NDArray[np.float_ | np.int_],
     axes: plt.Axes
 ) -> None:
-    axes.xaxis.get_label().get_text() + ' (log)'
-    axes.xaxis.get_label().get_text() + ' (log)'
+    axes.set_xlabel(axes.xaxis.get_label().get_text() + ' (log)')
+    axes.set_ylabel(axes.xaxis.get_label().get_text() + ' (log)')
     axes.set_xscale('log')
     axes.set_yscale('log')
 

@@ -26,6 +26,7 @@ class FiniteNetwork(Network):
         """Construct an empty network."""
         super().__init__(max_dimension)
         self._is_persistence_computed: bool = False
+        self._is_collapsed_persistence_computed: bool = False
         self._betti_numbers: npt.NDArray[np.int_] | None = None
         self._components: list[FiniteNetwork] | None = None
 
@@ -137,6 +138,8 @@ class FiniteNetwork(Network):
                 property_value = 0
             else:
                 property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2][0, 1]
+        elif property_type == BaseNetworkProperty.Type.NUM_OF_INTERACTIONS:
+            property_value = len(self.interactions)
         elif property_type == BaseNetworkProperty.Type.EDGES:
             property_value = np.array(self.graph.edges, dtype=int)
         elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
@@ -295,7 +298,7 @@ class FiniteNetwork(Network):
             debug(f'Collapsing network as it contains {collapsed_network.num_vertices} vertices.')
             collapsed_network = collapsed_network.collapse()
 
-        return collapsed_network._calculate_betti_numbers()
+        return collapsed_network._calculate_betti_numbers()  # pylint: disable=protected-access
 
     def _calculate_betti_numbers(self) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""

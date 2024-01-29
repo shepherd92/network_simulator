@@ -24,6 +24,7 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.Type.NUM_OF_NODES,
         BaseNetworkProperty.Type.NUM_OF_EDGES,
         BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
+        BaseNetworkProperty.Type.NUM_OF_INTERACTIONS,
         # BaseNetworkProperty.Type.EDGES,
         BaseNetworkProperty.Type.AVERAGE_DEGREE,
         BaseNetworkProperty.Type.MAX_DEGREE,
@@ -53,7 +54,7 @@ ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     max_simplex_dimension=20,
     component_index_from_largest=-1,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2024-12-31')),
-    fields=[ArxivField.engineering],
+    fields=[ArxivField.mathematics],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

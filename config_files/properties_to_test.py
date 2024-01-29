@@ -48,6 +48,10 @@ def _get_poisson_parameter(empirical_distribution: EmpiricalDistribution) -> flo
     return approximation.theoretical.parameters.lambda_
 
 
+def _get_mean(empirical_distribution: EmpiricalDistribution) -> float:
+    return empirical_distribution.value_sequence.mean()
+
+
 GAMMA = AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS.gamma
 
 
@@ -57,8 +61,8 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
     #     name='vertex_degree_exponent',
     #     source_base_property=BaseNetworkProperty(
     #         BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-    #         # BaseNetworkProperty.CalculationMethod.NETWORK,
-    #         BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+    #         BaseNetworkProperty.CalculationMethod.NETWORK,
+    #         # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
     #     ),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
     #     fitting_parameters=create_fitting_parameters_normal(),
@@ -69,8 +73,8 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
     #     name='edge_degree_exponent',
     #     source_base_property=BaseNetworkProperty(
     #         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-    #         # BaseNetworkProperty.CalculationMethod.NETWORK,
-    #         BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+    #         BaseNetworkProperty.CalculationMethod.NETWORK,
+    #         # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
     #     ),
     #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
     #     fitting_parameters=create_fitting_parameters_normal(),
@@ -89,6 +93,14 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
     #     calculator_default=_get_power_law_exponent_model,
     #     calculator_data_set=_get_power_law_exponent_data_set,
     # ),
+    DerivedNetworkProperty(
+        name='average_interaction_degree_normal_mle',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=create_fitting_parameters_normal(),
+        calculator_default=_get_mean,
+        calculator_data_set=_get_mean,
+    ),
     DerivedNetworkProperty(
         name='num_of_edges_normal_mle',
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.NUM_OF_EDGES),
@@ -163,32 +175,32 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
             ),
         ),
     ),
-    DerivedNetworkProperty(
-        name='betti_number_0_normal',
-        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
-        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=lambda betti_numbers: betti_numbers[0, 1],
-    ),
-    DerivedNetworkProperty(
-        name='betti_number_0_stable',
-        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
-        theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-        fitting_parameters=StableDistribution.FittingParameters(
-            StableDistribution.DomainCalculation(),
-            StableDistribution.ParameterFitting(
-                StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
-                    # alpha=min(1 / GAMMA, 2.),
-                    alpha=np.nan,
-                    beta=-1.,
-                    location=np.nan,
-                    scale=np.nan
-                ),
-            ),
-        ),
-        calculator_default=lambda betti_numbers: betti_numbers[0, 1],
-    ),
+    # DerivedNetworkProperty(
+    #     name='betti_number_0_normal',
+    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+    #     fitting_parameters=create_fitting_parameters_normal(),
+    #     calculator_default=lambda betti_numbers: betti_numbers[0, 1],
+    # ),
+    # DerivedNetworkProperty(
+    #     name='betti_number_0_stable',
+    #     source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+    #     fitting_parameters=StableDistribution.FittingParameters(
+    #         StableDistribution.DomainCalculation(),
+    #         StableDistribution.ParameterFitting(
+    #             StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+    #             StableDistribution.Parameters(
+    #                 # alpha=min(1 / GAMMA, 2.),
+    #                 alpha=np.nan,
+    #                 beta=-1.,
+    #                 location=np.nan,
+    #                 scale=np.nan
+    #             ),
+    #         ),
+    #     ),
+    #     calculator_default=lambda betti_numbers: betti_numbers[0, 1],
+    # ),
     DerivedNetworkProperty(
         name='betti_number_1_normal',
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),

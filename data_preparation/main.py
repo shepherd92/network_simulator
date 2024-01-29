@@ -52,38 +52,63 @@ model_sample_for_data_directories = {
 }
 
 degree_distribution_directories = {
+    # '10':       input_base_path / '20230614_165042',
+    # '100':      input_base_path / '20230614_165118',
+    # '1000':     input_base_path / '20230614_165434',
+    # '10000':    input_base_path / '20230614_170118',
+    # '100000':   input_base_path / '20230614_185624',
+    # 'infinite': input_base_path / '20230615_074249',
     '10':       input_base_path / '20230614_165042',
-    '100':      input_base_path / '20230614_165118',
-    '1000':     input_base_path / '20230614_165434',
-    '10000':    input_base_path / '20230614_170118',
-    '100000':   input_base_path / '20230614_185624',
-    'infinite': input_base_path / '20230615_074249',
+    '100':      input_base_path / '20240126_222418_100',
+    '1000':     input_base_path / '20240126_224543_1000',
+    '10000':    input_base_path / '20240126_234532_10000',
+    '100000':   input_base_path / '20240127_083444_100000',
 }
+
+# simplex_count_directories = {
+#     # the key is the value of gamma * 100
+#     '25': input_base_path / '20230801_200720',
+#     '40': input_base_path / '20230703_101414',
+#     '45': input_base_path / '20230703_130440',
+#     '50': input_base_path / '20230801_100128',
+#     '60': input_base_path / '20230731_124944',
+#     '75': input_base_path / '20230615_204859',
+# }
 
 simplex_count_directories = {
     # the key is the value of gamma * 100
-    '25': input_base_path / '20230801_200720',
-    '40': input_base_path / '20230703_101414',
-    '45': input_base_path / '20230703_130440',
-    '50': input_base_path / '20230801_100128',
-    '60': input_base_path / '20230731_124944',
-    '75': input_base_path / '20230615_204859',
+    '10_25': input_base_path / '20240127_192842_01_025_10000',
+    '10_50': input_base_path / '20240127_200537_01_050_10000',
+    '10_75': input_base_path / '20240127_205236_01_075_10000',
+    '30_25': input_base_path / '20240127_213800_03_025_10000',
+    '30_50': input_base_path / '20240127_213948_03_050_10000',
+    '30_75': input_base_path / '20240127_214024_03_075_10000',
 }
 
+# betti_number_directories = {
+#     # the key is the value of gamma * 100
+#     # '10': input_base_path / '20230608_191114',
+#     # '20': input_base_path / '20230608_191120',
+#     '25': input_base_path / '20230609_212258',  # 20230804_115431
+#     # '30': input_base_path / '20230608_191124',
+#     # '40': input_base_path / '20230608_191128',
+#     '50': input_base_path / '20230609_212245',  # 20230803_105044
+#     # '60': input_base_path / '20230608_205831',  # 20230803_100554
+#     '67': input_base_path / '20230809_173951',
+#     # '70': input_base_path / '20230608_205839',
+#     # '75': input_base_path / '20230609_142002',  # 20230804_115418
+#     # '80': input_base_path / '20230608_205845',
+#     # '90': input_base_path / '20230608_205850',
+# }
+
 betti_number_directories = {
-    # the key is the value of gamma * 100
-    # '10': input_base_path / '20230608_191114',
-    # '20': input_base_path / '20230608_191120',
-    '25': input_base_path / '20230609_212258',  # 20230804_115431
-    # '30': input_base_path / '20230608_191124',
-    # '40': input_base_path / '20230608_191128',
-    '50': input_base_path / '20230609_212245',  # 20230803_105044
-    # '60': input_base_path / '20230608_205831',  # 20230803_100554
-    '67': input_base_path / '20230809_173951',
-    # '70': input_base_path / '20230608_205839',
-    # '75': input_base_path / '20230609_142002',  # 20230804_115418
-    # '80': input_base_path / '20230608_205845',
-    # '90': input_base_path / '20230608_205850',
+    # the key is <gamma_prime*100>_<gamma*100>
+    '10_25': input_base_path / '20240127_192842_01_025_10000',
+    '10_50': input_base_path / '20240127_200537_01_050_10000',
+    '10_75': input_base_path / '20240127_205236_01_075_10000',
+    '30_25': input_base_path / '20240127_213800_03_025_10000',
+    '30_50': input_base_path / '20240127_213948_03_050_10000',
+    '30_75': input_base_path / '20240127_214024_03_075_10000',
 }
 
 hypothesis_testing_directories = {
@@ -101,14 +126,14 @@ def main() -> None:
     """Prepare all data for publication."""
     output_path.mkdir(parents=True, exist_ok=True)
 
-    prepare_data_analysis_data(data_analysis_directories, output_path)
-    prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
-    prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path)
-    prepare_model_analysis_data(model_sample_directory, output_path)
-    prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
+    # prepare_data_analysis_data(data_analysis_directories, output_path)
+    # prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
+    # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path)
+    # prepare_model_analysis_data(model_sample_directory, output_path)
+    # prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
     prepare_simulation_betti_number_data(betti_number_directories, output_path)
     prepare_simulation_simplex_count_data(simplex_count_directories, output_path)
-    prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path)
+    # prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path)
 
 
 def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -> None:
