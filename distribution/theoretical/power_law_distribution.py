@@ -48,7 +48,7 @@ class PowerLawDistribution(TheoreticalDistribution):
     class DeterministicDomain(DomainCalculation):
         """Deterministic domain calculation parameters."""
 
-        min_: float = 30.
+        min_: float = 10.
         max_: float = np.inf
 
     @dataclass

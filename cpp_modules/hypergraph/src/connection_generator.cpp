@@ -1,6 +1,8 @@
 #include <iostream>
 #include <numeric>
 #include <random>
+#include <tuple>
+#include <vector>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
@@ -8,258 +10,212 @@
 #include "model_parameters.h"
 #include "numpy_cpp_conversion.h"
 #include "point.h"
+#include "rectangle.h"
 
 namespace py = pybind11;
 
 bool is_close(const double first, const double second);
 
-std::vector<Point> create_nodes(const ModelParameters &model_parameters, const uint32_t seed);
-
-std::vector<double> generate_birth_times(const uint32_t num_nodes, const uint32_t seed);
-std::vector<std::vector<double>> generate_positions(
-    const ModelParameters &model_parameters,
+std::vector<Point> create_nodes(
+    const size_t num_of_nodes,
+    const double torus_size,
+    const float exponent,
     const uint32_t seed);
 
-std::vector<std::pair<int, int>> generate_network_connections(
+std::vector<float> generate_marks(const size_t num_nodes, const uint32_t seed);
+std::vector<float> generate_positions(
+    const size_t num_nodes,
+    const double torus_size,
+    const uint32_t seed);
+
+std::vector<std::pair<int, int>> generate_connections(
     const std::vector<Point> &nodes,
+    const std::vector<Point> &interactions,
     const bool is_finite,
     const ModelParameters &model_parameters,
     const uint32_t seed);
 
-py::array_t<int> generate_finite_network_connections_interface(
+std::vector<Rectangle> create_rectangles(
+    const double torus_size,
+    const uint32_t n_horizontal,
+    const uint32_t n_vertical);
+
+void fill_rectangles(
+    std::vector<Rectangle> &rectangles,
+    const std::vector<Point> &points,
+    const uint32_t n_cols);
+
+std::tuple<py::array_t<int>, py::array_t<float>, py::array_t<float>> generate_finite_network_connections_interface(
     const py::array_t<double> &model_parameters_input,
     const uint32_t seed)
 {
+    const auto RECTANGLE_GRID_ROWS{10U};
+    const auto RECTANGLE_GRID_COLS{10U};
     const auto model_parameters{ModelParameters(model_parameters_input)};
-    const auto nodes{create_nodes(model_parameters, seed)};
-    const auto connections{generate_network_connections(nodes, true, model_parameters, seed)};
 
-    return vector_of_pairs_to_numpy<int>(connections);
-}
-
-std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
-    const py::array_t<double> &model_parameters_input,
-    const uint32_t num_of_infinite_networks,
-    const uint32_t seed)
-{
-    auto model_parameters{ModelParameters(model_parameters_input)};
-    std::vector<py::array_t<int>> result{};
-    const auto a{model_parameters.alpha};
-    const auto b{model_parameters.beta};
-    const auto g{model_parameters.gamma};
-    const auto d{model_parameters.torus_dimension};
-
-    std::mt19937 random_number_generator{seed};
-
-    // expected number of incoming connections is: b / g * (u^(-g) - 1)
-    std::uniform_real_distribution<> uniform_distribution_u(1e-7, 1.);
-    std::uniform_real_distribution<> uniform_distribution(0., 1.);
-    std::normal_distribution<> normal_distribution(0., 1.);
-
-    for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
+    const auto nodes{create_nodes(model_parameters.num_of_nodes, model_parameters.torus_size, model_parameters.gamma, seed)};
+    auto vertex_rectangles{create_rectangles(model_parameters.torus_size, RECTANGLE_GRID_ROWS, RECTANGLE_GRID_COLS)};
+    for (auto &rectangle : vertex_rectangles)
     {
-        const auto u{uniform_distribution_u(random_number_generator)}; // birth time of the typical node
-
-        // generate nodes
-        std::vector<Point> nodes;
-        nodes.push_back(Point(u, Position(d, 0.)));
-
-        // generate older nodes which (u, 0) connects to
-        // w is a random variable that is later transformed to be the birth time
-        // there is a x0.5 due to parameter alpha, but there is a x2 as well due to +-
-        const auto w_intensity_older_nodes{a * b / (1. - g) * std::pow(u, g - 1.)};
-        std::exponential_distribution<> w_interarrival_time_distribution_older_nodes(w_intensity_older_nodes);
-        double w_older{w_interarrival_time_distribution_older_nodes(random_number_generator)};
-        while (w_older < std::pow(u, 1. - g))
-        {
-            // v: birth time of the neighbor of (u, 0)
-            const auto v{std::pow(w_older, 1. / (1. - g))};
-            const auto radius{std::pow(a * b * std::pow(v, -g) * std::pow(u, g - 1.), 1. / d)};
-
-            // generate point uniformly in the d dimensional sphere (Box-Mueller transform)
-            Position position(d);
-            auto norm{0.};
-            for (auto current_dimension{0U}; current_dimension < d; ++current_dimension)
-            {
-                const auto gaussian{normal_distribution(random_number_generator)};
-                position.push_back(gaussian);
-                norm += std::pow(gaussian, 2.);
-            }
-            norm = std::pow(norm, 0.5);
-
-            // normalize the vector then multiply with U^(1/d) * radius
-            for (auto &coordinate : position)
-            {
-                const auto random_number{uniform_distribution(random_number_generator)};
-                coordinate = radius * std::pow(random_number, 1. / d) * coordinate / norm;
-            }
-
-            // create point and save it
-            nodes.push_back(Point{v, position});
-            // increment w to arrive to the next birth time (before transformation)
-            w_older += w_interarrival_time_distribution_older_nodes(random_number_generator);
-        }
-
-        // generate younger nodes which connect to (u, 0)
-        // w is a random variable that is later transformed to be the birth time
-        const auto w_intensity_younger_nodes{a * b / g * std::pow(u, -g)};
-        std::exponential_distribution<> w_interarrival_time_distribution_younger_nodes{w_intensity_younger_nodes};
-        double w_younger{std::pow(u, g) + w_interarrival_time_distribution_younger_nodes(random_number_generator)};
-        while (w_younger < 1.)
-        {
-            // v: birth time of the neighbor of (u, 0)
-            const auto v{std::pow(w_younger, 1. / g)};
-
-            const auto radius{std::pow(a * b * std::pow(u, -g) * std::pow(v, g - 1.), 1. / d)};
-
-            // generate point uniformly in the d dimensional sphere (Box-Mueller transform)
-            Position position(d);
-            auto norm{0.};
-            for (auto current_dimension{0U}; current_dimension < d; ++current_dimension)
-            {
-                const auto gaussian{normal_distribution(random_number_generator)};
-                position.push_back(gaussian);
-                norm += std::pow(gaussian, 2.);
-            }
-            norm = std::pow(norm, 0.5);
-
-            // normalize the vector then multiply with U^(1/d) * radius
-            for (auto &coordinate : position)
-            {
-                const auto random_number{uniform_distribution(random_number_generator)};
-                coordinate = radius * std::pow(random_number, 1. / d) * coordinate / norm;
-            }
-            // create point and save it
-            nodes.push_back(Point{v, position});
-            // increment w to arrive to the next birth time (before transformation)
-            w_younger += w_interarrival_time_distribution_younger_nodes(random_number_generator);
-        }
-
-        const auto connections{generate_network_connections(nodes, false, model_parameters, seed)};
-        result.push_back(vector_of_pairs_to_numpy<int>(connections));
+        rectangle.set_exponent(model_parameters.gamma);
     }
-    return result;
+    fill_rectangles(vertex_rectangles, nodes, RECTANGLE_GRID_COLS);
+
+    const auto interactions{create_nodes(model_parameters.num_of_interactions, model_parameters.torus_size, model_parameters.gamma_prime, seed + 2U)};
+    auto interaction_rectangles{create_rectangles(model_parameters.torus_size, RECTANGLE_GRID_ROWS, RECTANGLE_GRID_COLS)};
+    for (auto &rectangle : interaction_rectangles)
+    {
+        rectangle.set_exponent(model_parameters.gamma_prime);
+    }
+    fill_rectangles(interaction_rectangles, interactions, RECTANGLE_GRID_COLS);
+
+    const auto connections{generate_connections(nodes, interactions, true, model_parameters, seed)};
+
+    const auto return_value_1{vector_of_pairs_to_numpy<int>(connections)};
+
+    std::vector<std::pair<float, float>> node_mark_position_pairs{};
+    node_mark_position_pairs.reserve(model_parameters.num_of_nodes);
+    for (const auto &node : nodes)
+    {
+        node_mark_position_pairs.push_back(std::make_pair(node.mark(), node.position()));
+    }
+    const auto return_value_2{vector_of_pairs_to_numpy<float>(node_mark_position_pairs)};
+
+    std::vector<std::pair<float, float>> interaction_mark_position_pairs{};
+    interaction_mark_position_pairs.reserve(model_parameters.num_of_interactions);
+    for (const auto &interaction : interactions)
+    {
+        interaction_mark_position_pairs.push_back(std::make_pair(interaction.mark(), interaction.position()));
+    }
+    const auto return_value_3{vector_of_pairs_to_numpy<float>(interaction_mark_position_pairs)};
+
+    return std::make_tuple(std::move(return_value_1), std::move(return_value_2), std::move(return_value_3));
 }
 
-std::vector<Point> create_nodes(const ModelParameters &model_parameters, const uint32_t seed)
+std::vector<Point> create_nodes(const size_t num_of_nodes, const double torus_size, const float exponent, const uint32_t seed)
 {
-    std::vector<uint32_t> node_ids{model_parameters.num_of_nodes};
-    std::iota(node_ids.begin(), node_ids.end(), 0U);
-    const auto birth_times{generate_birth_times(model_parameters.num_of_nodes, seed)};
-    const auto positions{generate_positions(model_parameters, seed + 1U)};
+    std::vector<uint32_t> node_ids(num_of_nodes, 0U);
+    const auto marks{generate_marks(num_of_nodes, seed)};
+    const auto positions{generate_positions(num_of_nodes, torus_size, seed + 1U)};
 
     std::uniform_real_distribution<> uniform_distribution_u(0., 1.);
     std::mt19937 random_number_generator{seed};
 
     std::vector<Point> nodes{};
-    nodes.reserve(model_parameters.num_of_nodes);
-    for (auto index{0U}; index < model_parameters.num_of_nodes; ++index)
+    nodes.reserve(num_of_nodes);
+    for (auto index{0U}; index < num_of_nodes; ++index)
     {
-        nodes.push_back(Point(birth_times[index], positions[index]));
+        nodes.push_back(Point(index, marks[index], positions[index], exponent));
     }
 
     return nodes;
 }
 
-std::vector<double> generate_birth_times(const uint32_t num_nodes, const uint32_t seed)
+std::vector<float> generate_marks(const size_t num_nodes, const uint32_t seed)
 {
     std::mt19937 random_number_generator{seed};
-    std::uniform_real_distribution<> uniform_distribution(0., 1.);
-    std::vector<double> birth_times{};
-    birth_times.reserve(num_nodes);
+    std::uniform_real_distribution<float> uniform_distribution(0., 1.);
+    std::vector<float> marks(num_nodes, 0.0);
 
     for (auto i{0U}; i < num_nodes; ++i)
     {
-        birth_times.push_back(uniform_distribution(random_number_generator));
+        marks.at(i) = uniform_distribution(random_number_generator);
     }
 
-    std::sort(birth_times.begin(), birth_times.end());
+    std::sort(marks.begin(), marks.end());
 
-    return birth_times;
+    return marks;
 }
 
-std::vector<double> generate_positions(
-    const ModelParameters &model_parameters,
+std::vector<float> generate_positions(
+    const size_t num_of_nodes,
+    const double torus_size,
     const uint32_t seed)
 {
     std::mt19937 random_number_generator{seed};
-    std::uniform_real_distribution<double> uniform_distribution(
-        -model_parameters.torus_size_in_1_dimension / 2.,
-        +model_parameters.torus_size_in_1_dimension / 2.);
+    std::uniform_real_distribution<float> uniform_distribution(
+        -torus_size / 2., +torus_size / 2.);
 
-    std::vector<double> positions{};
-    positions.reserve(model_parameters.num_of_nodes);
-    for (auto i{0U}; i < model_parameters.num_of_nodes; ++i)
+    std::vector<float> positions(num_of_nodes, 0.0);
+    for (auto i{0U}; i < num_of_nodes; ++i)
     {
-        double coordinate{uniform_distribution(random_number_generator)};
-        positions.push_back(coordinate);
+        positions.at(i) = uniform_distribution(random_number_generator);
     }
 
     return positions;
 }
 
-std::vector<std::pair<int, int>> generate_network_connections(
-    const std::vector<Point> &nodes,
+std::vector<std::pair<int, int>> generate_connections(
+    const std::vector<Rectangle> &vertex_rectangles,
+    const std::vector<Rectangle> &interaction_rectangles,
     const bool is_finite,
     const ModelParameters &model_parameters,
     const uint32_t seed)
 {
-    // create aliases
-    const auto a{model_parameters.alpha};
-    const auto is_default_a{is_close(a, 0.5)};
-    const auto b{model_parameters.beta};
-    const auto g{model_parameters.gamma};
-    const auto d{model_parameters.torus_dimension};
-    const auto num_of_nodes{nodes.size()};
-
     static std::mt19937 random_number_generator{seed};
-
-    std::uniform_real_distribution<> uniform_distribution(0., 1.);
     std::vector<std::pair<int, int>> connections{};
+
     auto counter{0U};
-    for (auto target_node_id{0U}; target_node_id < num_of_nodes; ++target_node_id)
+    for (const auto &interaction_rectangle : interaction_rectangles)
     {
-        const auto &target_node{nodes[target_node_id]};
-        const auto s{target_node.birth_time()};
-
-        const auto size_of_neighborhood{std::pow((a * b / s), 1. / d)};
-
-        for (auto source_node_id{target_node_id + 1U}; source_node_id < num_of_nodes; ++source_node_id)
+        for (const auto &vertex_rectangle : vertex_rectangles)
         {
-            const auto &source_node{nodes[source_node_id]};
-            const auto distance{
-                is_finite ? source_node.torus_distance(target_node, model_parameters.torus_size_in_1_dimension) : source_node.distance(target_node)};
-            if (distance > size_of_neighborhood)
+            if (can_connect(
+                    interaction_rectangle,
+                    vertex_rectangle,
+                    model_parameters.beta,
+                    model_parameters.torus_size,
+                    is_finite))
             {
-                continue;
-            }
-
-            const auto t{source_node.birth_time()};
-            const auto max_distance_of_connection{
-                std::pow((a * b / t) * std::pow(t / s, g), 1. / d)};
-
-            if (distance < max_distance_of_connection)
-            {
-                if (is_default_a)
-                {
-                    connections.push_back(std::pair(source_node_id, target_node_id));
-                }
-                else
-                {
-                    const auto random_number{uniform_distribution(random_number_generator)};
-                    if (random_number < 1 / (2. * a))
-                    {
-                        connections.push_back(std::pair(source_node_id, target_node_id));
-                    }
-                }
+                const auto new_connections{calc_connected_point_pairs(
+                    interaction_rectangle.points(),
+                    vertex_rectangle.points(),
+                    model_parameters.beta,
+                    model_parameters.torus_size,
+                    is_finite)};
+                connections.insert(connections.end(), new_connections.begin(), new_connections.end());
             }
         }
-        if (counter % 10000 == 0 && num_of_nodes > 1000000U)
-        {
-            std::cout << "\rGenerating connections: " << counter << " / " << num_of_nodes;
-        }
+        std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
         ++counter;
     }
-    // std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes << std::endl;
     return connections;
+}
+
+std::vector<Rectangle> create_rectangles(const double torus_size, const uint32_t n_cols, const uint32_t n_rows)
+{
+    const auto column_width{torus_size / n_cols};
+    const auto row_height{1. / n_rows};
+
+    std::vector<Rectangle> rectangles{};
+    rectangles.reserve(n_rows * n_cols);
+    for (auto row{0U}; row < n_rows; ++row)
+    {
+        for (auto column{0U}; column < n_cols; ++column)
+        {
+            rectangles.push_back(Rectangle(
+                row * row_height,
+                (row + 1U) * row_height,
+                column * column_width - torus_size / 2,
+                (column + 1U) * column_width - torus_size / 2));
+        }
+    }
+    return rectangles;
+}
+
+void fill_rectangles(
+    std::vector<Rectangle> &rectangles,
+    const std::vector<Point> &points,
+    const uint32_t n_cols)
+{
+    const auto row_height{rectangles[0].top() - rectangles[0].bottom()};
+    const auto column_width{rectangles[0].right() - rectangles[0].left()};
+    const auto min_position{rectangles[0].left()};
+
+    for (const auto &point : points)
+    {
+        const auto row_index{static_cast<uint32_t>(point.mark() / row_height)};
+        const auto column_index{static_cast<uint32_t>((point.position() - min_position) / column_width)};
+        rectangles[row_index * n_cols + column_index].add_point(point);
+    }
 }

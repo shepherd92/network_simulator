@@ -8,8 +8,10 @@ from logging import info
 
 import numpy as np
 import numpy.typing as npt
+import pandas as pd
 from tqdm import tqdm
 
+from cpp_modules.build.hypergraph import generate_finite_network_connections
 from data_set.data_set import DataSet
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -40,15 +42,11 @@ class AgeDependentRandomHypergraphModel(Model):
         def to_numpy(self) -> npt.NDArray[np.float_]:
             """Return the parameters as a numpy array."""
             return np.array([
-                self.max_dimension,
-                self.network_size,
                 self.num_of_nodes,
                 self.num_of_interactions,
-                self.interaction_intensity,
                 self.beta,
                 self.gamma,
                 self.gamma_prime,
-                self.torus_dimension,
                 self.torus_size_in_1_dimension,
             ])
 
@@ -88,7 +86,7 @@ class AgeDependentRandomHypergraphModel(Model):
         # pylint: enable=attribute-defined-outside-init
 
         print('\n'.join([
-            '\nADRCM model paramerers after setting from data set:',
+            '\nHypergraph model parameters after setting from data set:',
             f'size                  = {self._parameters.network_size}',
             f'max_dim               = {self._parameters.max_dimension}',
             f'interaction_intensity = {self._parameters.interaction_intensity:4f}',
@@ -103,17 +101,35 @@ class AgeDependentRandomHypergraphModel(Model):
         assert isinstance(self.parameters, AgeDependentRandomHypergraphModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
 
-        self._random_number_generator = np.random.default_rng(seed)
         self.parameters.torus_size_in_1_dimension = \
             self.parameters.network_size ** (1. / self.parameters.torus_dimension)
+        self.parameters.num_of_nodes = self._random_number_generator.poisson(lam=self.parameters.network_size)
 
-        node_birth_times, node_positions = self._create_vertex_points()
-        interaction_birth_times, interaction_positions = self._create_interaction_points()
+        self.parameters.num_of_interactions = self._random_number_generator.poisson(
+            lam=self.parameters.network_size * self.parameters.interaction_intensity
+        )
+
+        if self.parameters.torus_dimension == 1:
+            connections, nodes, interactions = generate_finite_network_connections(self.parameters.to_numpy(), seed)
+            node_birth_times, node_positions = nodes[:, 0], nodes[:, 1]
+            interaction_birth_times, interaction_positions = interactions[:, 0], interactions[:, 1]
+            interactions = pd.DataFrame(
+                connections, columns=['interaction_id', 'vertex_id']
+            ).groupby('interaction_id')['vertex_id'].apply(list).tolist()
+            # interactions = [
+            #     list(connections[connections[:, 0] == interaction_id][:, 1])
+            #     for interaction_id in np.unique(connections[:, 0])
+            # ]
+        else:
+            self._random_number_generator = np.random.default_rng(seed)
+            node_birth_times, node_positions = self._create_vertex_points()
+            interaction_birth_times, interaction_positions = self._create_interaction_points()
+            interactions = self.generate_finite_network_interactions(
+                node_birth_times, node_positions, interaction_birth_times, interaction_positions
+            )
 
         network = FiniteNetwork(self.parameters.max_dimension)
-        network.interactions = self.generate_finite_network_interactions(
-            node_birth_times, node_positions, interaction_birth_times, interaction_positions
-        )
+        network.interactions = interactions
 
         network.vertex_positions = self._create_vertex_positions_dict(node_positions, node_birth_times)
         network.interaction_positions = self._create_interaction_positions_dict(
@@ -198,9 +214,6 @@ class AgeDependentRandomHypergraphModel(Model):
         return node_birth_times, node_positions
 
     def _create_interaction_points(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
-        self.parameters.num_of_interactions = self._random_number_generator.poisson(
-            lam=self.parameters.network_size * self.parameters.interaction_intensity
-        )
 
         interaction_birth_times = self._random_number_generator.random(size=self.parameters.num_of_interactions)
         interaction_positions = self._random_number_generator.uniform(

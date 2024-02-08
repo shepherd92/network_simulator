@@ -2,24 +2,27 @@
 #define _POINT_H_
 
 #include <cstdlib>
-#include <vector>
 
 class Point
 {
 public:
-    Point(const double birth_time, const double position);
+    Point(const int id, const float birth_time, const float position, const float minus_exponent);
 
-    inline double distance(const Point &other) const;
-    inline double torus_distance(const Point &other, const double torus_size) const;
+    bool connects(const Point &other, const float torus_size, const float beta, const bool is_finite) const;
 
-    inline const double &birth_time() const;
-    inline const double &position() const;
+    float distance(const Point &other) const;
+    float torus_distance(const Point &other, const float torus_size) const;
+
+    const int &id() const;
+    const float &mark() const;
+    const float &position() const;
+    const float &mark_to_gamma() const;
 
 private:
-    const double birth_time_;
-    const double position_;
+    const int id_;
+    const float mark_;
+    const float position_;
+    const float mark_to_gamma_;
 };
-
-#include "point.inl"
 
 #endif

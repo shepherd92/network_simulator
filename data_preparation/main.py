@@ -111,14 +111,20 @@ betti_number_directories = {
     '30_75': input_base_path / '20240127_214024_03_075_10000',
 }
 
+# hypothesis_testing_directories = {
+#     'computer_science': input_base_path / '20230807_181159',  # 20230712_075521
+#     'biology':          input_base_path / '20230710_164059',  # 20230710_164059
+#     'economics':        input_base_path / '20230710_162805',  # 20230710_162805
+#     'engineering':      input_base_path / '20230806_210326',  # 20230711_110334
+#     'finance':          input_base_path / '20230710_162239',  # 20230710_162239
+#     'mathematics':      input_base_path / '20230806_200515',  # 20230710_200618
+#     'statistics':       input_base_path / '20230806_205545',  # 20230710_143554
+# }
+
+
 hypothesis_testing_directories = {
-    'computer_science': input_base_path / '20230807_181159',  # 20230712_075521
-    'biology':          input_base_path / '20230710_164059',  # 20230710_164059
-    'economics':        input_base_path / '20230710_162805',  # 20230710_162805
-    'engineering':      input_base_path / '20230806_210326',  # 20230711_110334
-    'finance':          input_base_path / '20230710_162239',  # 20230710_162239
-    'mathematics':      input_base_path / '20230806_200515',  # 20230710_200618
-    'statistics':       input_base_path / '20230806_205545',  # 20230710_143554
+    'mathematics':      input_base_path / '20240206_131744_hyp_math',
+    'statistics':       input_base_path / '20240129_205231_hyp_stat',
 }
 
 
@@ -133,7 +139,7 @@ def main() -> None:
     # prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
     prepare_simulation_betti_number_data(betti_number_directories, output_path)
     prepare_simulation_simplex_count_data(simplex_count_directories, output_path)
-    # prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path)
+    prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path)
 
 
 def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -> None:

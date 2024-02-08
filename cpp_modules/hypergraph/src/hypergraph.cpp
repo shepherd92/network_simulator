@@ -10,8 +10,4 @@ PYBIND11_MODULE(hypergraph, m)
         "generate_finite_network_connections",
         &generate_finite_network_connections_interface,
         "Generate connections for the hypergraph model.");
-    m.def(
-        "generate_infinite_network_connections",
-        &generate_infinite_network_connections_interface,
-        "Generate connections for the hypergraph model.");
 }

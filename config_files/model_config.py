@@ -23,7 +23,7 @@ class ModelConfig:
         """Model analysis configuration."""
 
         component_index_from_largest: int = -1
-        plot: bool = True
+        plot: bool = False
         set_params_from_data_set: bool = False
         num_of_infinite_networks: int = 0
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
@@ -70,7 +70,7 @@ class ModelConfig:
         """Model testing configuration for networks."""
 
         test_against_data_set: bool = True
-        num_of_simulations: int = 100
+        num_of_simulations: int = 1
         num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
@@ -91,8 +91,8 @@ AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.P
 
 # ==============================================================================
 AGE_DEPENDENT_RANDOM_HYPERGRAPH_MODEL_PARAMETERS = AgeDependentRandomHypergraphModel.Parameters(
-    max_dimension=1,
-    network_size=100000,  # expected number of nodes
+    max_dimension=2,
+    network_size=100,  # expected number of nodes
     interaction_intensity=1.,  # expected number of interactions = network_size * interaction_intensity
     torus_dimension=1,
     beta=1.0,

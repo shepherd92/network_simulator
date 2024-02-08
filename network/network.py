@@ -89,7 +89,7 @@ class Network:
 
     def add_simplices(self, simplices: list[list[int]]) -> None:
         """Insert a simplex to the simplicial complex."""
-        for simplex in tqdm(simplices, desc='Adding simplices', delay=10):
+        for simplex in tqdm(simplices, desc='Adding simplices', delay=10, leave=False):
             self.add_simplex(simplex)
 
     def add_simplex(self, simplex: list[int]) -> None:
