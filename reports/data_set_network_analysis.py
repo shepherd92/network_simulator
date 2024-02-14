@@ -107,7 +107,7 @@ def analyze_data_set_network(
     #     save_directory
     # )
     _report_interaction_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
@@ -311,7 +311,7 @@ def _report_interaction_dimension_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'interaction_dimension_distribution')
-    plot_value_counts(empirical_distribution.calc_value_counts(), axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Interaction dimension distribution')
 
 
@@ -330,7 +330,7 @@ def _report_interaction_degree_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'interaction_degree_distribution')
-    plot_approximation_value_counts_log(empirical_distribution.calc_value_counts(), axes)
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Interaction degree distribution')
 
 

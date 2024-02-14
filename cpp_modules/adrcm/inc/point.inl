@@ -42,7 +42,7 @@ inline double Point::torus_distance_1d(const Point &other, const double torus_si
     const auto this_position{position()};
     const auto that_position{other.position()};
 
-    const auto distance_inside{abs(this_position[0] - that_position[0])};
+    const auto distance_inside{fabs(this_position[0] - that_position[0])};
 
     const auto distance{
         distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside};
@@ -54,7 +54,7 @@ inline double Point::distance_1d(const Point &other) const
 {
     const auto this_position{position()};
     const auto that_position{other.position()};
-    return abs(this_position[0] - that_position[0]);
+    return fabs(this_position[0] - that_position[0]);
 }
 
 inline double Point::distance_general(const Point &other) const

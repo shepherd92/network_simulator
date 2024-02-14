@@ -1,12 +1,12 @@
 #include <iostream>
 #include <numeric>
-#include <random>
 #include <tuple>
 #include <vector>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 
 #include "connection_generator.h"
+#include "globals.h"
 #include "model_parameters.h"
 #include "numpy_cpp_conversion.h"
 #include "point.h"
@@ -19,21 +19,18 @@ bool is_close(const double first, const double second);
 std::vector<Point> create_nodes(
     const size_t num_of_nodes,
     const double torus_size,
-    const float exponent,
-    const uint32_t seed);
+    const float exponent);
 
-std::vector<float> generate_marks(const size_t num_nodes, const uint32_t seed);
+std::vector<float> generate_marks(const size_t num_nodes);
 std::vector<float> generate_positions(
     const size_t num_nodes,
-    const double torus_size,
-    const uint32_t seed);
+    const double torus_size);
 
 std::vector<std::pair<int, int>> generate_connections(
-    const std::vector<Point> &nodes,
-    const std::vector<Point> &interactions,
+    const std::vector<Rectangle> &vertex_rectangles,
+    const std::vector<Rectangle> &interaction_rectangles,
     const bool is_finite,
-    const ModelParameters &model_parameters,
-    const uint32_t seed);
+    const ModelParameters &model_parameters);
 
 std::vector<Rectangle> create_rectangles(
     const double torus_size,
@@ -49,19 +46,13 @@ std::tuple<py::array_t<int>, py::array_t<float>, py::array_t<float>> generate_fi
     const py::array_t<double> &model_parameters_input,
     const uint32_t seed)
 {
-    const auto RECTANGLE_GRID_ROWS{10U};
-    const auto RECTANGLE_GRID_COLS{10U};
+    const auto RECTANGLE_GRID_ROWS{5U};
+    const auto RECTANGLE_GRID_COLS{5U};
     const auto model_parameters{ModelParameters(model_parameters_input)};
 
-    const auto nodes{create_nodes(model_parameters.num_of_nodes, model_parameters.torus_size, model_parameters.gamma, seed)};
-    auto vertex_rectangles{create_rectangles(model_parameters.torus_size, RECTANGLE_GRID_ROWS, RECTANGLE_GRID_COLS)};
-    for (auto &rectangle : vertex_rectangles)
-    {
-        rectangle.set_exponent(model_parameters.gamma);
-    }
-    fill_rectangles(vertex_rectangles, nodes, RECTANGLE_GRID_COLS);
+    random_number_generator.seed(seed);
 
-    const auto interactions{create_nodes(model_parameters.num_of_interactions, model_parameters.torus_size, model_parameters.gamma_prime, seed + 2U)};
+    const auto interactions{create_nodes(model_parameters.num_of_interactions, model_parameters.torus_size, model_parameters.gamma_prime)};
     auto interaction_rectangles{create_rectangles(model_parameters.torus_size, RECTANGLE_GRID_ROWS, RECTANGLE_GRID_COLS)};
     for (auto &rectangle : interaction_rectangles)
     {
@@ -69,17 +60,17 @@ std::tuple<py::array_t<int>, py::array_t<float>, py::array_t<float>> generate_fi
     }
     fill_rectangles(interaction_rectangles, interactions, RECTANGLE_GRID_COLS);
 
-    const auto connections{generate_connections(nodes, interactions, true, model_parameters, seed)};
+    const auto nodes{create_nodes(model_parameters.num_of_nodes, model_parameters.torus_size, model_parameters.gamma)};
+    auto vertex_rectangles{create_rectangles(model_parameters.torus_size, RECTANGLE_GRID_ROWS, RECTANGLE_GRID_COLS)};
+    for (auto &rectangle : vertex_rectangles)
+    {
+        rectangle.set_exponent(model_parameters.gamma);
+    }
+    fill_rectangles(vertex_rectangles, nodes, RECTANGLE_GRID_COLS);
+
+    const auto connections{generate_connections(interaction_rectangles, vertex_rectangles, true, model_parameters)};
 
     const auto return_value_1{vector_of_pairs_to_numpy<int>(connections)};
-
-    std::vector<std::pair<float, float>> node_mark_position_pairs{};
-    node_mark_position_pairs.reserve(model_parameters.num_of_nodes);
-    for (const auto &node : nodes)
-    {
-        node_mark_position_pairs.push_back(std::make_pair(node.mark(), node.position()));
-    }
-    const auto return_value_2{vector_of_pairs_to_numpy<float>(node_mark_position_pairs)};
 
     std::vector<std::pair<float, float>> interaction_mark_position_pairs{};
     interaction_mark_position_pairs.reserve(model_parameters.num_of_interactions);
@@ -87,19 +78,26 @@ std::tuple<py::array_t<int>, py::array_t<float>, py::array_t<float>> generate_fi
     {
         interaction_mark_position_pairs.push_back(std::make_pair(interaction.mark(), interaction.position()));
     }
-    const auto return_value_3{vector_of_pairs_to_numpy<float>(interaction_mark_position_pairs)};
+    const auto return_value_2{vector_of_pairs_to_numpy<float>(interaction_mark_position_pairs)};
+
+    std::vector<std::pair<float, float>> node_mark_position_pairs{};
+    node_mark_position_pairs.reserve(model_parameters.num_of_nodes);
+    for (const auto &node : nodes)
+    {
+        node_mark_position_pairs.push_back(std::make_pair(node.mark(), node.position()));
+    }
+    const auto return_value_3{vector_of_pairs_to_numpy<float>(node_mark_position_pairs)};
 
     return std::make_tuple(std::move(return_value_1), std::move(return_value_2), std::move(return_value_3));
 }
 
-std::vector<Point> create_nodes(const size_t num_of_nodes, const double torus_size, const float exponent, const uint32_t seed)
+std::vector<Point> create_nodes(const size_t num_of_nodes, const double torus_size, const float exponent)
 {
     std::vector<uint32_t> node_ids(num_of_nodes, 0U);
-    const auto marks{generate_marks(num_of_nodes, seed)};
-    const auto positions{generate_positions(num_of_nodes, torus_size, seed + 1U)};
+    const auto marks{generate_marks(num_of_nodes)};
+    const auto positions{generate_positions(num_of_nodes, torus_size)};
 
     std::uniform_real_distribution<> uniform_distribution_u(0., 1.);
-    std::mt19937 random_number_generator{seed};
 
     std::vector<Point> nodes{};
     nodes.reserve(num_of_nodes);
@@ -111,9 +109,8 @@ std::vector<Point> create_nodes(const size_t num_of_nodes, const double torus_si
     return nodes;
 }
 
-std::vector<float> generate_marks(const size_t num_nodes, const uint32_t seed)
+std::vector<float> generate_marks(const size_t num_nodes)
 {
-    std::mt19937 random_number_generator{seed};
     std::uniform_real_distribution<float> uniform_distribution(0., 1.);
     std::vector<float> marks(num_nodes, 0.0);
 
@@ -129,10 +126,8 @@ std::vector<float> generate_marks(const size_t num_nodes, const uint32_t seed)
 
 std::vector<float> generate_positions(
     const size_t num_of_nodes,
-    const double torus_size,
-    const uint32_t seed)
+    const double torus_size)
 {
-    std::mt19937 random_number_generator{seed};
     std::uniform_real_distribution<float> uniform_distribution(
         -torus_size / 2., +torus_size / 2.);
 
@@ -146,13 +141,11 @@ std::vector<float> generate_positions(
 }
 
 std::vector<std::pair<int, int>> generate_connections(
-    const std::vector<Rectangle> &vertex_rectangles,
     const std::vector<Rectangle> &interaction_rectangles,
+    const std::vector<Rectangle> &vertex_rectangles,
     const bool is_finite,
-    const ModelParameters &model_parameters,
-    const uint32_t seed)
+    const ModelParameters &model_parameters)
 {
-    static std::mt19937 random_number_generator{seed};
     std::vector<std::pair<int, int>> connections{};
 
     auto counter{0U};
@@ -160,12 +153,14 @@ std::vector<std::pair<int, int>> generate_connections(
     {
         for (const auto &vertex_rectangle : vertex_rectangles)
         {
-            if (can_connect(
-                    interaction_rectangle,
-                    vertex_rectangle,
-                    model_parameters.beta,
-                    model_parameters.torus_size,
-                    is_finite))
+            const auto connections_possible{can_connect(
+                interaction_rectangle,
+                vertex_rectangle,
+                model_parameters.beta,
+                model_parameters.torus_size,
+                is_finite)};
+
+            if (connections_possible)
             {
                 const auto new_connections{calc_connected_point_pairs(
                     interaction_rectangle.points(),
@@ -176,8 +171,8 @@ std::vector<std::pair<int, int>> generate_connections(
                 connections.insert(connections.end(), new_connections.begin(), new_connections.end());
             }
         }
-        std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
         ++counter;
+        std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
     }
     return connections;
 }

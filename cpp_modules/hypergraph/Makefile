@@ -76,7 +76,8 @@ $(BLDDIR)/$(PROJECT)$(SHOBJEXT) : $(SRCS) | $(BLDDIR)
 	@touch $(BLDDIR)/__init__.py
 
 $(BLDDIR)/$(PROJECT)_test : $(BLDDIR)/$(PROJECT)_test.$(OBJEXT) | $(BLDDIR)
-	$(CXX) $(LDFLAGS) -lpython3.10 $(shell python3.10 -m pybind11 --includes) -l adrcm.cpython-310-x86_64-linux-gnu.so -L$(BLDDIR) $^ -o $@
+	@ln -sf $(BLDDIR)/hypergraph$(SHOBJEXT) $(BLDDIR)/libhypergraph$(SHOBJEXT)
+	$(CXX) $(LDFLAGS) $(shell python3.10 -m pybind11 --includes) -L$(BLDDIR) -l hypergraph.cpython-310-x86_64-linux-gnu $^ -o $@
 
 $(BLDDIR)/$(PROJECT)_test.$(OBJEXT) : $(TESTSRCS) | $(BLDDIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@

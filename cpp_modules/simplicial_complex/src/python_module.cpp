@@ -1,6 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "degree_sequence.h"
 #include "facet_finder.h"
 
 PYBIND11_MODULE(simplicial_complex, m)

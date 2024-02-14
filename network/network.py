@@ -3,7 +3,7 @@
 
 from __future__ import annotations
 
-from itertools import combinations
+from itertools import chain, combinations
 from pathlib import Path
 from typing import Any
 
@@ -137,7 +137,7 @@ class Network:
     def _extract_facets(self) -> list[list[int]]:
         """Return the facets of the simplicial complex."""
         if self._interactions:
-            print(f'Extracting facets from {len(self._interactions)} interactions.')
+            # print(f'Extracting facets from {len(self._interactions)} interactions.')
             facets: list[list[int]] = extract_facets(self._interactions)
         else:
             facets = list(nx.find_cliques(self.graph))
@@ -157,20 +157,14 @@ class Network:
         facet_dimension_distribution = self._calc_dimension_distribution(self.facets)
         return facet_dimension_distribution
 
-    def _calculate_interaction_degree_distribution(self) -> EmpiricalDistribution:
+    def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each vertex."""
-        vertices_in_interactions = np.array([
-            vertex_id
-            for interaction in self.interactions
-            for vertex_id in interaction
-        ])
+        vertices_in_interactions = np.array(list(chain(*self.interactions)))
+        degree_sequence = np.unique(vertices_in_interactions, return_counts=True)[1]
 
-        degree_sequence = np.unique(
-            vertices_in_interactions,
-            return_counts=True
-        )[1]
-
-        interaction_degree_distribution = EmpiricalDistribution(list(degree_sequence))
+        num_of_zero_degree_vertices = self.num_vertices - len(degree_sequence)
+        interaction_degree_distribution = EmpiricalDistribution(
+            list(degree_sequence) + [0] * num_of_zero_degree_vertices)
         return interaction_degree_distribution
 
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
@@ -285,8 +279,6 @@ class Network:
     @property
     def interactions(self) -> list[list[int]]:
         """Get network interactions."""
-        if not self._interactions:
-            return self.facets
         return self._interactions
 
     @interactions.setter

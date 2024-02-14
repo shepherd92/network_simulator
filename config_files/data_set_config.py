@@ -36,12 +36,16 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
         BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
         BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-        BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION,
+        BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
+        BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
+        BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
+        BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+        BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
-        # BaseNetworkProperty.Type.BETTI_NUMBERS,
-        # BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
+        BaseNetworkProperty.Type.BETTI_NUMBERS,
+        BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
         BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
         # BaseNetworkProperty.Type.PERSISTENCE,
         # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
@@ -54,7 +58,7 @@ ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     max_simplex_dimension=20,
     component_index_from_largest=-1,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2024-12-31')),
-    fields=[ArxivField.statistics],
+    fields=[ArxivField.finance],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

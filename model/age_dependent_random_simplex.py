@@ -14,10 +14,8 @@ from cpp_modules.build.adrcm import (
     generate_infinite_network_connections,
 )
 from data_set.data_set import DataSet
-from distribution.approximation import DistributionApproximation
+from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_fitting_parameters_power_law_data_set
-from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from model.model import Model
 from network.finite_network import FiniteNetwork
 from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
@@ -63,13 +61,8 @@ class AgeDependentRandomSimplexModel(Model):
         degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION
         )
-        approximation = DistributionApproximation(
-            degree_distribution,
-            TheoreticalDistribution.Type.POWER_LAW
-        )
-        fitting_parameters = create_fitting_parameters_power_law_data_set()
-        approximation.fit(fitting_parameters)
-        gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
+        exponent_guess = guess_power_law_exponent(degree_distribution)
+        gamma_guess = 1. / (exponent_guess - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 
         # pylint: disable=attribute-defined-outside-init

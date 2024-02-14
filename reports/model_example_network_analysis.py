@@ -112,7 +112,7 @@ def analyze_model_example_finite_network(
     #     save_directory
     # )
     _report_interaction_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )

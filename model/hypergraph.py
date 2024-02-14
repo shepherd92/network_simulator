@@ -13,17 +13,15 @@ from tqdm import tqdm
 
 from cpp_modules.build.hypergraph import generate_finite_network_connections
 from data_set.data_set import DataSet
-from distribution.approximation import DistributionApproximation
+from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.theoretical.power_law_distribution import PowerLawDistribution
-from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from model.model import Model
 from network.finite_network import FiniteNetwork
 from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 
 
-class AgeDependentRandomHypergraphModel(Model):
+class HypergraphModel(Model):
     """Class representing an age-dependent random hypergraph network model."""
 
     @dataclass
@@ -53,7 +51,7 @@ class AgeDependentRandomHypergraphModel(Model):
     def __init__(self) -> None:
         """Create a network model with default parameters."""
         super().__init__()
-        self._parameters = AgeDependentRandomHypergraphModel.Parameters()
+        self._parameters = HypergraphModel.Parameters()
         self._random_number_generator = np.random.default_rng()
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
@@ -64,17 +62,22 @@ class AgeDependentRandomHypergraphModel(Model):
         )
         interaction_intensity = num_of_interactions / num_of_nodes
 
-        author_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
-            BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION
+        vertex_interaction_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
+            BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION
         )
-        gamma_guess = self._guess_power_law_exponent(author_degree_distribution)
+        vertex_interaction_exponent = guess_power_law_exponent(vertex_interaction_degree_distribution)
+        gamma_guess = 1. / (vertex_interaction_exponent - 1.)
+        assert gamma_guess > 0. and gamma_guess < 1., f'gamma_guess = {gamma_guess}'
         document_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
             BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION
         )
-        gamma_prime_guess = self._guess_power_law_exponent(document_degree_distribution)
+        interaction_vertex_exponent = guess_power_law_exponent(document_degree_distribution)
+        gamma_prime_guess = 1. / (interaction_vertex_exponent - 1.)
+        assert gamma_prime_guess > 0. and gamma_prime_guess < 1., f'gamma_prime_guess = {gamma_prime_guess}'
 
-        average_author_degree = author_degree_distribution.value_sequence.mean()
-        beta_guess = 0.5 * average_author_degree * (1. - gamma_guess) * (1. - gamma_prime_guess) / interaction_intensity
+        average_vertex_interaction_degree = vertex_interaction_degree_distribution.value_sequence.mean()
+        beta_guess = 0.5 * average_vertex_interaction_degree * \
+            (1. - gamma_guess) * (1. - gamma_prime_guess) / interaction_intensity
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension
@@ -98,7 +101,7 @@ class AgeDependentRandomHypergraphModel(Model):
     def generate_finite_network(self, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
-        assert isinstance(self.parameters, AgeDependentRandomHypergraphModel.Parameters), \
+        assert isinstance(self.parameters, HypergraphModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
 
         self.parameters.torus_size_in_1_dimension = \
@@ -110,16 +113,12 @@ class AgeDependentRandomHypergraphModel(Model):
         )
 
         if self.parameters.torus_dimension == 1:
-            connections, nodes, interactions = generate_finite_network_connections(self.parameters.to_numpy(), seed)
+            connections, interactions, nodes = generate_finite_network_connections(self.parameters.to_numpy(), seed)
             node_birth_times, node_positions = nodes[:, 0], nodes[:, 1]
             interaction_birth_times, interaction_positions = interactions[:, 0], interactions[:, 1]
             interactions = pd.DataFrame(
                 connections, columns=['interaction_id', 'vertex_id']
             ).groupby('interaction_id')['vertex_id'].apply(list).tolist()
-            # interactions = [
-            #     list(connections[connections[:, 0] == interaction_id][:, 1])
-            #     for interaction_id in np.unique(connections[:, 0])
-            # ]
         else:
             self._random_number_generator = np.random.default_rng(seed)
             node_birth_times, node_positions = self._create_vertex_points()
@@ -172,32 +171,10 @@ class AgeDependentRandomHypergraphModel(Model):
             profile_function_argument = distances_d / self.parameters.beta \
                 * node_birth_times**(self.parameters.gamma) \
                 * interaction_birth_time**(self.parameters.gamma_prime)
-            interaction_members = np.where(profile_function_argument < 0.5)[0]
+            interaction_members = np.where(profile_function_argument < 1.)[0]
             interactions.append(interaction_members.tolist())
 
         return interactions
-
-    def _guess_power_law_exponent(self, distribution: EmpiricalDistribution) -> float:
-        """Guess the value of parameter gamma."""
-        approximation = DistributionApproximation(
-            distribution,
-            TheoreticalDistribution.Type.POWER_LAW
-        )
-        fitting_parameters = PowerLawDistribution.FittingParameters(
-            PowerLawDistribution.DeterministicDomain(
-                PowerLawDistribution.DomainCalculation.Method.DETERMINISTIC,
-                min_=5.,
-                max_=np.inf,
-            ),
-            PowerLawDistribution.ParameterFitting(
-                PowerLawDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
-                PowerLawDistribution.Parameters(),
-            )
-        )
-        approximation.fit(fitting_parameters)
-
-        guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
-        return guess
 
     def _create_vertex_points(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
 
@@ -286,7 +263,7 @@ class AgeDependentRandomHypergraphModel(Model):
 
     def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
         """Convert a tuple to ModelParamters. Used for model optimization."""
-        self.parameters = AgeDependentRandomHypergraphModel.Parameters(*parameters_tuple)
+        self.parameters = HypergraphModel.Parameters(*parameters_tuple)
 
     def get_info_as_dict(self) -> dict[str, int | float]:
         """Return a dict representation based on the model properties."""
@@ -302,10 +279,10 @@ class AgeDependentRandomHypergraphModel(Model):
         }
 
     @property
-    def parameters(self) -> AgeDependentRandomHypergraphModel.Parameters:
+    def parameters(self) -> HypergraphModel.Parameters:
         """Return the parameters of the network model."""
         return self._parameters
 
     @parameters.setter
-    def parameters(self, value: AgeDependentRandomHypergraphModel.Parameters) -> None:
+    def parameters(self, value: HypergraphModel.Parameters) -> None:
         self._parameters = value

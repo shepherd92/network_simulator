@@ -118,12 +118,6 @@ def main(mode: Mode, configuration: Configuration) -> None:
                 property_params.theoretical_approximation_type
             )
 
-            # fix the alpha parameter of the stable distributions if the model is the ADRCM
-            if property_params.theoretical_approximation_type == TheoreticalDistribution.Type.STABLE \
-                    and model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
-                property_params.fitting_parameters.parameter_fitting.fixed_parameters.alpha = \
-                    min(1 / model.parameters.gamma, 2.)
-
             distribution_pair.fit(property_params.fitting_parameters)
 
             data_set_value = data_set.calc_scalar_property(property_params) \

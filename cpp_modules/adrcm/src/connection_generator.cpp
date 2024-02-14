@@ -5,6 +5,7 @@
 #include <pybind11/numpy.h>
 
 #include "connection_generator.h"
+#include "globals.h"
 #include "model_parameters.h"
 #include "numpy_cpp_conversion.h"
 #include "point.h"
@@ -13,26 +14,25 @@ namespace py = pybind11;
 
 bool is_close(const double first, const double second);
 
-std::vector<Point> create_nodes(const ModelParameters &model_parameters, const uint32_t seed);
+std::vector<Point> create_nodes(const ModelParameters &model_parameters);
 
-std::vector<double> generate_birth_times(const uint32_t num_nodes, const uint32_t seed);
+std::vector<double> generate_birth_times(const uint32_t num_nodes);
 std::vector<std::vector<double>> generate_positions(
-    const ModelParameters &model_parameters,
-    const uint32_t seed);
+    const ModelParameters &model_parameters);
 
 std::vector<std::pair<int, int>> generate_network_connections(
     const std::vector<Point> &nodes,
     const bool is_finite,
-    const ModelParameters &model_parameters,
-    const uint32_t seed);
+    const ModelParameters &model_parameters);
 
 py::array_t<int> generate_finite_network_connections_interface(
     const py::array_t<double> &model_parameters_input,
     const uint32_t seed)
 {
+    random_number_generator.seed(seed);
     const auto model_parameters{ModelParameters(model_parameters_input)};
-    const auto nodes{create_nodes(model_parameters, seed)};
-    const auto connections{generate_network_connections(nodes, true, model_parameters, seed)};
+    const auto nodes{create_nodes(model_parameters)};
+    const auto connections{generate_network_connections(nodes, true, model_parameters)};
 
     return vector_of_pairs_to_numpy<int>(connections);
 }
@@ -42,6 +42,7 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
     const uint32_t num_of_infinite_networks,
     const uint32_t seed)
 {
+    random_number_generator.seed(seed);
     auto model_parameters{ModelParameters(model_parameters_input)};
     std::vector<py::array_t<int>> result{};
     const auto a{model_parameters.alpha};
@@ -135,21 +136,20 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
             w_younger += w_interarrival_time_distribution_younger_nodes(random_number_generator);
         }
 
-        const auto connections{generate_network_connections(nodes, false, model_parameters, seed)};
+        const auto connections{generate_network_connections(nodes, false, model_parameters)};
         result.push_back(vector_of_pairs_to_numpy<int>(connections));
     }
     return result;
 }
 
-std::vector<Point> create_nodes(const ModelParameters &model_parameters, const uint32_t seed)
+std::vector<Point> create_nodes(const ModelParameters &model_parameters)
 {
     std::vector<uint32_t> node_ids{model_parameters.num_of_nodes};
     std::iota(node_ids.begin(), node_ids.end(), 0U);
-    const auto birth_times{generate_birth_times(model_parameters.num_of_nodes, seed)};
-    const auto positions{generate_positions(model_parameters, seed + 1U)};
+    const auto birth_times{generate_birth_times(model_parameters.num_of_nodes)};
+    const auto positions{generate_positions(model_parameters)};
 
     std::uniform_real_distribution<> uniform_distribution_u(0., 1.);
-    std::mt19937 random_number_generator{seed};
 
     std::vector<Point> nodes{};
     nodes.reserve(model_parameters.num_of_nodes);
@@ -161,9 +161,8 @@ std::vector<Point> create_nodes(const ModelParameters &model_parameters, const u
     return nodes;
 }
 
-std::vector<double> generate_birth_times(const uint32_t num_nodes, const uint32_t seed)
+std::vector<double> generate_birth_times(const uint32_t num_nodes)
 {
-    std::mt19937 random_number_generator{seed};
     std::uniform_real_distribution<> uniform_distribution(0., 1.);
     std::vector<double> birth_times{};
     birth_times.reserve(num_nodes);
@@ -179,10 +178,8 @@ std::vector<double> generate_birth_times(const uint32_t num_nodes, const uint32_
 }
 
 std::vector<std::vector<double>> generate_positions(
-    const ModelParameters &model_parameters,
-    const uint32_t seed)
+    const ModelParameters &model_parameters)
 {
-    std::mt19937 random_number_generator{seed};
     std::uniform_real_distribution<double> uniform_distribution(
         -model_parameters.torus_size_in_1_dimension / 2.,
         +model_parameters.torus_size_in_1_dimension / 2.);
@@ -206,8 +203,7 @@ std::vector<std::vector<double>> generate_positions(
 std::vector<std::pair<int, int>> generate_network_connections(
     const std::vector<Point> &nodes,
     const bool is_finite,
-    const ModelParameters &model_parameters,
-    const uint32_t seed)
+    const ModelParameters &model_parameters)
 {
     // create aliases
     const auto a{model_parameters.alpha};
@@ -216,8 +212,6 @@ std::vector<std::pair<int, int>> generate_network_connections(
     const auto g{model_parameters.gamma};
     const auto d{model_parameters.torus_dimension};
     const auto num_of_nodes{nodes.size()};
-
-    static std::mt19937 random_number_generator{seed};
 
     std::uniform_real_distribution<> uniform_distribution(0., 1.);
     std::vector<std::pair<int, int>> connections{};
@@ -259,11 +253,10 @@ std::vector<std::pair<int, int>> generate_network_connections(
                 }
             }
         }
-        if (counter % 10000 == 0 && num_of_nodes > 1000000U)
+        if (++counter % 10000 == 0 && num_of_nodes > 1000000U)
         {
             std::cout << "\rGenerating connections: " << counter << " / " << num_of_nodes;
         }
-        ++counter;
     }
     // std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes << std::endl;
     return connections;

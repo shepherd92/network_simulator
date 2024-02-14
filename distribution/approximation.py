@@ -9,8 +9,11 @@ import numpy.typing as npt
 import pandas as pd
 
 from distribution.empirical_distribution import EmpiricalDistribution
+from distribution.factory import (
+    create_fitting_parameters_power_law_data_set,
+    create_theoretical_distribution
+)
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-from distribution.factory import create_theoretical_distribution
 
 
 class DistributionApproximation:
@@ -121,6 +124,8 @@ class DistributionApproximation:
     def generate_qq_plot_points(self, normalize: bool = True) -> npt.NDArray[np.float_]:
         """Return the points of the probability points."""
         number_of_values = len(self.empirical.value_sequence)
+        if number_of_values == 0:
+            return np.empty([0, 2])
         quantiles_to_calculate = np.linspace(1. / number_of_values, 1., number_of_values, endpoint=True)
         theoretical_quantiles = self.theoretical.calc_quantiles(quantiles_to_calculate)
         empirical_quantiles = self.empirical.value_sequence
@@ -279,3 +284,14 @@ class DistributionApproximation:
             str(self.empirical)
         ))
         return text
+
+
+def guess_power_law_exponent(distribution: EmpiricalDistribution) -> float:
+    """Guess the value of parameter gamma."""
+    approximation = DistributionApproximation(
+        distribution,
+        TheoreticalDistribution.Type.POWER_LAW
+    )
+    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    approximation.fit(fitting_parameters)
+    return approximation.theoretical.parameters.exponent

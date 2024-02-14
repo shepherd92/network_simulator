@@ -1,6 +1,7 @@
 #include <cmath>
 
 #include "point.h"
+#include <iostream>
 
 Point::Point(const int id, const float mark, const float position, const float minus_exponent)
     : id_(id), mark_(mark), position_(position), mark_to_gamma_(std::pow(mark_, -minus_exponent))
@@ -16,12 +17,12 @@ bool Point::connects(const Point &other, const float torus_size, const float bet
 
 float Point::distance(const Point &other) const
 {
-    return abs(position() - other.position());
+    return fabs(position() - other.position());
 }
 
 float Point::torus_distance(const Point &other, const float torus_size) const
 {
-    const auto distance_inside{abs(position() - other.position())};
+    const auto distance_inside{fabs(position() - other.position())};
 
     const auto distance{
         distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside};

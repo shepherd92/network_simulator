@@ -7,7 +7,7 @@ from model.preferential_attachment import PreferentialAttachmentModel
 from model.price import PriceModel
 from model.watts_strogatz import WattsStrogatzModel
 from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
-from model.age_dependent_random_hypergraph import AgeDependentRandomHypergraphModel
+from model.hypergraph import HypergraphModel
 from model.network_geometry_with_flavor import NetworkGeometryWithFlavorModel
 
 from config_files.model_config import ERDOS_RENYI_MODEL_PARAMETERS
@@ -16,7 +16,7 @@ from config_files.model_config import PREFERENTIAL_ATTACHMENT_MODEL_PARAMETERS
 from config_files.model_config import PRICE_MODEL_PARAMETERS
 from config_files.model_config import NETWORK_GEOMETRY_WITH_FLAVOR_MODEL_PARAMETERS
 from config_files.model_config import AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
-from config_files.model_config import AGE_DEPENDENT_RANDOM_HYPERGRAPH_MODEL_PARAMETERS
+from config_files.model_config import HYPERGRAPH_MODEL_PARAMETERS
 
 
 def create_model(model_type: Model.Type) -> Model:
@@ -35,7 +35,7 @@ def create_model(model_type: Model.Type) -> Model:
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
         model = AgeDependentRandomSimplexModel()
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH:
-        model = AgeDependentRandomHypergraphModel()
+        model = HypergraphModel()
     else:
         raise NotImplementedError(f'The requested model type {model_type.name} is not implemented.')
 
@@ -58,7 +58,7 @@ def load_default_parameters(model_type: Model.Type) -> Model.Parameters:
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
         parameters = AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH:
-        parameters = AGE_DEPENDENT_RANDOM_HYPERGRAPH_MODEL_PARAMETERS
+        parameters = HYPERGRAPH_MODEL_PARAMETERS
     else:
         raise NotImplementedError(
             f'The requested model type {model_type} is not implemented.'

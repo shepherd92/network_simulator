@@ -6,7 +6,7 @@ from typing import NamedTuple
 
 from model.model import Model
 from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
-from model.age_dependent_random_hypergraph import AgeDependentRandomHypergraphModel
+from model.hypergraph import HypergraphModel
 from model.erdos_renyi import ErdosRenyiModel
 from model.network_geometry_with_flavor import NetworkGeometryWithFlavorModel
 from model.preferential_attachment import PreferentialAttachmentModel
@@ -42,17 +42,17 @@ class ModelConfig:
             BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
             BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION,
+            BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
-            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
-            # BaseNetworkProperty.Type.BETTI_NUMBERS,
-            # BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
-            # BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
-            # BaseNetworkProperty.Type.PERSISTENCE,
-            # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
+            BaseNetworkProperty.Type.BETTI_NUMBERS,
+            BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
+            BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
+            BaseNetworkProperty.Type.PERSISTENCE,
+            BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
         ]
         properties_to_calculate_infinite: list[BaseNetworkProperty.Type] = [
             # BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
@@ -70,7 +70,7 @@ class ModelConfig:
         """Model testing configuration for networks."""
 
         test_against_data_set: bool = True
-        num_of_simulations: int = 1
+        num_of_simulations: int = 100
         num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
@@ -90,17 +90,16 @@ AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.P
 
 
 # ==============================================================================
-AGE_DEPENDENT_RANDOM_HYPERGRAPH_MODEL_PARAMETERS = AgeDependentRandomHypergraphModel.Parameters(
+HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=100,  # expected number of nodes
+    network_size=50,  # expected number of nodes
     interaction_intensity=1.,  # expected number of interactions = network_size * interaction_intensity
     torus_dimension=1,
     beta=1.0,
-    gamma=0.7,
-    gamma_prime=0.2,
+    gamma=0.2,
+    gamma_prime=0.1,
 )
 # ==============================================================================
-
 
 ERDOS_RENYI_MODEL_PARAMETERS = ErdosRenyiModel.Parameters(
     max_dimension=2,

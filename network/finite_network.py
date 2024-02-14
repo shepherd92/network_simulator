@@ -131,7 +131,9 @@ class FiniteNetwork(Network):
             property_value = self.num_vertices
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
             simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
-            property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1][0, 1]
+            property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1][0, 1] \
+                if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1]) > 0 \
+                else 0
         elif property_type == BaseNetworkProperty.Type.NUM_OF_TRIANGLES:
             simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
             if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2]) == 0:
@@ -149,8 +151,8 @@ class FiniteNetwork(Network):
             property_value = oridnary_degree_distributions.domain.max_
         elif property_type == BaseNetworkProperty.Type.DEGREE_DISTRIBUTION:
             property_value = self._calculate_degree_distribution()
-        elif property_type == BaseNetworkProperty.Type.INTERACTION_DEGREE_DISTRIBUTION:
-            property_value = self._calculate_interaction_degree_distribution()
+        elif property_type == BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION:
+            property_value = self._calculate_vertex_interaction_degree_distribution()
         elif property_type == BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION:
             property_value = self._calculate_in_degree_distribution()
         elif property_type == BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION:

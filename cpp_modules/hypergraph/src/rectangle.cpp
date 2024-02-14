@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cmath>
+#include <iostream>
 
 #include "point.h"
 #include "rectangle.h"
@@ -67,6 +68,11 @@ const float &Rectangle::bottom_to_minus_exponent() const
     return bottom_to_minus_exponent_;
 }
 
+const std::vector<Point> &Rectangle::points() const
+{
+    return points_;
+}
+
 bool can_connect(
     const Rectangle &first,
     const Rectangle &second,
@@ -77,7 +83,7 @@ bool can_connect(
     // assumption: no rectangles can wrap around the torus boundaries
     if (first.left() <= second.right() && second.left() <= first.right())
     {
-        // the distance is 0 if the intervals overlap
+        // the distance is 0 if the intervals overlapif (distance < max_distance)
         return true;
     }
 
@@ -92,6 +98,7 @@ bool can_connect(
                                        : first.left() - second.right()};
         const auto distance{
             distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside};
+
         return distance < max_distance;
     }
     else
