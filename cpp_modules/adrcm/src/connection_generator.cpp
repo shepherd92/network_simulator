@@ -50,8 +50,6 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
     const auto g{model_parameters.gamma};
     const auto d{model_parameters.torus_dimension};
 
-    std::mt19937 random_number_generator{seed};
-
     // expected number of incoming connections is: b / g * (u^(-g) - 1)
     std::uniform_real_distribution<> uniform_distribution_u(1e-7, 1.);
     std::uniform_real_distribution<> uniform_distribution(0., 1.);
@@ -177,8 +175,7 @@ std::vector<double> generate_birth_times(const uint32_t num_nodes)
     return birth_times;
 }
 
-std::vector<std::vector<double>> generate_positions(
-    const ModelParameters &model_parameters)
+std::vector<std::vector<double>> generate_positions(const ModelParameters &model_parameters)
 {
     std::uniform_real_distribution<double> uniform_distribution(
         -model_parameters.torus_size_in_1_dimension / 2.,

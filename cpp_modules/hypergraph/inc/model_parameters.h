@@ -10,6 +10,7 @@ struct ModelParameters
     ModelParameters(const py::array_t<double> &model_parameters_input);
     size_t num_of_nodes;
     size_t num_of_interactions;
+    double interaction_intensity;
     double beta;
     double gamma;
     double gamma_prime;

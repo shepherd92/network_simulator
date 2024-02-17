@@ -11,7 +11,10 @@ import numpy.typing as npt
 import pandas as pd
 from tqdm import tqdm
 
-from cpp_modules.build.hypergraph import generate_finite_network_connections
+from cpp_modules.build.hypergraph import (
+    generate_finite_network_cpp,
+    generate_infinite_networks_cpp,
+)
 from data_set.data_set import DataSet
 from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -42,6 +45,7 @@ class HypergraphModel(Model):
             return np.array([
                 self.num_of_nodes,
                 self.num_of_interactions,
+                self.interaction_intensity,
                 self.beta,
                 self.gamma,
                 self.gamma_prime,
@@ -113,7 +117,7 @@ class HypergraphModel(Model):
         )
 
         if self.parameters.torus_dimension == 1:
-            connections, interactions, nodes = generate_finite_network_connections(self.parameters.to_numpy(), seed)
+            connections, interactions, nodes = generate_finite_network_cpp(self.parameters.to_numpy(), seed)
             node_birth_times, node_positions = nodes[:, 0], nodes[:, 1]
             interaction_birth_times, interaction_positions = interactions[:, 0], interactions[:, 1]
             interactions = pd.DataFrame(
@@ -144,7 +148,21 @@ class HypergraphModel(Model):
         return network
 
     def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
-        raise NotImplementedError
+
+        if self.parameters.torus_dimension == 1:
+            infinite_networks = []
+            infinite_networks_cpp = generate_infinite_networks_cpp(self.parameters.to_numpy(), seed)
+            for (connections, interactions, vertices) in infinite_networks_cpp:
+                interaction_birth_times, interaction_positions = interactions[:, 0], interactions[:, 1]
+                vertex_birth_times, vertex_positions = vertices[:, 0], vertices[:, 1]
+                interactions = pd.DataFrame(
+                    connections, columns=['interaction_id', 'vertex_id']
+                ).groupby('interaction_id')['vertex_id'].apply(list).tolist()
+                infinite_network = InfiniteNetwork(self.parameters.max_dimension)
+                infinite_network.interactions = interactions
+                infinite_networks.append(infinite_network)
+        else:
+            raise NotImplementedError
 
     def generate_infinite_network(self, connections: npt.NDArray[np.int_]) -> InfiniteNetwork:
         raise NotImplementedError

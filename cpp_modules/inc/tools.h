@@ -1,5 +1,5 @@
-#ifndef _CONNECTION_GENERATOR_INL_
-#define _CONNECTION_GENERATOR_INL_
+#ifndef _TOOLS_H_
+#define _TOOLS_H_
 
 bool is_close(const double first, const double second);
 

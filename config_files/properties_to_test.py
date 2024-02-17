@@ -81,18 +81,18 @@ SCALAR_PROPERTY_PARAMS_TO_TEST: tuple[DerivedNetworkProperty, ...] = (
         calculator_default=_get_power_law_exponent_model,
         calculator_data_set=_get_power_law_exponent_data_set,
     ),
-    DerivedNetworkProperty(
-        name='triangle_degree_exponent',
-        source_base_property=BaseNetworkProperty(
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            # BaseNetworkProperty.CalculationMethod.NETWORK,
-            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
-        ),
-        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-        fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=_get_power_law_exponent_model,
-        calculator_data_set=_get_power_law_exponent_data_set,
-    ),
+    # DerivedNetworkProperty(
+    #     name='triangle_degree_exponent',
+    #     source_base_property=BaseNetworkProperty(
+    #         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
+    #         # BaseNetworkProperty.CalculationMethod.NETWORK,
+    #         BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+    #     ),
+    #     theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+    #     fitting_parameters=create_fitting_parameters_normal(),
+    #     calculator_default=_get_power_law_exponent_model,
+    #     calculator_data_set=_get_power_law_exponent_data_set,
+    # ),
     DerivedNetworkProperty(
         name='average_interaction_degree_normal_mle',
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION),
