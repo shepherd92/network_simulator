@@ -11,11 +11,9 @@ ModelParameters::ModelParameters(const py::array_t<double> &model_parameters_inp
 {
     const auto model_parameters = numpy_to_vector_1d<double>(model_parameters_input);
 
-    num_of_nodes = static_cast<size_t>(round(model_parameters[0]));
-    num_of_interactions = static_cast<size_t>(round(model_parameters[1]));
-    interaction_intensity = model_parameters[2];
-    beta = model_parameters[3];
-    gamma = model_parameters[4];
-    gamma_prime = model_parameters[5];
-    torus_size = model_parameters[6];
+    network_size = model_parameters[0];
+    interaction_intensity = model_parameters[1];
+    beta = model_parameters[2];
+    gamma = model_parameters[3];
+    gamma_prime = model_parameters[4];
 }

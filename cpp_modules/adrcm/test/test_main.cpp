@@ -32,7 +32,7 @@ int main()
         torus_dimension,
         torus_size_in_1_dimension};
 
-    const auto model_parameters{vector_to_numpy_1d(model_params_vector)};
+    const auto model_parameters{to_numpy(model_params_vector)};
     const auto connections{generate_finite_network_connections_interface(model_parameters, seed)};
     return 0;
 }

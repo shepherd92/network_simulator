@@ -4,21 +4,13 @@
 #include <set>
 #include <vector>
 
-#include "combination.h"
 #include "facet_finder.h"
 #include "simplex.h"
 
-void combinations(
-    const std::vector<int32_t> &elements,
-    const uint32_t k,
-    std::set<std::vector<int32_t>> &subarrays,
-    std::vector<int32_t> &out,
-    const uint32_t i);
-
-std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<int32_t>> &simplices_in)
+std::vector<VertexList> extract_facets_interface(const std::vector<VertexList> &simplices_in)
 {
   auto simplices{sort_simplices(create_simplices(simplices_in), true)};
-  std::vector<std::vector<int32_t>> facets;
+  std::vector<VertexList> facets;
   auto counter{0U};
   for (auto first{simplices.begin()}; first < simplices.end(); ++first)
   {
@@ -39,9 +31,9 @@ std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<i
     }
     if (!first_is_face)
     {
-      std::vector<int32_t> vertices_vector;
-      vertices_vector.assign(first->vertices().begin(), first->vertices().end());
-      facets.push_back(vertices_vector);
+      VertexList raw_simplex;
+      raw_simplex.assign(first->vertices().begin(), first->vertices().end());
+      facets.push_back(raw_simplex);
     }
   }
 

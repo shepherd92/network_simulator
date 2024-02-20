@@ -9,19 +9,19 @@
 #include "model_parameters.h"
 #include "numpy_cpp_conversion.h"
 #include "point.h"
+#include "typedefs.h"
 
 namespace py = pybind11;
 
 bool is_close(const double first, const double second);
 
-std::vector<Point> create_nodes(const ModelParameters &model_parameters);
+PointList create_nodes(const ModelParameters &model_parameters);
 
 std::vector<double> generate_birth_times(const uint32_t num_nodes);
-std::vector<std::vector<double>> generate_positions(
-    const ModelParameters &model_parameters);
+PositionList generate_positions(const ModelParameters &model_parameters);
 
 std::vector<std::pair<int, int>> generate_network_connections(
-    const std::vector<Point> &nodes,
+    const PointList &nodes,
     const bool is_finite,
     const ModelParameters &model_parameters);
 
@@ -34,7 +34,7 @@ py::array_t<int> generate_finite_network_connections_interface(
     const auto nodes{create_nodes(model_parameters)};
     const auto connections{generate_network_connections(nodes, true, model_parameters)};
 
-    return vector_of_pairs_to_numpy<int>(connections);
+    return to_numpy(connections);
 }
 
 std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
@@ -51,16 +51,15 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
     const auto d{model_parameters.torus_dimension};
 
     // expected number of incoming connections is: b / g * (u^(-g) - 1)
-    std::uniform_real_distribution<> uniform_distribution_u(1e-7, 1.);
     std::uniform_real_distribution<> uniform_distribution(0., 1.);
     std::normal_distribution<> normal_distribution(0., 1.);
 
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
     {
-        const auto u{uniform_distribution_u(random_number_generator)}; // birth time of the typical node
+        const auto u{uniform_distribution(random_number_generator)}; // birth time of the typical node
 
         // generate nodes
-        std::vector<Point> nodes;
+        PointList nodes;
         nodes.push_back(Point(u, Position(d, 0.)));
 
         // generate older nodes which (u, 0) connects to
@@ -135,12 +134,12 @@ std::vector<py::array_t<int>> generate_infinite_network_connections_interface(
         }
 
         const auto connections{generate_network_connections(nodes, false, model_parameters)};
-        result.push_back(vector_of_pairs_to_numpy<int>(connections));
+        result.push_back(to_numpy(connections));
     }
     return result;
 }
 
-std::vector<Point> create_nodes(const ModelParameters &model_parameters)
+PointList create_nodes(const ModelParameters &model_parameters)
 {
     std::vector<uint32_t> node_ids{model_parameters.num_of_nodes};
     std::iota(node_ids.begin(), node_ids.end(), 0U);
@@ -149,7 +148,7 @@ std::vector<Point> create_nodes(const ModelParameters &model_parameters)
 
     std::uniform_real_distribution<> uniform_distribution_u(0., 1.);
 
-    std::vector<Point> nodes{};
+    PointList nodes{};
     nodes.reserve(model_parameters.num_of_nodes);
     for (auto index{0U}; index < model_parameters.num_of_nodes; ++index)
     {
@@ -198,7 +197,7 @@ std::vector<std::vector<double>> generate_positions(const ModelParameters &model
 }
 
 std::vector<std::pair<int, int>> generate_network_connections(
-    const std::vector<Point> &nodes,
+    const PointList &nodes,
     const bool is_finite,
     const ModelParameters &model_parameters)
 {
@@ -209,6 +208,7 @@ std::vector<std::pair<int, int>> generate_network_connections(
     const auto g{model_parameters.gamma};
     const auto d{model_parameters.torus_dimension};
     const auto num_of_nodes{nodes.size()};
+    const auto torus_size{is_finite ? model_parameters.torus_size_in_1_dimension : std::numeric_limits<double>::infinity()};
 
     std::uniform_real_distribution<> uniform_distribution(0., 1.);
     std::vector<std::pair<int, int>> connections{};
@@ -223,16 +223,14 @@ std::vector<std::pair<int, int>> generate_network_connections(
         for (auto source_node_id{target_node_id + 1U}; source_node_id < num_of_nodes; ++source_node_id)
         {
             const auto &source_node{nodes[source_node_id]};
-            const auto distance{
-                is_finite ? source_node.torus_distance(target_node, model_parameters.torus_size_in_1_dimension) : source_node.distance(target_node)};
+            const auto distance{source_node.distance(target_node, torus_size)};
             if (distance > size_of_neighborhood)
             {
                 continue;
             }
 
             const auto t{source_node.birth_time()};
-            const auto max_distance_of_connection{
-                std::pow((a * b / t) * std::pow(t / s, g), 1. / d)};
+            const auto max_distance_of_connection{std::pow((a * b / t) * std::pow(t / s, g), 1. / d)};
 
             if (distance < max_distance_of_connection)
             {

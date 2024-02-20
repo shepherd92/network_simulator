@@ -133,7 +133,7 @@ class AgeDependentRandomSimplexModel(Model):
         # network.digraph.add_nodes_from(node_ids)
         # network.digraph.add_edges_from(connections)
         # network.graph = network.digraph.to_undirected()
-        network.add_simplex([0])  # ensure that the origin is added
+        network.add_simplices([[0]])  # ensure that the origin is added
         network.add_simplices_batch(connections)
         network.expand()
 

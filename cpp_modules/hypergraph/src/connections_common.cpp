@@ -5,14 +5,14 @@
 
 #include "connections_common.h"
 #include "globals.h"
-#include "model_parameters.h"
+#include "point.h"
 #include "rectangle.h"
 #include "tools.h"
 
-std::vector<float> generate_marks(const size_t num_nodes)
+MarkList generate_marks(const size_t num_nodes)
 {
-    std::uniform_real_distribution<float> uniform_distribution(0., 1.);
-    std::vector<float> marks(num_nodes, 0.0);
+    std::uniform_real_distribution<Mark> uniform_distribution(0., 1.);
+    MarkList marks(num_nodes, 0.0);
 
     for (auto i{0U}; i < num_nodes; ++i)
     {
@@ -24,12 +24,11 @@ std::vector<float> generate_marks(const size_t num_nodes)
     return marks;
 }
 
-std::vector<Rectangle> create_rectangles(
-    const double torus_size,
-    const uint32_t n_points,
-    const double gamma)
+RectangleList create_rectangles(const PointList &points, const double gamma)
 {
-    std::vector<Rectangle> rectangles{};
+    const auto n_points{points.size()};
+    const auto torus_size{determine_network_size(points)};
+    RectangleList rectangles{};
     const auto points_per_rectangle{std::max(100., std::pow(n_points, 0.5))};
     const auto area{points_per_rectangle * torus_size / n_points};
 
@@ -52,12 +51,11 @@ std::vector<Rectangle> create_rectangles(
         }
         bottom += height;
     }
+    fill_rectangles(rectangles, points);
     return rectangles;
 }
 
-void fill_rectangles(
-    std::vector<Rectangle> &rectangles,
-    const std::vector<Point> &points)
+void fill_rectangles(RectangleList &rectangles, const PointList &points)
 {
     // assume points are sorted with respect to marks
     for (const auto &point : points)
@@ -84,13 +82,13 @@ void fill_rectangles(
     }
 }
 
-std::vector<std::pair<int, int>> generate_connections(
-    const std::vector<Rectangle> &interaction_rectangles,
-    const std::vector<Rectangle> &vertex_rectangles,
-    const bool is_finite,
-    const ModelParameters &model_parameters)
+ConnectionList generate_connections(
+    const RectangleList &interaction_rectangles,
+    const RectangleList &vertex_rectangles,
+    const double beta,
+    const double torus_size)
 {
-    std::vector<std::pair<int, int>> connections{};
+    ConnectionList connections{};
 
     auto counter{0U};
     for (const auto &interaction_rectangle : interaction_rectangles)
@@ -100,18 +98,16 @@ std::vector<std::pair<int, int>> generate_connections(
             const auto connections_possible{can_connect(
                 interaction_rectangle,
                 vertex_rectangle,
-                model_parameters.beta,
-                model_parameters.torus_size,
-                is_finite)};
+                beta,
+                torus_size)};
 
             if (connections_possible)
             {
                 const auto new_connections{calc_connected_point_pairs(
                     interaction_rectangle.points(),
                     vertex_rectangle.points(),
-                    model_parameters.beta,
-                    model_parameters.torus_size,
-                    is_finite)};
+                    beta,
+                    torus_size)};
                 connections.insert(connections.end(), new_connections.begin(), new_connections.end());
             }
         }
@@ -119,4 +115,14 @@ std::vector<std::pair<int, int>> generate_connections(
         std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
     }
     return connections;
+}
+
+double determine_network_size(const PointList &points)
+{
+    Position max_position{0.};
+    for (const auto &point : points)
+    {
+        max_position = std::max(max_position, Position(fabs(point.position())));
+    }
+    return 2. * max_position;
 }

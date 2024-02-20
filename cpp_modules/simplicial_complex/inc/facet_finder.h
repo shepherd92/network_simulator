@@ -1,8 +1,8 @@
 #ifndef _FACET_FINDER_
 #define _FACET_FINDER_
 
-#include <vector>
+#include "typedefs.h"
 
-std::vector<std::vector<int32_t>> extract_facets(const std::vector<std::vector<int32_t>> &simplices);
+std::vector<VertexList> extract_facets_interface(const std::vector<VertexList> &simplices);
 
 #endif

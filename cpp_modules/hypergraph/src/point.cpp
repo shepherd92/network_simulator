@@ -3,24 +3,19 @@
 #include "point.h"
 #include <iostream>
 
-Point::Point(const int id, const float mark, const float position, const float minus_exponent)
+Point::Point(const Id id, const Mark mark, const Position position, const float minus_exponent)
     : id_(id), mark_(mark), position_(position), mark_to_gamma_(std::pow(mark_, -minus_exponent))
 {
 }
 
-bool Point::connects(const Point &other, const float torus_size, const float beta, const bool is_finite) const
+bool Point::connects(const Point &other, const float beta, const float torus_size) const
 {
-    const auto d{is_finite ? torus_distance(other, torus_size) : distance(other)};
+    const auto d{distance(other, torus_size)};
     const auto max_distance_of_connection{mark_to_gamma() * other.mark_to_gamma() * beta};
     return d < max_distance_of_connection;
 }
 
-float Point::distance(const Point &other) const
-{
-    return fabs(position() - other.position());
-}
-
-float Point::torus_distance(const Point &other, const float torus_size) const
+float Point::distance(const Point &other, const float torus_size) const
 {
     const auto distance_inside{fabs(position() - other.position())};
 
@@ -30,17 +25,17 @@ float Point::torus_distance(const Point &other, const float torus_size) const
     return distance;
 }
 
-const int &Point::id() const
+const Id &Point::id() const
 {
     return id_;
 }
 
-const float &Point::mark() const
+const Mark &Point::mark() const
 {
     return mark_;
 }
 
-const float &Point::position() const
+const Position &Point::position() const
 {
     return position_;
 }

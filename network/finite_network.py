@@ -13,7 +13,8 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
-from cpp_modules.build.simplicial_complex import calc_degree_sequence
+# pylint: disable-next=no-name-in-module
+from cpp_modules.build.simplicial_complex import calc_degree_sequence  # type: ignore
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
@@ -39,20 +40,6 @@ class FiniteNetwork(Network):
             simplicial_complex.insert(edge)
         self.simplicial_complex = simplicial_complex
 
-    def add_simplex(self, simplex: list[int]) -> None:
-        """Insert a simplex to the simplicial complex.
-
-        Add the skeleton of the simplex as its dimension is too high.
-        """
-        if len(simplex) == 0:
-            return
-
-        self._is_persistence_computed = False
-        self._is_collapsed_persistence_computed = False
-
-        skeleton = self._get_simplex_skeleton_for_max_dimension(simplex)
-        self.add_simplices_batch(skeleton)
-
     def get_component(self, component_index: int) -> FiniteNetwork:
         """Return the network of the specified component."""
         reduced_network = FiniteNetwork(self.max_dimension)
@@ -61,23 +48,29 @@ class FiniteNetwork(Network):
             node_ids_in_component = components[component_index]
             reduced_network.graph = self.graph.subgraph(node_ids_in_component)
             reduced_network.simplicial_complex = self.simplicial_complex
-            reduced_network.filter_simplicial_complex_from_graph()
+            reduced_network.interactions = self.interactions
+            reduced_network.filter_to_graph()
             if self.vertex_positions is not None:
                 reduced_network.vertex_positions = {
                     node_id: position
                     for node_id, position in self.vertex_positions.items()
                     if node_id in node_ids_in_component
                 }
-            reduced_network.interaction_positions = None
+            if self.interaction_positions is not None:
+                reduced_network.interaction_positions = {
+                    id: position
+                    for id, position in self.interaction_positions.items()
+                    if id in node_ids_in_component
+                }
         return reduced_network
 
     def reduce_to_component(self, component_index: int) -> None:
         """Reduce the network to the specified component only."""
         if component_index != -1:
-            components = sorted(nx.connected_components(self._graph), key=len, reverse=True)
+            components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
             node_ids_in_component = components[component_index]
             self.graph = self.graph.subgraph(node_ids_in_component)
-            self.filter_simplicial_complex_from_graph()
+            self.filter_to_graph()
             if self.vertex_positions is not None:
                 self.vertex_positions = {
                     node_id: position
@@ -119,7 +112,6 @@ class FiniteNetwork(Network):
         collapsed_network.simplicial_complex = deepcopy(self.simplicial_complex)
         collapsed_network.simplicial_complex.collapse_edges()
         collapsed_network.expand()
-        collapsed_network._generate_graph_from_simplicial_complex()
         debug(f'Collapsed containing {collapsed_network.num_vertices} vertices.')
         return collapsed_network
 
@@ -201,10 +193,10 @@ class FiniteNetwork(Network):
         """Return a dict representation based on the network properties."""
         return {
             'num_of_vertices': self.num_vertices,
-            'num_of_interactions': len(self._interactions),
+            'num_of_interactions': len(self.interactions),
             'num_of_simplices': self.num_simplices,
             'max_dimension': self.max_dimension,
-            'num_of_components': len(list(nx.connected_components(self._graph))),
+            'num_of_components': len(list(nx.connected_components(self.graph))),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
 
@@ -291,7 +283,7 @@ class FiniteNetwork(Network):
 
     def _calculate_betti_numbers_with_collapse(self, max_num_of_vertices: int) -> npt.NDArray[np.int_]:
         """Calculate the Betti numbers for different dimensions."""
-        if self._betti_numbers:
+        if self._betti_numbers is None:
             return self._betti_numbers
 
         collapsed_network = self
@@ -326,14 +318,6 @@ class FiniteNetwork(Network):
         persistence_pairs = self.simplicial_complex.persistence_pairs()
         return persistence_pairs
 
-    def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
-
-        assert neighbor_dimension > simplex_dimension, \
-            f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
-
-        degree_sequence = calc_degree_sequence(self.simplices, self.facets, simplex_dimension, neighbor_dimension)
-        return degree_sequence
-
     def _get_all_components(self) -> list[FiniteNetwork]:
         """Reduce the network to the specified component only."""
         graph_components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
@@ -341,7 +325,7 @@ class FiniteNetwork(Network):
         components: list[FiniteNetwork] = []
         for graph_component in graph_components:
             component = FiniteNetwork(self.max_dimension)
-            component.graph = self._graph.subgraph(graph_component)
+            component.graph = self.graph.subgraph(graph_component)
             component.generate_clique_complex_from_graph()
             components.append(component)
 
@@ -399,6 +383,6 @@ class FiniteNetwork(Network):
             f'Number of interactions: {len(self._interactions)}',
             f'Number of simplices: {self.num_simplices}',
             f'Max Dimension: {self.max_dimension}',
-            f'Number of components: {len(list(nx.connected_components(self._graph)))}',
+            f'Number of components: {len(list(nx.connected_components(self.graph)))}',
             f'Number of vertices in component 0: {self.num_of_vertices_in_component(0)}',
         ])

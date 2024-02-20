@@ -1,31 +1,40 @@
 #ifndef _SIMPLEX_H_
 #define _SIMPLEX_H_
 
-#include <bits/stdc++.h>
+#include "typedefs.h"
 
 class Simplex
 {
 public:
-    Simplex(const std::vector<int32_t> &vertices);
-    const std::set<int32_t> &vertices() const;
+    Simplex(const VertexList &vertices);
+    const VertexList &vertices() const;
 
     bool is_face(const Simplex &other) const;
-    uint32_t dimension() const;
-    std::vector<int32_t> operator-(const Simplex &other) const;
+    SimplexList get_skeleton(const Dimension dimension) const;
+    Dimension dimension() const;
+    void print() const;
+    Simplex operator-(const Simplex &other) const;
+    bool operator==(const Simplex &other) const;
 
 private:
-    std::set<int32_t> vertices_;
+    void combination_util(
+        const Dimension dimension,
+        const uint32_t combination_index,
+        SimplexList &result,
+        VertexList &current_combination,
+        const uint32_t array_index) const;
+
+    VertexList vertices_;
 };
 
-std::vector<Simplex> create_simplices(const std::vector<std::vector<int32_t>> &simplices_in);
-std::vector<Simplex> select_simplices_by_dimension(
-    const std::vector<Simplex> &simplices,
-    const uint32_t dimension);
-std::vector<Simplex> select_higher_dimensional_simplices(
-    const std::vector<Simplex> &simplices,
-    const uint32_t dimension);
-std::vector<Simplex> sort_simplices(
-    const std::vector<Simplex> &simplices,
-    const bool ascending);
+struct Hash
+{
+    std::size_t operator()(const Simplex &simplex) const;
+};
+
+SimplexList create_simplices(const std::vector<VertexList> &simplices_in);
+SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension);
+SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension);
+SimplexList sort_simplices(const SimplexList &simplices, const bool ascending);
 
 #endif

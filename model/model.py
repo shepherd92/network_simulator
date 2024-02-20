@@ -8,17 +8,15 @@ from enum import Enum, auto
 from logging import info
 from multiprocessing import Pool, Value
 from pathlib import Path
-from tqdm import tqdm
 from typing import Any
 
-import numpy as np
-import numpy.typing as npt
 import pandas as pd
+from tqdm import tqdm
 
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
+from network.infinite_network import InfiniteNetworkSet
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 import tools.istarmap  # pylint: disable=unused-import # noqa: F401
 
@@ -49,10 +47,6 @@ class Model:
 
         max_dimension: int = 0
         network_size: int = 0
-
-    def __init__(self) -> None:
-        """Create a network model with default parameters."""
-        self._parameters = Model.Parameters()
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
@@ -90,10 +84,6 @@ class Model:
 
     def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Generate a set of "infinite" networks."""
-        raise NotImplementedError
-
-    def generate_infinite_network(self, connections: npt.NDArray[np.int_]) -> InfiniteNetwork:
-        """Generate an "infinite" network, where the typical simplices are the ones that contain vertex 0."""
         raise NotImplementedError
 
     def get_info_as_dict(self) -> dict[str, int | float]:

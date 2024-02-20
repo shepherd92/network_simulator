@@ -90,7 +90,7 @@ def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: pl
 
 def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: bool, axes: plt.Axes) -> None:
     """Plot a simplicial complex on the given axis."""
-    color_map_name = 'plasma_r'  # viridis_r, plasma, inferno, magma, cividis
+    color_map_name = 'plasma_r'  # viridis, plasma, inferno, magma, cividis
     if determined_vertex_positions:
         assert network.vertex_positions is not None
         vertex_positions = network.vertex_positions

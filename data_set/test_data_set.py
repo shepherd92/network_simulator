@@ -28,7 +28,6 @@ class TestDataSet(DataSet):
         ]
         # pylint: disable-next=attribute-defined-outside-init
         self._interactions = simplices
-        self._facets = []
         self.add_simplices(simplices)
 
     def __str__(self) -> str:

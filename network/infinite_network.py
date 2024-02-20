@@ -10,7 +10,8 @@ from typing import Any
 from gudhi.simplex_tree import SimplexTree
 import pandas as pd
 
-from cpp_modules.build.simplicial_complex import calc_degree_sequence
+# pylint: disable-next=no-name-in-module
+from cpp_modules.build.simplicial_complex import calc_degree_sequence  # type: ignore
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty
@@ -64,8 +65,8 @@ class InfiniteNetworkSet:
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        info = self.get_info_as_dict()
-        data_frame = pd.DataFrame(info, index=[0])
+        information = self.get_info_as_dict()
+        data_frame = pd.DataFrame(information, index=[0])
         data_frame.to_csv(save_path, index=False)
 
     def get_info_as_dict(self) -> dict[str, Any]:
@@ -83,8 +84,6 @@ class InfiniteNetwork(Network):
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
         simplicial_complex = SimplexTree()
-        self._interactions: list[list[int]] = []
-        self._facets: list[list[int]] = []
 
         for node in self.graph.nodes:
             simplicial_complex.insert((node,))
@@ -94,17 +93,6 @@ class InfiniteNetwork(Network):
                 self._interactions.append(edge)
 
         self.simplicial_complex = simplicial_complex
-
-    def add_simplex(self, simplex: list[int]) -> None:
-        """Insert a simplex to the simplicial complex.
-
-        Add the skeleton of the simplex as its dimension is too high.
-        """
-        if len(simplex) == 0:
-            return
-
-        skeleton = self._get_simplex_skeleton_for_max_dimension(simplex)
-        self.add_simplices_batch(skeleton)
 
     def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
         """Return a base property of the network.
@@ -129,6 +117,10 @@ class InfiniteNetwork(Network):
             )
 
         return property_value_set
+
+    def get_info_as_dict(self) -> dict[str, Any]:
+        """Return a dict representation based on the network properties."""
+        raise NotImplementedError('This method is not implemented.')
 
     def _calc_typical_in_degree(self) -> list[int]:
         return [self.digraph.in_degree(0)]

@@ -1,26 +1,53 @@
+#include <iostream>
+
 #include "simplex.h"
 
-Simplex::Simplex(const std::vector<int32_t> &vertices)
-    : vertices_(std::set<int32_t>(vertices.begin(), vertices.end()))
+std::size_t Hash::operator()(const Simplex &simplex) const
+{
+    const auto &vertices = simplex.vertices();
+    std::size_t seed{vertices.size()};
+    for (auto &vertex : vertices)
+    {
+        seed ^= vertex + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    return seed;
+}
+
+Simplex::Simplex(const VertexList &vertices)
+    : vertices_(vertices)
 {
 }
 
-const std::set<int32_t> &Simplex::vertices() const
+const VertexList &Simplex::vertices() const
 {
     return vertices_;
 }
 
-std::vector<int32_t> Simplex::operator-(const Simplex &other) const
+void Simplex::print() const
 {
-    std::vector<int32_t> remaining_vertices;
+    for (const auto &vertex : vertices_)
+    {
+        std::cout << vertex << " ";
+    }
+    std::cout << std::endl;
+}
+
+Simplex Simplex::operator-(const Simplex &other) const
+{
+    VertexList remaining_vertices;
     std::set_difference(
         vertices_.begin(), vertices_.end(),
         other.vertices().begin(), other.vertices().end(),
         std::inserter(remaining_vertices, remaining_vertices.begin()));
-    return remaining_vertices;
+    return Simplex(remaining_vertices);
 }
 
-uint32_t Simplex::dimension() const
+bool Simplex::operator==(const Simplex &other) const
+{
+    return std::is_permutation(vertices_.begin(), vertices_.end(), other.vertices().begin(), other.vertices().end());
+}
+
+Dimension Simplex::dimension() const
 {
     return vertices_.size() - 1;
 }
@@ -30,9 +57,43 @@ bool Simplex::is_face(const Simplex &other) const
     return std::includes(other.vertices().begin(), other.vertices().end(), vertices_.begin(), vertices_.end());
 }
 
-std::vector<Simplex> create_simplices(const std::vector<std::vector<int32_t>> &simplices_in)
+SimplexList Simplex::get_skeleton(const Dimension max_dimension) const
 {
-    std::vector<Simplex> simplices;
+    if (dimension() <= max_dimension)
+    {
+        return SimplexList{*this};
+    }
+    VertexList current_combination(max_dimension);
+    SimplexList result{};
+    combination_util(max_dimension, 0U, result, current_combination, 0U);
+    return result;
+}
+
+void Simplex::combination_util(
+    const Dimension max_dimension,
+    const uint32_t combination_index,
+    SimplexList &result,
+    VertexList &current_combination,
+    const uint32_t array_index) const
+{
+    if (combination_index == max_dimension + 1U)
+    {
+        // combination ready
+        result.push_back(Simplex{current_combination});
+        return;
+    }
+
+    if (array_index > max_dimension + 1U)
+        return;
+
+    current_combination[combination_index] = vertices()[array_index];
+    combination_util(max_dimension, combination_index + 1U, result, current_combination, array_index + 1U);
+    combination_util(max_dimension, combination_index, result, current_combination, array_index + 1U);
+}
+
+SimplexList create_simplices(const std::vector<VertexList> &simplices_in)
+{
+    SimplexList simplices;
     for (const auto &simplex : simplices_in)
     {
         simplices.push_back(Simplex(simplex));
@@ -40,11 +101,9 @@ std::vector<Simplex> create_simplices(const std::vector<std::vector<int32_t>> &s
     return simplices;
 }
 
-std::vector<Simplex> select_simplices_by_dimension(
-    const std::vector<Simplex> &simplices,
-    const uint32_t dimension)
+SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension)
 {
-    std::vector<Simplex> selected_simplices;
+    SimplexList selected_simplices;
 
     std::copy_if(simplices.begin(), simplices.end(),
                  std::back_inserter(selected_simplices),
@@ -54,11 +113,9 @@ std::vector<Simplex> select_simplices_by_dimension(
     return selected_simplices;
 }
 
-std::vector<Simplex> select_higher_dimensional_simplices(
-    const std::vector<Simplex> &simplices,
-    const uint32_t dimension)
+SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension)
 {
-    std::vector<Simplex> selected_simplices;
+    SimplexList selected_simplices;
 
     std::copy_if(simplices.begin(), simplices.end(),
                  std::back_inserter(selected_simplices),
@@ -68,9 +125,7 @@ std::vector<Simplex> select_higher_dimensional_simplices(
     return selected_simplices;
 }
 
-std::vector<Simplex> sort_simplices(
-    const std::vector<Simplex> &simplices,
-    const bool ascending)
+SimplexList sort_simplices(const SimplexList &simplices, const bool ascending)
 {
     auto sorted_simplices{simplices};
     if (ascending)

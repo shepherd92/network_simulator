@@ -70,18 +70,7 @@ class NatureDataSet(DataSet):
     def _build_simplicial_complex(self) -> None:
         """Build a simplicial complex based on the loaded data."""
         assert not self._documents.empty, 'Data is not loaded.'
-
-        for simplex in self.documents['author_ids']:
-            self.add_simplex(simplex)
-
-        # pylint: disable-next=attribute-defined-outside-init
-        self._interactions = [
-            list(simplex)
-            for simplex in self.documents['author_ids']
-            if len(simplex) != 0
-        ]
-        self._facets = []
-
+        self.add_simplices(list(self.documents['author_ids']))
         debug('Simplicial complex built.')
 
     @property
