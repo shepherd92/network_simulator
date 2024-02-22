@@ -23,7 +23,6 @@ from config_files.model_fitting import SCALAR_PROPERTY_PARAMS_TO_FIT
 from config_files.properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
 from data_set.factory import load_data
 from distribution.approximation import DistributionApproximation
-from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from model.model import Model
 from model.factory import create_model, load_default_parameters
 from network.property import DerivedNetworkProperty, ScalarNetworkPropertyReport
@@ -96,7 +95,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
-        if configuration.model.network_testing.test_against_data_set:
+        if configuration.model.set_params_from_data_set:
             data_set = load_data(data_set_type)
             model.set_relevant_parameters_from_data_set(data_set)
 
@@ -121,7 +120,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
             distribution_pair.fit(property_params.fitting_parameters)
 
             data_set_value = data_set.calc_scalar_property(property_params) \
-                if configuration.model.network_testing.test_against_data_set \
+                if configuration.model.set_params_from_data_set \
                 else np.nan
 
             test_results = distribution_pair.run_test(data_set_value)
@@ -155,7 +154,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
-        if configuration.model.analysis.set_params_from_data_set:
+        if configuration.model.set_params_from_data_set:
             data_set = load_data(data_set_type)
             model.set_relevant_parameters_from_data_set(data_set)
 
@@ -196,7 +195,7 @@ def data_set_required(mode: Mode, configuration: Configuration) -> bool:
         mode == Mode.FITTING or \
         (
             mode == Mode.TESTING and
-            configuration.model.network_testing.test_against_data_set
+            configuration.model.set_params_from_data_set
         )
 
 

@@ -24,7 +24,6 @@ class ModelConfig:
 
         component_index_from_largest: int = -1
         plot: bool = True
-        set_params_from_data_set: bool = False
         num_of_infinite_networks: int = 100
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
             # BaseNetworkProperty.Type.NUM_OF_NODES,
@@ -69,11 +68,11 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        test_against_data_set: bool = False
         num_of_simulations: int = 100
         num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
+    set_params_from_data_set: bool = True
     analysis = Analysis()
     fitting = Fitting()
     network_testing = Testing()

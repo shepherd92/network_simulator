@@ -69,7 +69,7 @@ NetworkListInterface generate_infinite_networks_interface(
         const auto return_value_3{to_numpy(vertex_mark_position_pairs)};
 
         result.push_back(std::tuple(return_value_1, return_value_2, return_value_3));
-        std::cout << "Generating infinite networks: " << network_index << "/" << num_of_infinite_networks << std::endl;
+        std::cout << "\rGenerating infinite networks: " << network_index + 1U << "/" << num_of_infinite_networks;
     }
     return result;
 }

@@ -90,7 +90,7 @@ def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: pl
 
 def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: bool, axes: plt.Axes) -> None:
     """Plot a simplicial complex on the given axis."""
-    color_map_name = 'plasma_r'  # viridis, plasma, inferno, magma, cividis
+    color_map_name = 'viridis_r'  # viridis, plasma, inferno, magma, cividis
     if determined_vertex_positions:
         assert network.vertex_positions is not None
         vertex_positions = network.vertex_positions
@@ -118,7 +118,7 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
 
     # from pickle import dump
     # with open('interactions.dat', "wb") as fp:  # Pickling
-    #     dump(interactions_to_plot, fp)
+    #     dump(interactiopip list --outdatedns_to_plot, fp)
     # np.save('polygon_coordinates.npy', np.array(polygon_coordinates, dtype=object), allow_pickle=True)
 
     if len(interactions_to_plot) > 0:

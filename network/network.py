@@ -15,7 +15,7 @@ import pandas as pd
 from tqdm import tqdm
 
 # pylint: disable-next=no-name-in-module
-from cpp_modules.build.simplicial_complex import (
+from cpp_modules.build.simplicial_complex import (  # type: ignore
     calc_degree_sequence,  # type: ignore
     create_skeleton,  # type: ignore
     extract_facets,  # type: ignore

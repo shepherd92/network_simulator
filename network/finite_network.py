@@ -13,8 +13,6 @@ import numpy as np
 import numpy.typing as npt
 from tqdm import tqdm
 
-# pylint: disable-next=no-name-in-module
-from cpp_modules.build.simplicial_complex import calc_degree_sequence  # type: ignore
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty

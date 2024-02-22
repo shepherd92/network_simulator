@@ -111,8 +111,10 @@ ConnectionList generate_connections(
                 connections.insert(connections.end(), new_connections.begin(), new_connections.end());
             }
         }
-        ++counter;
-        std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
+        if (++counter % 10000 == 0)
+        {
+            std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
+        }
     }
     return connections;
 }

@@ -10,8 +10,6 @@ from typing import Any
 from gudhi.simplex_tree import SimplexTree
 import pandas as pd
 
-# pylint: disable-next=no-name-in-module
-from cpp_modules.build.simplicial_complex import calc_degree_sequence  # type: ignore
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty
@@ -127,16 +125,6 @@ class InfiniteNetwork(Network):
 
     def _calc_typical_out_degree(self) -> list[int]:
         return [self.digraph.out_degree(0)]
-
-    def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
-
-        assert neighbor_dimension > simplex_dimension, \
-            f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
-
-        assert self.simplicial_complex.num_vertices() > 0, 'Simplicial complex is empty.'
-
-        degree_sequence = calc_degree_sequence(self.simplices, self.facets, simplex_dimension, neighbor_dimension)
-        return degree_sequence
 
     @property
     def simplices(self) -> list[list[int]]:

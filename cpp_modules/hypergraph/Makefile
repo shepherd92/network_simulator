@@ -1,5 +1,5 @@
 # project name
-PROJECT := hypergraph
+PROJECT := $(notdir $(shell pwd))
 
 # suppress Makefile output
 # .SILENT :
@@ -16,8 +16,9 @@ LD       := g++
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
 CXXFLAGS := -std=c++17 -shared -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC
-CXXFLAGS += $(shell python3.10 -m pybind11 --includes)
-LDFLAGS  := -lstdc++ -m64 -lpthread -ldl -lutil -lm -L/usr/lib/python3.10/config-3.10-x86_64-linux-gnu -L/usr/lib/x86_64-linux-gnu -fPIC
+CXXFLAGS += $(shell python$(PYTHON_VERSION) -m pybind11 --includes)
+LDFLAGS  := -lstdc++ -m64 -lpthread -lutil -fPIC
+LDFLAGS  += $(shell python$(PYTHON_VERSION)-config --ldflags)
 
 # directories
 ROOT        := ..
@@ -31,7 +32,7 @@ TESTDIR     := $(MODULE_ROOT)/test
 SRCEXT   := cpp
 # INLEXT := inl
 OBJEXT   := o
-SHOBJEXT := $(shell python3.10-config --extension-suffix)
+SHOBJEXT := $(shell python$(PYTHON_VERSION)-config --extension-suffix)
 
 TARGETS := __all release debug test clean
 
@@ -64,8 +65,8 @@ CXXFLAGS += $(addprefix -I , $(INCDIRS))
 __all : release
 
 # set target specific compiler and linker flags
-debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG -lpython3.10
-debug test : LDFLAGS  += -pg -lgcov -lpython3.10
+debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG -lpython$(PYTHON_VERSION)
+debug test : LDFLAGS  += -pg -lgcov -lpython$(PYTHON_VERSION)
 release    : CXXFLAGS += -O3
 
 release debug : $(BLDDIR)/$(PROJECT)$(SHOBJEXT)
@@ -76,8 +77,8 @@ $(BLDDIR)/$(PROJECT)$(SHOBJEXT) : $(SRCS) | $(BLDDIR)
 	@touch $(BLDDIR)/__init__.py
 
 $(BLDDIR)/$(PROJECT)_test : $(BLDDIR)/$(PROJECT)_test.$(OBJEXT) | $(BLDDIR)
-	@ln -sf $(BLDDIR)/hypergraph$(SHOBJEXT) $(BLDDIR)/libhypergraph$(SHOBJEXT)
-	$(CXX) $(LDFLAGS) $(shell python3.10 -m pybind11 --includes) -L$(BLDDIR) -l hypergraph.cpython-310-x86_64-linux-gnu $^ -o $@
+	@ln -sf $(BLDDIR)/$(PROJECT)$(SHOBJEXT) $(BLDDIR)/lib$(PROJECT)$(SHOBJEXT)
+	$(CXX) $(LDFLAGS) -L $(BLDDIR) -l $(PROJECT)${SHOBJEXT%.*} $^ -o $@
 
 $(BLDDIR)/$(PROJECT)_test.$(OBJEXT) : $(TESTSRCS) | $(BLDDIR)
 	$(CXX) $(CXXFLAGS) $^ -o $@
