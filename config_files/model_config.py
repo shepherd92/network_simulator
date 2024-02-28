@@ -40,11 +40,11 @@ class ModelConfig:
             # BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
             # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
             # BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
-            # BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            # BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
+            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
-            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
+            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
             # BaseNetworkProperty.Type.BETTI_NUMBERS,
@@ -54,10 +54,10 @@ class ModelConfig:
             # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
         ]
         properties_to_calculate_infinite: list[BaseNetworkProperty.Type] = [
-            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
         ]
@@ -91,12 +91,12 @@ AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.P
 # ==============================================================================
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=1000,  # expected number of nodes
+    network_size=100,  # expected number of nodes
     interaction_intensity=1.,  # expected number of interactions = network_size * interaction_intensity
     torus_dimension=1,
     beta=1.0,
-    gamma=0.5,
-    gamma_prime=0.5,
+    gamma=0.7,
+    gamma_prime=0.2,
 )
 # ==============================================================================
 

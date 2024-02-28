@@ -1,4 +1,5 @@
 gekko
+gprof2dot
 gudhi
 matplotlib
 networkx
@@ -6,4 +7,5 @@ pandas
 pybind11
 pygraphviz
 scipy
+snakeviz
 tqdm

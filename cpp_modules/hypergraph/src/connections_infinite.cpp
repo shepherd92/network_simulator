@@ -16,6 +16,8 @@
 
 namespace py = pybind11;
 
+const Mark MIN_MARK{1e-6};
+
 NetworkListInterface generate_infinite_networks_interface(
     const py::array_t<double> &model_parameters_input,
     const uint32_t num_of_infinite_networks,
@@ -84,7 +86,7 @@ PointList create_interactions_infinite(
     // expected number of connecting interactions: 2 * b * u^(-g) / (1 - g')
     std::poisson_distribution<uint32_t> poisson_distribution_interactions(2 * interaction_intensity * beta * std::pow(u, -gamma) / (1 - gamma_prime));
     const auto num_of_interactions{poisson_distribution_interactions(random_number_generator)};
-    const auto interaction_marks{generate_marks(num_of_interactions)};
+    const auto interaction_marks{generate_marks(num_of_interactions, MIN_MARK)};
     const auto interaction_positions{generate_positions_infinite(
         interaction_marks, beta * std::pow(u, -gamma), gamma_prime)};
 
@@ -135,7 +137,7 @@ PointList create_points_in_neighborhood(const Point &point, const double beta, c
     PointList points{};
     const auto expected_num_of_points{2 * beta * point.mark_to_gamma() / (1 - other_exponent)};
     const auto num_of_points{std::poisson_distribution<uint32_t>(expected_num_of_points)(random_number_generator)};
-    const auto marks{generate_marks(num_of_points)};
+    const auto marks{generate_marks(num_of_points, MIN_MARK)};
     const auto positions{generate_positions_infinite(
         marks, beta * point.mark_to_gamma(), other_exponent)};
     for (auto index{0U}; index < num_of_points; ++index)

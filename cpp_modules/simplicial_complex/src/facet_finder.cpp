@@ -1,6 +1,8 @@
 #include <algorithm>
+#include <execution>
 #include <iomanip>
 #include <iostream>
+#include <mutex>
 #include <set>
 #include <vector>
 
@@ -10,32 +12,37 @@
 std::vector<VertexList> extract_facets_interface(const std::vector<VertexList> &simplices_in)
 {
   auto simplices{sort_simplices(create_simplices(simplices_in), true)};
-  std::vector<VertexList> facets;
-  auto counter{0U};
-  for (auto first{simplices.begin()}; first < simplices.end(); ++first)
-  {
-    if (++counter % 10000 == 0 && simplices.size() > 100000U)
-    {
-      std::cout << "\rC++: Extracting facets ... " << counter << " / " << simplices.size();
-    }
+  std::mutex mutex;
+  std::vector<VertexList> facets{};
+  std::atomic<uint32_t> counter{0U};
 
-    auto first_is_face{false};
-    for (auto second{first + 1}; second < simplices.end(); ++second)
-    {
-      first_is_face = false;
-      if (first->is_face(*second))
+  std::for_each(
+      simplices.begin(),
+      simplices.end(),
+      [&](auto &&simplex)
       {
-        first_is_face = true;
-        break;
-      }
-    }
-    if (!first_is_face)
-    {
-      VertexList raw_simplex;
-      raw_simplex.assign(first->vertices().begin(), first->vertices().end());
-      facets.push_back(raw_simplex);
-    }
-  }
+        const auto first_it{simplices.begin() + (&simplex - &simplices[0])};
+        if (++counter % 10000 == 0 && simplices.size() > 100000U)
+        {
+          std::lock_guard<std::mutex> lock_guard(mutex);
+          std::cout << "\rC++: Extracting facets ... " << counter << " / " << simplices.size();
+        }
+        auto first_is_face{false};
+        for (auto second_it{first_it + 1}; second_it < simplices.end(); ++second_it)
+        {
+          first_is_face = false;
+          if (simplex.is_face(*second_it))
+          {
+            first_is_face = true;
+            break;
+          }
+        }
+        if (!first_is_face)
+        {
+          std::lock_guard<std::mutex> lock_guard(mutex);
+          facets.push_back(simplex.vertices());
+        }
+      });
 
   return facets;
 }

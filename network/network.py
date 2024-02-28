@@ -138,16 +138,6 @@ class Network:
         self.graph = None
         self._digraph = None
 
-    def _extract_facets(self) -> list[list[int]]:
-        """Return the facets of the simplicial complex."""
-        if self._interactions is not None:
-            # print(f'Extracting facets from {len(self._interactions)} interactions.')
-            facets: list[list[int]] = extract_facets(self._interactions)
-        else:
-            facets = list(nx.find_cliques(self.graph))
-
-        return facets
-
     def _calculate_simplex_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the estimated number of simplices for each dimension.
 
@@ -179,30 +169,21 @@ class Network:
     def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 
         assert neighbor_dimension > simplex_dimension, \
-            f'Neighbor dimension {neighbor_dimension} must be greater than simlex dimension {simplex_dimension}.'
+            f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
 
         assert self.simplicial_complex.num_vertices() > 0, 'Simplicial complex is empty.'
 
-        degree_sequence = calc_degree_sequence(self.simplices, self.facets, simplex_dimension, neighbor_dimension)
+        # degree_sequence: list[int] = [
+        #     len(self.simplicial_complex.get_cofaces(simplex, neighbor_dimension - simplex_dimension))
+        #     for simplex in tqdm(self.simplices, desc='Calculating degree sequence', delay=10)
+        #     if len(simplex) == simplex_dimension + 1
+        # ]
+        degree_sequence: list[int] = calc_degree_sequence(
+            self.facets,
+            simplex_dimension,
+            neighbor_dimension
+        )
         return degree_sequence
-
-    def _calc_degrees(
-        self,
-        simplex_dimension: int,
-        neighbor_dimension: int
-    ) -> list[tuple[set[int], int]]:
-
-        higher_order_degrees: list[tuple[set[int], int]] = []
-        for simplex in tqdm(self.simplices, desc='Calculating higher-order degrees', delay=10):
-            if len(simplex) - 1 == simplex_dimension:
-                cofaces = [
-                    face
-                    for face, _ in self.simplicial_complex.get_cofaces(simplex, simplex_dimension)
-                ]
-                degree = list(map(len, cofaces)).count(neighbor_dimension + 1)
-                higher_order_degrees.append((simplex, degree))
-
-        return higher_order_degrees
 
     @staticmethod
     def _calc_dimension_distribution(simplices: list[list[int]]) -> EmpiricalDistribution:
@@ -275,7 +256,10 @@ class Network:
     def facets(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
         if self._facets is None:
-            self._facets = self._extract_facets()
+            if self._interactions is not None:
+                self._facets = extract_facets(self.interactions)
+            else:
+                self._facets = list(nx.find_cliques(self.graph))
         return self._facets
 
     @property

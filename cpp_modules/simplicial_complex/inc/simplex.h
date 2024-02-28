@@ -12,9 +12,9 @@ public:
     bool is_face(const Simplex &other) const;
     SimplexList get_skeleton(const Dimension dimension) const;
     Dimension dimension() const;
-    void print() const;
     Simplex operator-(const Simplex &other) const;
     bool operator==(const Simplex &other) const;
+    friend std::ostream &operator<<(std::ostream &os, const Simplex &simplex);
 
 private:
     void combination_util(

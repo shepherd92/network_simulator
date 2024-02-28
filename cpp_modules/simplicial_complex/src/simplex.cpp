@@ -23,15 +23,6 @@ const VertexList &Simplex::vertices() const
     return vertices_;
 }
 
-void Simplex::print() const
-{
-    for (const auto &vertex : vertices_)
-    {
-        std::cout << vertex << " ";
-    }
-    std::cout << std::endl;
-}
-
 Simplex Simplex::operator-(const Simplex &other) const
 {
     VertexList remaining_vertices;
@@ -45,6 +36,15 @@ Simplex Simplex::operator-(const Simplex &other) const
 bool Simplex::operator==(const Simplex &other) const
 {
     return std::is_permutation(vertices_.begin(), vertices_.end(), other.vertices().begin(), other.vertices().end());
+}
+
+std::ostream &operator<<(std::ostream &os, const Simplex &simplex)
+{
+    for (const auto &vertex : simplex.vertices())
+    {
+        os << vertex << " ";
+    }
+    return os;
 }
 
 Dimension Simplex::dimension() const
@@ -63,8 +63,9 @@ SimplexList Simplex::get_skeleton(const Dimension max_dimension) const
     {
         return SimplexList{*this};
     }
-    VertexList current_combination(max_dimension);
+    VertexList current_combination(max_dimension + 1U);
     SimplexList result{};
+
     combination_util(max_dimension, 0U, result, current_combination, 0U);
     return result;
 }
@@ -83,7 +84,7 @@ void Simplex::combination_util(
         return;
     }
 
-    if (array_index > max_dimension + 1U)
+    if (array_index > dimension())
         return;
 
     current_combination[combination_index] = vertices()[array_index];

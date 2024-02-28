@@ -123,8 +123,10 @@ betti_number_directories = {
 
 
 hypothesis_testing_directories = {
-    'mathematics':      input_base_path / '20240206_131744_hyp_math',
-    'statistics':       input_base_path / '20240129_205231_hyp_stat',
+    'computer_science': input_base_path / '20240224_175016_computer_science_hyp',
+    'engineering':      input_base_path / '20240225_102941_engineering_hyp',
+    'mathematics':      input_base_path / '20240224_132250_math_hyp',
+    'statistics':       input_base_path / '20240224_114632_stat_hyp',
 }
 
 

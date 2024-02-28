@@ -3,7 +3,7 @@
 
 #include "typedefs.h"
 
-MarkList generate_marks(const size_t num_nodes);
+MarkList generate_marks(const size_t num_nodes, const Mark min_mark = 0.);
 
 RectangleList create_rectangles(
     const PointList &points,

@@ -253,6 +253,6 @@ std::vector<std::pair<int, int>> generate_network_connections(
             std::cout << "\rGenerating connections: " << counter << " / " << num_of_nodes;
         }
     }
-    // std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes << std::endl;
+    std::cout << "\rGenerating connections: " << num_of_nodes << " / " << num_of_nodes;
     return connections;
 }
