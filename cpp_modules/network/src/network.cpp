@@ -9,7 +9,9 @@ Network::Network(const Dimension max_dimension)
     : max_dimension_{max_dimension},
       simplex_tree_{},
       interactions_{std::nullopt},
-      facets_{std::nullopt}
+      facets_{std::nullopt},
+      persistent_cohomology_{simplex_tree_},
+      is_persistence_calculated_{false}
 {
 }
 
@@ -19,11 +21,13 @@ void Network::add_simplices(const ISimplexList &simplices)
     {
         add_simplex(simplex);
     }
+    is_persistence_calculated_ = false;
 }
 
 void Network::reset()
 {
     simplex_tree_ = SimplexTree{};
+    is_persistence_calculated_ = false;
     interactions_ = std::nullopt;
     facets_ = std::nullopt;
 }
@@ -68,20 +72,59 @@ void Network::combination_util(
     combination_util(simplex, combination_index, result, current_combination, array_index + 1U);
 }
 
-std::vector<std::vector<uint32_t>> calc_persistence_pairs()
+PersistentCohomology &Network::get_persistent_cohomology()
 {
-    std::vector<std::vector<uint32_t>> result{};
-    auto persistence_pairs{simplex_tree_.persistence_pairs()};
-    for (const auto &pair : persistence_pairs)
+    if (!is_persistence_calculated_)
     {
-        result.push_back({pair.birth(), pair.death()});
+        calc_persistent_cohomology();
+        is_persistence_calculated_ = true;
     }
+    return persistent_cohomology_;
+}
+
+void Network::calc_persistent_cohomology()
+{
+    persistent_cohomology_.init_coefficients(2);
+    std::cout << __LINE__ << std::endl;
+    persistent_cohomology_.compute_persistent_cohomology();
+    std::cout << __LINE__ << std::endl;
+}
+
+std::vector<ISimplexList> Network::calc_persistence_pairs()
+{
+    const auto &persistent_cohomology{get_persistent_cohomology()};
+    const auto &persistent_pairs{persistent_cohomology.get_persistent_pairs()};
+    std::vector<ISimplexList> result{};
+    result.reserve(persistent_pairs.size());
+    for (const auto &persistent_interval : persistent_pairs)
+    {
+        ISimplex birth_simplex{};
+        for (auto vertex : simplex_tree_.simplex_vertex_range(std::get<0>(persistent_interval)))
+        {
+            birth_simplex.push_back(vertex);
+        }
+        ISimplex death_simplex{};
+        for (auto vertex : simplex_tree_.simplex_vertex_range(std::get<1>(persistent_interval)))
+        {
+            death_simplex.push_back(vertex);
+        }
+        result.push_back({birth_simplex, death_simplex});
+    }
+
+    return result;
+}
+
+std::vector<int32_t> Network::calc_betti_numbers()
+{
+    const auto &persistent_cohomology{get_persistent_cohomology()};
+    const auto result{persistent_cohomology.betti_numbers()};
     return result;
 }
 
 void Network::expand()
 {
     simplex_tree_.expansion(max_dimension_ + 1U);
+    is_persistence_calculated_ = false;
 }
 
 uint32_t Network::num_simplices()
@@ -182,6 +225,7 @@ void Network::set_simplices(const ISimplexList &simplices)
 {
     simplex_tree_ = SimplexTree();
     add_simplices(simplices);
+    is_persistence_calculated_ = false;
 }
 
 void Network::keep_only_vertices(const VertexList &vertices)
@@ -189,6 +233,7 @@ void Network::keep_only_vertices(const VertexList &vertices)
     filter_simplex_tree(vertices);
     filter_interactions(vertices);
     facets_ = std::nullopt;
+    is_persistence_calculated_ = false;
 }
 
 std::vector<uint32_t> Network::calc_simplex_dimension_distribution()

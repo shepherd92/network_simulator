@@ -1,7 +1,6 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
-#include <gudhi/Simplex_tree.h>
 #include <optional>
 
 #include "typedefs.h"
@@ -12,7 +11,6 @@ public:
     Network(const Dimension max_dimension);
 
     void add_simplices(const ISimplexList &simplices);
-    void add_simplex(const ISimplex &simplex);
 
     void keep_only_vertices(const VertexList &vertices);
     void reset();
@@ -21,7 +19,8 @@ public:
     uint32_t num_simplices();
     uint32_t num_vertices() const;
 
-    std::vector<std::vector<uint32_t>> calc_persistence_pairs();
+    std::vector<int32_t> calc_betti_numbers();
+    std::vector<ISimplexList> calc_persistence_pairs();
     std::vector<uint32_t> calc_simplex_dimension_distribution();
     std::vector<uint32_t> calc_degree_sequence(
         const Dimension simplex_dimension,
@@ -48,15 +47,21 @@ private:
         ISimplex &current_combination,
         const uint32_t array_index) const;
 
+    void add_simplex(const ISimplex &simplex);
     ISimplexList calc_facets();
     void filter_simplex_tree(const VertexList &vertices);
     void filter_facets(const VertexList &vertices);
     void filter_interactions(const VertexList &vertices);
 
+    PersistentCohomology &get_persistent_cohomology();
+    void calc_persistent_cohomology();
+
     Dimension max_dimension_;
     SimplexTree simplex_tree_;
     std::optional<ISimplexList> interactions_;
     std::optional<ISimplexList> facets_;
+    PersistentCohomology persistent_cohomology_;
+    bool is_persistence_calculated_;
 };
 
 #endif
