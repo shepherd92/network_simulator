@@ -9,7 +9,7 @@
 #include "simplex.h"
 
 std::vector<int32_t> calc_degree_sequence_interface(
-    const std::vector<VertexList> &facets_in,
+    const ISimplexList &facets_in,
     const Dimension simplex_dimension,
     const Dimension neighbor_dimension)
 {

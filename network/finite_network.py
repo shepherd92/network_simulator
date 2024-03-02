@@ -120,12 +120,12 @@ class FiniteNetwork(Network):
         if property_type == BaseNetworkProperty.Type.NUM_OF_NODES:
             property_value = self.num_vertices
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
-            simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
+            simplex_dimension_value_counts = self._calculate_simplex_dimension_distribution.calc_value_counts()
             property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1][0, 1] \
                 if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1]) > 0 \
                 else 0
         elif property_type == BaseNetworkProperty.Type.NUM_OF_TRIANGLES:
-            simplex_dimension_value_counts = self.simplex_dimension_distribution.calc_value_counts()
+            simplex_dimension_value_counts = self._calculate_simplex_dimension_distribution().calc_value_counts()
             if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2]) == 0:
                 property_value = 0
             else:
@@ -164,7 +164,7 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION:
-            property_value = self.simplex_dimension_distribution
+            property_value = self._calculate_simplex_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_facet_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:
@@ -311,9 +311,7 @@ class FiniteNetwork(Network):
         return betti_number_array
 
     def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:
-        if not self.is_persistence_computed:
-            self._compute_persistence()
-        persistence_pairs = self.simplicial_complex.persistence_pairs()
+        persistence_pairs = self._cpp_network.calc_persistence_pairs()
         return persistence_pairs
 
     def _get_all_components(self) -> list[FiniteNetwork]:
@@ -337,11 +335,6 @@ class FiniteNetwork(Network):
         return simplices
 
     @property
-    def simplicial_complex(self) -> SimplexTree:
-        """Getter of simplicial complex."""
-        return super(FiniteNetwork, self).simplicial_complex
-
-    @property
     def betti_numbers(self) -> npt.NDArray[np.int_]:
         """Getter of Betti numbers."""
         if self._betti_numbers is None:
@@ -354,17 +347,6 @@ class FiniteNetwork(Network):
         if self._components is None:
             self._components = self._get_all_components()
         return self._components
-
-    @simplicial_complex.setter
-    def simplicial_complex(self, value: SimplexTree) -> None:
-        """Setter of simplicial complex."""
-        super(FiniteNetwork, self.__class__).simplicial_complex.fset(self, value)
-        self._is_persistence_computed = False
-
-    @ property
-    def is_persistence_computed(self) -> bool:
-        """Return if persistence is computed on the simplicial complex."""
-        return self._is_persistence_computed
 
     def __copy__(self):
         """Shallow copy of self."""

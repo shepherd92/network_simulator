@@ -16,7 +16,7 @@ LD       := g++
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
 # ltbb: use parallel algorithms, i.e. parallel for_each
-CXXFLAGS := -std=c++17 -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC
+CXXFLAGS := -std=c++17 -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC -DBOOST_ALLOW_DEPRECATED_HEADERS
 CXXFLAGS += $(shell python$(PYTHON_VERSION) -m pybind11 --includes)
 LDFLAGS  := -lstdc++ -shared -m64 -lpthread -lutil -fPIC
 LDFLAGS  += $(shell python$(PYTHON_VERSION)-config --ldflags)
@@ -54,7 +54,7 @@ TESTSRCS := $(shell find $(TESTDIR) -type f -name "*.$(SRCEXT)")
 # INLS := $(shell find $(INCDIR) -type f -iname "*.$(INLEXT)")
 
 # create dependency file names from object filenames
-DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
+DEPS := $(SRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
 
 # automatically create dependency files for object files
 -include $(DEPS)

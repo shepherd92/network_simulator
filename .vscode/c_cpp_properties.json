@@ -4,10 +4,10 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/usr/include/python3.10",
                 "${workspaceFolder}/cpp_modules/inc/**",
                 "${workspaceFolder}/cpp_modules/**",
-                "${workspaceFolder}/../gudhi/gudhi-devel/src/**"
+                "/usr/include",
+                "/usr/include/python3.10"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

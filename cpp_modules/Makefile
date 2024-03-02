@@ -1,6 +1,6 @@
 export PYTHON_VERSION := 3.12
 
-# sudo apt install python$(PYTHON_VERSION)-full python$(PYTHON_VERSION)-dev
+# sudo apt install python$(PYTHON_VERSION)-full python$(PYTHON_VERSION)-dev libgudhi-dev
 
 # deactivate
 # python$(PYTHON_VERSION) -m venv ~/venv/tda
@@ -16,7 +16,7 @@ BLDDIR = build
 all:
 	$(MAKE) -C adrcm
 	$(MAKE) -C hypergraph
-	$(MAKE) -C simplicial_complex
+	$(MAKE) -C network
 
 clean :
 	@rm -rf *~ core $(BLDDIR)

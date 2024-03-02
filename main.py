@@ -55,6 +55,10 @@ def main(mode: Mode, configuration: Configuration) -> None:
     data_set_type = configuration.data_set_analysis.type_
     model_type = configuration.model.type_
 
+    from cpp_modules.build.network import Network
+    network = Network(2)
+    network.add_simplices([[0, 1, 2, 3], [0, 1, 4]])
+
     if mode == Mode.ANALYSIS:
         data_set = load_data(data_set_type)
         (configuration.general.output_dir / 'data').mkdir(parents=True, exist_ok=True)

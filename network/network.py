@@ -7,19 +7,13 @@ from itertools import chain
 from pathlib import Path
 from typing import Any
 
-from gudhi.simplex_tree import SimplexTree
 import networkx as nx
 import numpy as np
-import numpy.typing as npt
 import pandas as pd
 from tqdm import tqdm
 
 # pylint: disable-next=no-name-in-module
-from cpp_modules.build.simplicial_complex import (  # type: ignore
-    calc_degree_sequence,  # type: ignore
-    create_skeleton,  # type: ignore
-    extract_facets,  # type: ignore
-)
+from cpp_modules.build.network import Network as CppNetwork
 from distribution.empirical_distribution import EmpiricalDistribution
 
 
@@ -29,11 +23,8 @@ class Network:
     def __init__(self, max_dimension: int) -> None:
         """Construct an empty network."""
         assert isinstance(max_dimension, int)
-        self._max_dimension = max_dimension
-        self._interactions: list[list[int]] | None = None
-        self._facets: list[list[int]] | None = None
         self._simplex_dimension_distribution: EmpiricalDistribution | None = None
-        self._simplicial_complex = SimplexTree()
+        self._cpp_network = CppNetwork(max_dimension)
         self._graph: nx.Graph() | None = None
         self._digraph: nx.DiGraph() | None = None
         self._vertex_positions: dict[int, tuple[float, ...]] | None = None
@@ -50,16 +41,12 @@ class Network:
 
     def expand(self) -> None:
         """Expand simplicial complex to a clique complex."""
-        self.simplicial_complex.expansion(self._max_dimension)
+        self._cpp_network.expand()
 
     def filter_to_graph(self) -> None:
         """Filter out those simplices from the simplicial complex that are not present in the graph."""
-        graph_nodes_set = set(self.graph.nodes)
-        simplicial_complex = SimplexTree()
-        for simplex in tqdm(self.simplices, desc='Filtering simplices in the graph', delay=10):
-            if set(simplex) <= graph_nodes_set:
-                simplicial_complex.insert(simplex)
-        self.simplicial_complex = simplicial_complex
+        graph_nodes_set = list(self.graph.nodes)
+        self._cpp_network.keep_only_vertices(graph_nodes_set)
         self.filter_interactions_from_graph()
 
     def filter_interactions_from_graph(self) -> None:
@@ -78,30 +65,19 @@ class Network:
 
         graph = nx.Graph()
         graph.add_nodes_from([
-            simplex[0] for simplex, weight in self.simplicial_complex.get_skeleton(0)
+            simplex[0] for simplex in self._cpp_network.get_skeleton(0)
         ])
 
         graph.add_weighted_edges_from([
             [*simplex, weight]
-            for simplex, weight in self.simplicial_complex.get_skeleton(1)
+            for simplex, weight in self._cpp_network.get_skeleton(1)
             if len(simplex) == 2
         ])
         return graph
 
-    def _add_simplices_batch(self, simplices: npt.NDArray[np.int]) -> None:
-        """Add simplices to the simplicial complex in batch."""
-        # assert simplices.shape[1] - 1 <= self.max_dimension, \
-        #     f'Simplices have too high dimension {simplices.shape[1]}.'
-        self.simplicial_complex.insert_batch(simplices.T, np.zeros((simplices.shape[0],)))
-
     def add_simplices(self, simplices: list[list[int]]) -> None:
         """Insert simplex to the simplicial complex."""
-        skeleton = create_skeleton(simplices, self.max_dimension)
-        for skeleton_simplices in skeleton:
-            self._add_simplices_batch(skeleton_simplices)
-
-        self._is_persistence_computed = False
-        self._is_collapsed_persistence_computed = False
+        self._cpp_network.add_simplices(simplices)
 
     def get_simplices_by_dimension(self, dimension: int) -> list[list[int]]:
         """Return all simplices by their dimension."""
@@ -132,9 +108,6 @@ class Network:
 
     def _reset(self) -> None:
         self._interactions = None
-        self._facets = None
-        self._simplex_dimension_distribution = None
-        self._simplicial_complex = SimplexTree()
         self.graph = None
         self._digraph = None
 
@@ -143,8 +116,7 @@ class Network:
 
         Facets might have nonempty intersections which are estimated to be empty.
         """
-        simplex_dimension_distribution = self._calc_dimension_distribution(self.simplices)
-        return simplex_dimension_distribution
+        return EmpiricalDistribution(self._cpp_network.get_simplex_dimension_distribution())
 
     def _calculate_facet_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of facets for each dimension."""
@@ -171,18 +143,20 @@ class Network:
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
 
-        assert self.simplicial_complex.num_vertices() > 0, 'Simplicial complex is empty.'
+        assert self._cpp_network.num_vertices() > 0, 'Simplicial complex is empty.'
+
+        degree_sequence: list[int] = self._cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
 
         # degree_sequence: list[int] = [
         #     len(self.simplicial_complex.get_cofaces(simplex, neighbor_dimension - simplex_dimension))
         #     for simplex in tqdm(self.simplices, desc='Calculating degree sequence', delay=10)
         #     if len(simplex) == simplex_dimension + 1
         # ]
-        degree_sequence: list[int] = calc_degree_sequence(
-            self.facets,
-            simplex_dimension,
-            neighbor_dimension
-        )
+        # degree_sequence: list[int] = calc_degree_sequence(
+        #     self.facets,
+        #     simplex_dimension,
+        #     neighbor_dimension
+        # )
         return degree_sequence
 
     @staticmethod
@@ -192,24 +166,6 @@ class Network:
         return distribution
 
     @property
-    def simplicial_complex(self) -> SimplexTree:
-        """Get the simplicial complex associated to the network."""
-        return self._simplicial_complex
-
-    @simplicial_complex.setter
-    def simplicial_complex(self, value: SimplexTree) -> None:
-        self._simplicial_complex = value
-        self._facets = None
-        self._simplex_dimension_distribution = None
-        self._is_persistence_computed = False
-        self._is_collapsed_persistence_computed = False
-        self._num_of_edges = None
-
-    @simplicial_complex.deleter
-    def simplicial_complex(self) -> None:
-        del self._simplicial_complex
-
-    @property
     def simplices(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
         raise NotImplementedError
@@ -217,22 +173,17 @@ class Network:
     @property
     def num_simplices(self) -> int:
         """Return the number of simplices in the simplicial complex."""
-        return self.simplicial_complex.num_simplices()
+        return self._cpp_network.num_simplices()
 
     @property
     def num_vertices(self) -> int:
         """Return the number of nodes in the graph."""
-        return self.simplicial_complex.num_vertices()
-
-    @property
-    def dimension(self) -> int:
-        """Get the dimension of the simplicial complex."""
-        return self.simplicial_complex.dimension
+        return self._cpp_network.num_vertices()
 
     @property
     def max_dimension(self) -> int:
         """Get the maximum dimension of the network."""
-        return self._max_dimension
+        return self._cpp_network.max_dimension()
 
     @property
     def graph(self) -> nx.Graph:
@@ -255,12 +206,7 @@ class Network:
     @property
     def facets(self) -> list[list[int]]:
         """Get the simplices associated to the network."""
-        if self._facets is None:
-            if self._interactions is not None:
-                self._facets = extract_facets(self.interactions)
-            else:
-                self._facets = list(nx.find_cliques(self.graph))
-        return self._facets
+        return self._cpp_network.get_facets()
 
     @property
     def interactions(self) -> list[list[int]]:
@@ -271,13 +217,6 @@ class Network:
     def interactions(self, value: list[list[int]]) -> None:
         """Setter for interactions."""
         self._interactions = value
-
-    @property
-    def simplex_dimension_distribution(self) -> EmpiricalDistribution:
-        """Get the simplices associated to the network."""
-        if not self._simplex_dimension_distribution:
-            self._simplex_dimension_distribution = self._calculate_simplex_dimension_distribution()
-        return self._simplex_dimension_distribution
 
     @property
     def vertex_positions(self) -> dict[int, tuple[float, ...]]:

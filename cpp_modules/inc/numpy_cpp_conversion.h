@@ -6,22 +6,25 @@
 namespace py = pybind11;
 
 template <typename T>
-std::vector<T> numpy_to_vector_1d(const py::array_t<T, py::array::c_style | py::array::forcecast> &array);
+using NumpyArray = py::array_t<T, py::array::c_style | py::array::forcecast>;
 
 template <typename T>
-std::vector<std::vector<T>> numpy_to_vector_2d(const py::array_t<T, py::array::c_style | py::array::forcecast> &array);
+std::vector<T> numpy_to_vector_1d(const NumpyArray<T> &array);
+
+template <typename T>
+std::vector<std::vector<T>> numpy_to_vector_2d(const NumpyArray<T> &array);
 
 template <typename T, uint32_t D>
-std::vector<std::array<T, D>> numpy_to_vector_of_arrays(const py::array_t<T, py::array::c_style | py::array::forcecast> &array);
+std::vector<std::array<T, D>> numpy_to_vector_of_arrays(const NumpyArray<T> &array);
 
 template <typename T>
-py::array_t<T, py::array::c_style | py::array::forcecast> to_numpy(const std::vector<T> &vector);
+NumpyArray<T> to_numpy(const std::vector<T> &vector);
 
 template <typename T>
-py::array_t<T, py::array::c_style | py::array::forcecast> to_numpy(const std::vector<std::vector<T>> &vector_of_vectors);
+NumpyArray<T> to_numpy(const std::vector<std::vector<T>> &vector_of_vectors);
 
 template <typename T>
-py::array_t<T, py::array::c_style | py::array::forcecast> to_numpy(const std::vector<std::pair<T, T>> &vector_of_pairs);
+NumpyArray<T> to_numpy(const std::vector<std::pair<T, T>> &vector_of_pairs);
 
 #include "numpy_cpp_conversion.inl"
 
