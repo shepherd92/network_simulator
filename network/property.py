@@ -25,7 +25,6 @@ class BaseNetworkProperty:
         MAX_DEGREE: int = auto()
         AVG_CLUSTERING: int = auto()
         NUM_OF_CONNECTED_COMPONENTS: int = auto()
-        DIMENSION: int = auto()
         NUM_OF_SIMPLICES: int = auto()
         INTERACTION_DIMENSION_DISTRIBUTION: int = auto()
         SIMPLEX_DIMENSION_DISTRIBUTION: int = auto()

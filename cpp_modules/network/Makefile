@@ -18,7 +18,7 @@ LD       := g++
 # ltbb: use parallel algorithms, i.e. parallel for_each
 CXXFLAGS := -std=c++17 -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC -DBOOST_ALLOW_DEPRECATED_HEADERS
 CXXFLAGS += $(shell python$(PYTHON_VERSION) -m pybind11 --includes)
-LDFLAGS  := -lstdc++ -shared -m64 -lpthread -lutil -fPIC
+LDFLAGS  := -lstdc++ -shared -m64 -lpthread -lutil -fPIC -ltbb
 LDFLAGS  += $(shell python$(PYTHON_VERSION)-config --ldflags)
 
 # directories
@@ -65,13 +65,12 @@ CXXFLAGS += $(addprefix -I , $(INCDIRS))
 # LIBDIRS := /lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 # LDFLAGS += $(addprefix -L , $(LIBDIRS))
 
-__all : release
+all : release
 
 # set target specific compiler and linker flags
-debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG -lpython$(PYTHON_VERSION)
-debug test : LDFLAGS  += -pg -lgcov -lpython$(PYTHON_VERSION) -ltbb_debug
+debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDEBUG -lpython$(PYTHON_VERSION)
+debug test : LDFLAGS  += -pg -lgcov -lpython$(PYTHON_VERSION)
 release    : CXXFLAGS += -O3
-release	   : LDFLAGS  += -ltbb
 
 release debug : $(BLDDIR)/$(PROJECT)$(SHOBJEXT)
 test          : $(BLDDIR)/$(PROJECT)$(SHOBJEXT) $(BLDDIR)/$(PROJECT)_test

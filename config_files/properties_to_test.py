@@ -8,7 +8,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
     create_fitting_parameters_normal,
-    create_fitting_parameters_power_law_adrcm,
+    create_fitting_parameters_power_law_model,
     create_fitting_parameters_power_law_data_set,
 )
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
@@ -24,12 +24,12 @@ SCALAR_PROPERTY_NAMES_TO_TEST = [
     'edge_degree_exponent',
     # 'triangle_degree_exponent',
     # 'average_interaction_degree_normal_mle',
-    'num_of_edges_normal_mle',
-    'num_of_edges_normal_match_quantile',
-    'num_of_edges_stable',
-    'num_of_triangles_normal_mle',
-    'num_of_triangles_normal_match_quantile',
-    'num_of_triangles_stable',
+    # 'num_of_edges_normal_mle',
+    # 'num_of_edges_normal_match_quantile',
+    # 'num_of_edges_stable',
+    # 'num_of_triangles_normal_mle',
+    # 'num_of_triangles_normal_match_quantile',
+    # 'num_of_triangles_stable',
     # 'betti_number_0_normal',
     # 'betti_number_0_stable',
     # 'betti_number_1_normal',
@@ -46,7 +46,7 @@ def _get_power_law_exponent_model(empirical_distribution: EmpiricalDistribution)
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_params = create_fitting_parameters_power_law_adrcm()
+    fitting_params = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_params)
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
@@ -199,7 +199,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=lambda betti_numbers: betti_numbers[0, 1],
+        calculator_default=lambda betti_numbers: betti_numbers[0],
     ),
     DerivedNetworkProperty(
         name='betti_number_0_stable',
@@ -218,14 +218,14 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
                 ),
             ),
         ),
-        calculator_default=lambda betti_numbers: betti_numbers[0, 1],
+        calculator_default=lambda betti_numbers: betti_numbers[0],
     ),
     DerivedNetworkProperty(
         name='betti_number_1_normal',
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=lambda betti_numbers: betti_numbers[1, 1],
+        calculator_default=lambda betti_numbers: betti_numbers[1],
     ),
     DerivedNetworkProperty(
         name='betti_number_1_stable',
@@ -244,14 +244,14 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
                 ),
             ),
         ),
-        calculator_default=lambda betti_numbers: betti_numbers[1, 1],
+        calculator_default=lambda betti_numbers: betti_numbers[1],
     ),
     DerivedNetworkProperty(
         name='betti_number_2_normal',
         source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.BETTI_NUMBERS),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
-        calculator_default=lambda betti_numbers: betti_numbers[2, 1],
+        calculator_default=lambda betti_numbers: betti_numbers[2],
     ),
     DerivedNetworkProperty(
         name='betti_number_2_stable',
@@ -269,7 +269,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
                 ),
             ),
         ),
-        calculator_default=lambda betti_numbers: betti_numbers[2, 1],
+        calculator_default=lambda betti_numbers: betti_numbers[2],
     ),
 )
 

@@ -1,9 +1,16 @@
 #ifndef _TYPEDEFS_H_
 #define _TYPEDEFS_H_
 
+#include <execution>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
 #include <vector>
+
+#ifdef DEBUG
+constexpr auto execution_policy{std::execution::seq};
+#else
+constexpr auto execution_policy{std::execution::par_unseq};
+#endif
 
 namespace py = pybind11;
 

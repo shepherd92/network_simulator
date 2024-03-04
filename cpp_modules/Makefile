@@ -13,10 +13,10 @@ export PYTHON_VERSION := 3.12
 
 BLDDIR = build
 
-all:
-	$(MAKE) -C adrcm
-	$(MAKE) -C hypergraph
-	$(MAKE) -C network
+all release debug test:
+	$(MAKE) -C adrcm $@
+	$(MAKE) -C hypergraph $@
+	$(MAKE) -C network $@
 
 clean :
 	@rm -rf *~ core $(BLDDIR)

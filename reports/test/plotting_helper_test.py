@@ -12,7 +12,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
     create_fitting_parameters_normal,
-    create_fitting_parameters_power_law_adrcm,
+    create_fitting_parameters_power_law_model,
     create_fitting_parameters_poisson,
     create_fitting_parameters_stable,
 )
@@ -48,7 +48,7 @@ class PlottingHelperTest(unittest.TestCase):
         axes_power_law.set_title('Power law Distribution')
         type_ = TheoreticalDistribution.Type.POWER_LAW
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
-        fitting_params = create_fitting_parameters_power_law_adrcm()
+        fitting_params = create_fitting_parameters_power_law_model()
         approximation.fit(fitting_params)
         plot_distribution_approximation(approximation, data_set_value, axes_power_law)
 

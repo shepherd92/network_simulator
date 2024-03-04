@@ -8,7 +8,7 @@ from scipy.stats import pareto
 
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import create_fitting_parameters_power_law_adrcm
+from distribution.factory import create_fitting_parameters_power_law_model
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
@@ -32,7 +32,7 @@ class PowerLawDistributionTest(unittest.TestCase):
     def test_fitting(self):
         """Test if the fitting method gives a reasonably good fit."""
         approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
-        fitting_parameters = create_fitting_parameters_power_law_adrcm()
+        fitting_parameters = create_fitting_parameters_power_law_model()
         approximation.fit(fitting_parameters)
 
         self.assertAlmostEqual(approximation.theoretical.parameters.exponent, 2.5, delta=0.2)

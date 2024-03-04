@@ -7,9 +7,9 @@ from logging import info
 from pathlib import Path
 from typing import Any
 
-from gudhi.simplex_tree import SimplexTree
 import pandas as pd
 
+from cpp_modules.build.network import InfiniteNetwork as CppInfiniteNetwork
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty
@@ -79,18 +79,11 @@ class InfiniteNetworkSet:
 class InfiniteNetwork(Network):
     """Represent an "infinite network" in which network size effects do not play a role."""
 
-    def generate_simplicial_complex_from_graph(self) -> None:
-        """Set the simplicial complex to represent the graph."""
-        simplicial_complex = SimplexTree()
-
-        for node in self.graph.nodes:
-            simplicial_complex.insert((node,))
-        for edge in self.graph.edges:
-            simplicial_complex.insert(edge)
-            if 0 in edge:
-                self._interactions.append(edge)
-
-        self.simplicial_complex = simplicial_complex
+    def __init__(self, max_dimension: int) -> None:
+        """Construct an empty network."""
+        super().__init__()
+        assert isinstance(max_dimension, int)
+        self._cpp_network = CppInfiniteNetwork(max_dimension, 0)
 
     def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
         """Return a base property of the network.
@@ -125,10 +118,3 @@ class InfiniteNetwork(Network):
 
     def _calc_typical_out_degree(self) -> list[int]:
         return [self.digraph.out_degree(0)]
-
-    @property
-    def simplices(self) -> list[list[int]]:
-        """Get the simplices associated to the network."""
-        simplices_with_filtration = self.simplicial_complex.get_cofaces([0], 0)
-        simplices = [simplex for simplex, _ in simplices_with_filtration]
-        return simplices + [[0]]

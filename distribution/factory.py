@@ -63,12 +63,12 @@ def create_fitting_parameters_power_law_data_set() -> PowerLawDistribution.Fitti
     )
 
 
-def create_fitting_parameters_power_law_adrcm() -> PowerLawDistribution.FittingParameters:
+def create_fitting_parameters_power_law_model() -> PowerLawDistribution.FittingParameters:
     """Create fitting parameters for normal distribution."""
     return PowerLawDistribution.FittingParameters(
         PowerLawDistribution.DeterministicDomain(
             PowerLawDistribution.DomainCalculation.Method.DETERMINISTIC,
-            min_=30.,
+            min_=10.,
             max_=np.inf,
         ),
         PowerLawDistribution.ParameterFitting(

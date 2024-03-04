@@ -62,10 +62,10 @@ DEPS := $(EXESRCS:%.$(SRCEXT)=$(OBJDIR)/%.d)
 INCDIRS := $(ROOT)/$(INCDIRNAME) $(MODULE_ROOT)/$(INCDIRNAME)
 CXXFLAGS += $(addprefix -I , $(INCDIRS))
 
-__all : release
+all : release
 
 # set target specific compiler and linker flags
-debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG -lpython$(PYTHON_VERSION)
+debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDEBUG -lpython$(PYTHON_VERSION)
 debug test : LDFLAGS  += -pg -lgcov -lpython$(PYTHON_VERSION)
 release    : CXXFLAGS += -O3
 

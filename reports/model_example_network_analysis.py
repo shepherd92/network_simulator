@@ -14,7 +14,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
     create_fitting_parameters_poisson,
-    create_fitting_parameters_power_law_adrcm,
+    create_fitting_parameters_power_law_model,
 )
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.finite_network import FiniteNetwork
@@ -228,7 +228,7 @@ def _report_total_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'total_degree_distribution')
@@ -247,7 +247,7 @@ def _report_in_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'in_degree_distribution')
@@ -285,7 +285,7 @@ def _report_ho_1_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_1')
@@ -304,7 +304,7 @@ def _report_ho_2_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_2')
@@ -323,7 +323,7 @@ def _report_ho_3_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_3')
@@ -342,7 +342,7 @@ def _report_simplex_dimension_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'simplex_dimension_distribution')
@@ -361,7 +361,7 @@ def _report_facet_dimension_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'facet_dimension_distribution')
@@ -380,7 +380,7 @@ def _report_interaction_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'interaction_degree_distribution')
@@ -399,7 +399,7 @@ def _report_interaction_dimension_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_adrcm()
+    fitting_parameters = create_fitting_parameters_power_law_model()
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'interaction_dimension_distribution')
@@ -409,14 +409,15 @@ def _report_interaction_dimension_distribution(
 
 @check_calculated
 def _report_betti_numbers(
-    betti_numbers: npt.NDArray[np.int_],
+    betti_numbers: list[int],
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
     axes.set_title('Betti Numbers')
-    plot_value_counts(betti_numbers, axes)
+    betti_numbers_array = np.vstack([np.arange(len(betti_numbers)), np.array(betti_numbers)])
+    plot_value_counts(betti_numbers_array, axes)
     pd.DataFrame(
-        betti_numbers,
+        betti_numbers_array,
         columns=['dimension', 'betti_number'],
         dtype=np.int32,
     ).to_csv(save_directory / 'betti_numbers.csv', index=False)
@@ -428,6 +429,7 @@ def _report_betti_number_1_by_component(
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
+    return
     axes.set_title('Betti Number 1 by Component')
     if betti_numbers_by_component.shape[1] < 2:
         print_not_calculated(axes)

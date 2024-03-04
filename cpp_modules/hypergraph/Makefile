@@ -65,11 +65,11 @@ CXXFLAGS += $(addprefix -I , $(INCDIRS))
 # LIBDIRS := /lib/x86_64-linux-gnu/ /usr/lib/x86_64-linux-gnu/
 # LDFLAGS += $(addprefix -L , $(LIBDIRS))
 
-__all : release
+all : release
 
 # set target specific compiler and linker flags
-debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDBG -lpython$(PYTHON_VERSION)
-debug test : LDFLAGS  += -pg -lgcov -lpython$(PYTHON_VERSION) -ltbb_debug
+debug test : CXXFLAGS += -g3 -pg -O0 --coverage -DDEBUG -lpython$(PYTHON_VERSION)
+debug test : LDFLAGS  += -pg -lgcov -lpython$(PYTHON_VERSION) -ltbb
 release    : CXXFLAGS += -O3
 release	   : LDFLAGS  += -ltbb
 

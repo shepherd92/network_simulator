@@ -123,6 +123,8 @@ class HypergraphModel(Model):
             )
 
         network = FiniteNetwork(self.parameters.max_dimension)
+        vertex_ids = list(range(len(node_birth_times)))
+        network.vertices = vertex_ids
         network.interactions = interactions
 
         network.vertex_positions = self._create_vertex_positions_dict(node_positions, node_birth_times)
@@ -130,10 +132,6 @@ class HypergraphModel(Model):
             interaction_positions,
             interaction_birth_times,
         )
-
-        node_ids = np.array(range(len(node_birth_times)))[:, np.newaxis]
-        network.add_simplices(node_ids)
-        network.add_simplices(network.interactions)
 
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network

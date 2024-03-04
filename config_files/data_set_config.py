@@ -30,7 +30,6 @@ class DataSetConfig(NamedTuple):
         # BaseNetworkProperty.Type.MAX_DEGREE,
         # BaseNetworkProperty.Type.AVG_CLUSTERING,
         # BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
-        # BaseNetworkProperty.Type.DIMENSION,
         # BaseNetworkProperty.Type.NUM_OF_SIMPLICES,
         # BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
         # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
@@ -43,7 +42,6 @@ class DataSetConfig(NamedTuple):
         # BaseNetworkProperty.Type.BETTI_NUMBERS,
         # BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
         # BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
-        # BaseNetworkProperty.Type.PERSISTENCE,
         # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
     ]
 

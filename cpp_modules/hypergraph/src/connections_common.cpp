@@ -32,21 +32,21 @@ RectangleList create_rectangles(const PointList &points, const double gamma)
     const auto torus_size{determine_network_size(points)};
     RectangleList rectangles{};
     const auto points_per_rectangle{std::max(100., std::pow(n_points, 0.5))};
-    const auto area{points_per_rectangle * torus_size / n_points};
+    const auto area{points_per_rectangle / n_points * torus_size};
 
     auto bottom{0.0};
     while (bottom < 1.)
     {
-        const auto ideal_width{std::min(torus_size, std::pow(bottom, -gamma))};
-        const auto rectangles_in_row{std::ceil(torus_size / ideal_width)};
-        const auto width{torus_size / rectangles_in_row};
-        const auto height{area / width};
-        const auto top{std::min(1., bottom + height)};
+        auto width{std::min(torus_size, std::pow(bottom, -gamma))};
+        const auto height{std::min(area / width, 1. - bottom)};
+        width = area / height; // adjust width to match the height if height is too large
+        const auto rectangles_in_row{std::ceil(torus_size / width)};
+        width = torus_size / rectangles_in_row; // adjust width to match the number of rectangles
+
         for (auto i{0U}; i < rectangles_in_row; ++i)
         {
             const auto left{i * width - torus_size / 2.};
-            const auto right{(i + 1U) * width - torus_size / 2.};
-            auto rectangle{Rectangle(bottom, top, left, right)};
+            auto rectangle{Rectangle(bottom, bottom + height, left, left + width)};
             rectangle.set_exponent(gamma);
             rectangles.push_back(std::move(rectangle));
         }
@@ -60,7 +60,7 @@ void fill_rectangles(RectangleList &rectangles, const PointList &points)
 {
     // assume points are sorted with respect to marks
     std::for_each(
-        std::execution::par_unseq,
+        execution_policy,
         points.begin(),
         points.end(),
         [&](auto &&point)
@@ -97,26 +97,31 @@ ConnectionList generate_connections(
     std::mutex mutex;
 
     std::atomic<uint32_t> counter{0U};
-    for (const auto &interaction_rectangle : interaction_rectangles)
-    {
-        std::for_each(
-            std::execution::seq,
-            vertex_rectangles.begin(),
-            vertex_rectangles.end(),
-            [&](auto &&vertex_rectangle)
-            {
-                const auto new_connections{interaction_rectangle.calc_connected_point_pairs(
-                    vertex_rectangle,
-                    beta,
-                    torus_size)};
-                std::lock_guard<std::mutex> lock_guard(mutex);
-                connections.insert(connections.end(), new_connections.begin(), new_connections.end());
-            });
-        if (++counter % 10000 == 0)
+    std::for_each(
+        std::execution::seq,
+        interaction_rectangles.begin(),
+        interaction_rectangles.end(),
+        [&](auto &&interaction_rectangle)
         {
-            std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size();
-        }
-    }
+            std::for_each(
+                execution_policy,
+                vertex_rectangles.begin(),
+                vertex_rectangles.end(),
+                [&](auto &&vertex_rectangle)
+                {
+                    const auto new_connections{interaction_rectangle.calc_connected_point_pairs(
+                        vertex_rectangle,
+                        beta,
+                        torus_size)};
+                    std::lock_guard<std::mutex> lock_guard(mutex);
+                    connections.insert(connections.end(), new_connections.begin(), new_connections.end());
+                });
+            if (++counter % 10000 == 0)
+            {
+                std::lock_guard<std::mutex> lock_guard(mutex);
+                std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size();
+            }
+        });
     std::cout << "\rGenerating connections: " << counter << " / " << interaction_rectangles.size() << std::flush;
 
     return connections;

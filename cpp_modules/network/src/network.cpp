@@ -4,175 +4,411 @@
 
 #include "network.h"
 #include "numpy_cpp_conversion.h"
+#include "simplex.h"
 
 Network::Network(const Dimension max_dimension)
     : max_dimension_{max_dimension},
-      simplex_tree_{},
+      vertices_{},
+      simplex_tree_{std::nullopt},
       interactions_{std::nullopt},
       facets_{std::nullopt},
-      persistent_cohomology_{simplex_tree_},
-      is_persistence_calculated_{false}
+      persistent_cohomology_{nullptr}
 {
 }
 
-void Network::add_simplices(const ISimplexList &simplices)
+Network::~Network()
 {
-    for (const auto &simplex : simplices)
-    {
-        add_simplex(simplex);
-    }
-    is_persistence_calculated_ = false;
+    reset_persistence();
 }
 
 void Network::reset()
 {
-    simplex_tree_ = SimplexTree{};
-    is_persistence_calculated_ = false;
+    reset_simplex_tree();
     interactions_ = std::nullopt;
     facets_ = std::nullopt;
 }
 
-void Network::add_simplex(const ISimplex &simplex)
+void Network::reset_simplex_tree()
 {
-    if (simplex.size() - 1 <= max_dimension_)
+    simplex_tree_ = std::nullopt;
+    reset_persistence();
+}
+
+void Network::reset_persistence()
+{
+    delete persistent_cohomology_;
+    persistent_cohomology_ = nullptr;
+}
+
+void Network::add_simplices_interface(const ISimplexList &simplices)
+{
+    std::mutex mutex;
+    ISimplexList skeleton_simplices{get_skeleton(simplices)};
+
+    if (!simplex_tree_.has_value())
     {
-        simplex_tree_.insert_simplex_and_subfaces(simplex);
+        simplex_tree_ = SimplexTree{};
     }
-    else
-    {
-        ISimplex current_combination(max_dimension_ + 1U);
-        ISimplexList result{};
-        combination_util(simplex, 0U, result, current_combination, 0U);
-        for (const auto &skeleton_simplex : result)
+
+    std::for_each(
+        std::execution::seq,
+        skeleton_simplices.begin(),
+        skeleton_simplices.end(),
+        [this](const auto &simplex)
         {
-            simplex_tree_.insert_simplex_and_subfaces(skeleton_simplex);
-        }
-    }
+            simplex_tree_->insert_simplex_and_subfaces(simplex);
+        });
+    reset_persistence();
 }
 
-void Network::combination_util(
-    const ISimplex &simplex,
-    const uint32_t combination_index,
-    ISimplexList &result,
-    ISimplex &current_combination,
-    const uint32_t array_index) const
+void Network::add_simplices(const SimplexList &simplices)
 {
-    if (combination_index == max_dimension_ + 1U)
+    SimplexList skeleton_simplices{get_skeleton_simplices(simplices, max_dimension_)};
+
+    if (!simplex_tree_.has_value())
     {
-        // combination ready
-        result.push_back(current_combination);
-        return;
+        simplex_tree_ = SimplexTree{};
     }
 
-    if (array_index > simplex.size() - 1U)
-        return;
-
-    current_combination[combination_index] = simplex[array_index];
-    combination_util(simplex, combination_index + 1U, result, current_combination, array_index + 1U);
-    combination_util(simplex, combination_index, result, current_combination, array_index + 1U);
+    std::for_each(
+        std::execution::seq,
+        skeleton_simplices.begin(),
+        skeleton_simplices.end(),
+        [this](const auto &simplex)
+        {
+            simplex_tree_->insert_simplex_and_subfaces(simplex.vertices());
+        });
+    reset_persistence();
 }
 
-PersistentCohomology &Network::get_persistent_cohomology()
+void Network::add_vertices(const VertexList &vertices)
 {
-    if (!is_persistence_calculated_)
+    if (!simplex_tree_.has_value())
+    {
+        simplex_tree_ = SimplexTree{};
+    }
+    std::for_each(
+        std::execution::seq,
+        vertices.begin(),
+        vertices.end(),
+        [this](const auto &vertex)
+        {
+            simplex_tree_->insert_simplex({vertex});
+        });
+    reset_persistence();
+}
+
+const PersistentCohomology &Network::get_persistence()
+{
+    if (!persistent_cohomology_)
     {
         calc_persistent_cohomology();
-        is_persistence_calculated_ = true;
     }
-    return persistent_cohomology_;
+    return *persistent_cohomology_;
 }
 
 void Network::calc_persistent_cohomology()
 {
-    persistent_cohomology_.init_coefficients(2);
-    std::cout << __LINE__ << std::endl;
-    persistent_cohomology_.compute_persistent_cohomology();
-    std::cout << __LINE__ << std::endl;
+    auto &simplex_tree{get_simplex_tree()};
+    reset_persistence();
+    persistent_cohomology_ = new PersistentCohomology{simplex_tree};
+    persistent_cohomology_->init_coefficients(2);
+    persistent_cohomology_->compute_persistent_cohomology();
+}
+
+SimplexTree &Network::get_simplex_tree()
+{
+    assert(simplex_tree_.has_value() || interactions_.has_value());
+    if (!simplex_tree_.has_value())
+    {
+        create_simplex_tree_from_interactions();
+    }
+    return *simplex_tree_;
+}
+
+const VertexList &Network::get_vertices_interface() const
+{
+    return vertices_;
+}
+
+void Network::set_vertices(const VertexList &vertices)
+{
+    vertices_ = vertices;
+}
+
+VertexList Network::get_vertices(const SimplexHandle &simplex_handle)
+{
+    assert(simplex_tree_.has_value());
+    VertexList result{};
+    if (simplex_handle != simplex_tree_->null_simplex())
+    {
+        for (const auto &vertex : simplex_tree_->simplex_vertex_range(simplex_handle))
+        {
+            result.push_back(vertex);
+        }
+    }
+    return result;
 }
 
 std::vector<ISimplexList> Network::calc_persistence_pairs()
 {
-    const auto &persistent_cohomology{get_persistent_cohomology()};
+    const auto &persistent_cohomology{get_persistence()};
     const auto &persistent_pairs{persistent_cohomology.get_persistent_pairs()};
     std::vector<ISimplexList> result{};
     result.reserve(persistent_pairs.size());
-    for (const auto &persistent_interval : persistent_pairs)
-    {
-        ISimplex birth_simplex{};
-        for (auto vertex : simplex_tree_.simplex_vertex_range(std::get<0>(persistent_interval)))
+    std::mutex mutex{};
+
+    std::for_each(
+        execution_policy,
+        persistent_pairs.begin(),
+        persistent_pairs.end(),
+        [this, &result, &mutex](const auto &persistent_interval)
         {
-            birth_simplex.push_back(vertex);
-        }
-        ISimplex death_simplex{};
-        for (auto vertex : simplex_tree_.simplex_vertex_range(std::get<1>(persistent_interval)))
-        {
-            death_simplex.push_back(vertex);
-        }
-        result.push_back({birth_simplex, death_simplex});
-    }
+            VertexList birth_simplex{get_vertices(std::get<0>(persistent_interval))};
+            VertexList death_simplex{get_vertices(std::get<1>(persistent_interval))};
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back({birth_simplex, death_simplex});
+        });
 
     return result;
 }
 
 std::vector<int32_t> Network::calc_betti_numbers()
 {
-    const auto &persistent_cohomology{get_persistent_cohomology()};
+    const auto &persistent_cohomology{get_persistence()};
     const auto result{persistent_cohomology.betti_numbers()};
     return result;
 }
 
 void Network::expand()
 {
-    simplex_tree_.expansion(max_dimension_ + 1U);
-    is_persistence_calculated_ = false;
+    assert(simplex_tree_.has_value());
+    simplex_tree_->expansion(max_dimension_ + 1U);
+    reset_persistence();
 }
 
-uint32_t Network::num_simplices()
+ISimplexList Network::get_simplices_interface()
 {
-    return simplex_tree_.num_simplices();
+    return convert_to_raw_simplices<>(get_simplices());
 }
 
-uint32_t Network::num_vertices() const
+ISimplexList Network::get_interactions_interface() const
 {
-    return simplex_tree_.num_vertices();
+    return create_raw_simplices(get_interactions());
 }
 
-ISimplexList Network::get_facets()
+ISimplexList Network::get_facets_interface()
 {
-    ISimplexList result{};
-    if (!facets_)
+    return create_raw_simplices(get_facets());
+}
+
+uint32_t Network::num_vertices()
+{
+    return vertices_.size();
+}
+
+std::vector<Dimension> Network::calc_simplex_dimension_distribution()
+{
+    const auto &simplices{get_simplices()};
+    const auto result{calc_dimension_distribution(simplices)};
+    return result;
+}
+
+std::vector<Dimension> Network::calc_interaction_dimension_distribution()
+{
+    assert(interactions_ && "No interactions");
+    const auto result{calc_dimension_distribution(*interactions_)};
+    return result;
+}
+
+std::vector<Dimension> Network::calc_facet_dimension_distribution()
+{
+    const auto &facets{get_facets()};
+    const auto result{calc_dimension_distribution(facets)};
+    return result;
+}
+
+std::vector<Dimension> Network::calc_dimension_distribution(const SimplexList &simplices) const
+{
+    std::vector<Dimension> result{};
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back(simplex.dimension());
+        });
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+std::vector<Dimension> Network::calc_dimension_distribution(const ISimplexList &simplices) const
+{
+    std::vector<Dimension> result{};
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back(simplex.size() - 1U);
+        });
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+std::vector<Dimension> Network::calc_dimension_distribution(const SimplexHandleList &simplices)
+{
+    auto &simplex_tree(get_simplex_tree());
+    std::vector<Dimension> result{};
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back(simplex_tree.dimension(simplex));
+        });
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+const SimplexList &Network::get_facets()
+{
+    SimplexList result{};
+    if (!facets_.has_value() && !simplex_tree_.has_value())
     {
-        facets_ = calc_facets();
+        calc_facets_interactions();
+    }
+    else if (!facets_.has_value() && simplex_tree_.has_value())
+    {
+        calc_facets_simplex_tree();
     }
     return *facets_;
 }
 
-ISimplexList Network::calc_facets()
+std::vector<uint32_t> Network::calc_degree_sequence(
+    const Dimension simplex_dimension,
+    const Dimension neighbor_dimension)
 {
-    auto simplices{get_simplices()};
-    std::mutex mutex;
-    ISimplexList facets{};
-    std::atomic<uint32_t> counter{0U};
+    if (simplex_tree_.has_value())
+    {
+        return calc_degree_sequence_simplex_tree(simplex_dimension, neighbor_dimension);
+    }
+    else
+    {
+        return calc_degree_sequence_interactions(simplex_dimension, neighbor_dimension);
+    }
+}
 
+std::vector<uint32_t> Network::calc_degree_sequence_interactions(
+    const Dimension simplex_dimension,
+    const Dimension neighbor_dimension)
+{
+    const auto &facets{select_higher_dimensional_simplices(get_facets(), simplex_dimension)};
+    const auto &simplex_list{get_skeleton_simplices(facets, simplex_dimension)};
+    SimplexSet simplices{simplex_list.begin(), simplex_list.end()};
+    std::vector<uint32_t> degree_sequence{};
+    degree_sequence.reserve(simplices.size());
+
+    std::mutex mutex;
+    std::atomic<uint32_t> counter{0U};
     std::for_each(
-        std::execution::seq,
+        execution_policy,
         simplices.begin(),
         simplices.end(),
         [&](auto &&simplex)
         {
-            const auto first_it{simplices.begin() + (&simplex - &simplices[0])};
-            if (++counter % 10000 == 0 && simplices.size() > 100000U)
+            if (++counter % 100000 == 0 && simplices.size() > 1000000U)
             {
                 std::lock_guard<std::mutex> lock_guard(mutex);
-                std::cout << "\rC++: Extracting facets ... " << counter << " / " << simplices.size();
+                std::cout << "\rC++: Calculating degree sequence ..."
+                          << counter << " / " << simplices.size();
+            }
+            // Container of vertices with which the simplex forms a simplex of neighbor dimension
+
+            SimplexSet combinations_of_remaining_vertices;
+
+            // iterate over all facets
+            for (const auto &facet : facets)
+            {
+                if (simplex.is_face(facet))
+                {
+            std::cout << __LINE__ << std::endl;
+                    const auto difference{facet - simplex}; // vertices of facet that are not in the simplex
+
+            std::cout << __LINE__ << std::endl;
+                    const auto skeleton{difference.get_skeleton(neighbor_dimension - simplex_dimension - 1)};
+
+            std::cout << __LINE__ << std::endl;
+                    std::copy(skeleton.begin(), skeleton.end(), std::inserter(combinations_of_remaining_vertices, combinations_of_remaining_vertices.end()));
+            std::cout << __LINE__ << std::endl;
+                }
+            }
+            std::lock_guard<std::mutex> lock_guard(mutex);
+            degree_sequence.push_back(combinations_of_remaining_vertices.size());
+        });
+
+    return degree_sequence;
+}
+
+std::vector<uint32_t> Network::calc_degree_sequence_simplex_tree(
+    const Dimension simplex_dimension,
+    const Dimension neighbor_dimension)
+{
+    assert(simplex_tree_.has_value());
+    std::vector<uint32_t> result{};
+    const auto &simplices(get_simplices());
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            if (simplex_tree_->dimension(simplex) == static_cast<int32_t>(simplex_dimension))
+            {
+                const auto degree{simplex_tree_->cofaces_simplex_range(simplex, neighbor_dimension - simplex_dimension).size()};
+                std::lock_guard<std::mutex> lock{mutex};
+                result.push_back(degree);
+            }
+        });
+
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+void Network::calc_facets_interactions()
+{
+    std::cout << __LINE__ << std::endl;
+    sort_interactions(true);
+    std::mutex mutex;
+    facets_ = SimplexList{};
+    std::atomic<uint32_t> counter{0U};
+
+    std::for_each(
+        interactions_->begin(),
+        interactions_->end(),
+        [&](auto &&interaction)
+        {
+            const auto first_it{interactions_->begin() + (&interaction - &(interactions_->at(0)))};
+            if (++counter % 10000 == 0 && interactions_->size() > 100000U)
+            {
+                std::lock_guard<std::mutex> lock_guard(mutex);
+                std::cout << "\rC++: Extracting facets ... " << counter << " / " << interactions_->size();
             }
             auto first_is_face{false};
-            for (auto second_it{first_it + 1}; second_it < simplices.end(); ++second_it)
+            for (auto second_it{first_it + 1}; second_it < interactions_->end(); ++second_it)
             {
                 first_is_face = false;
-                if (std::includes(
-                        second_it->begin(), second_it->end(),
-                        first_it->begin(), first_it->end()))
+                if (interaction.is_face(*second_it))
                 {
                     first_is_face = true;
                     break;
@@ -181,114 +417,201 @@ ISimplexList Network::calc_facets()
             if (!first_is_face)
             {
                 std::lock_guard<std::mutex> lock_guard(mutex);
-                facets.push_back(simplex);
+                facets_->push_back(interaction);
             }
         });
+    std::cout << __LINE__ << std::endl;
+}
 
-    return facets;
+void Network::sort_interactions(const bool ascending)
+{
+    sort_simplices(*interactions_, ascending);
+}
+
+void Network::calc_facets_simplex_tree()
+{
+    assert(simplex_tree_.has_value());
+    const auto &simplex_handles{get_simplices()};
+    std::mutex mutex;
+
+    facets_ = SimplexList{};
+    std::for_each(
+        execution_policy,
+        simplex_handles.begin(),
+        simplex_handles.end(),
+        [&](auto &&simplex_handle)
+        {
+            const auto cofaces{simplex_tree_->cofaces_simplex_range(simplex_handle, 1U)};
+            if (cofaces.size() == 0U)
+            {
+                const auto facet{Simplex{get_vertices(simplex_handle)}};
+                std::lock_guard<std::mutex> lock_guard{mutex};
+                facets_->push_back(facet);
+            }
+        });
 }
 
 void Network::set_facets(const ISimplexList &facets)
 {
-    facets_ = facets;
+    std::cout << __LINE__ << std::endl;
+    facets_ = create_simplices(facets);
+    std::cout << __LINE__ << std::endl;
 }
 
-ISimplexList Network::get_simplices()
+const SimplexList &Network::get_interactions() const
 {
-    return convert_to_raw_simplices<>(simplex_tree_.filtration_simplex_range());
+    assert(interactions_ && "No interactions");
+    return *interactions_;
 }
 
-ISimplexList Network::get_skeleton(const Dimension max_dimension)
+void Network::set_interactions(const ISimplexList &interactions)
 {
-    return convert_to_raw_simplices<>(simplex_tree_.skeleton_simplex_range(max_dimension));
+    interactions_ = create_simplices(interactions);
+}
+
+ISimplexList Network::get_skeleton(const ISimplexList &simplices_in) const
+{
+    std::cout << __LINE__ << std::endl;
+    const auto &simplices{create_simplices(simplices_in)};
+    const auto skeleton_simplices{get_skeleton_simplices(simplices, max_dimension_)};
+    const auto result{create_raw_simplices(skeleton_simplices)};
+    std::cout << __LINE__ << std::endl;
+    return result;
+}
+
+ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
+{
+    std::cout << __LINE__ << std::endl;
+    if (simplex_tree_.has_value())
+    {
+        return convert_to_raw_simplices<>(simplex_tree_->skeleton_simplex_range(max_dimension));
+    }
+    const auto skeleton{get_skeleton_simplices(*interactions_, max_dimension)};
+    std::cout << __LINE__ << std::endl;
+    return create_raw_simplices(skeleton);
+}
+
+void Network::create_simplex_tree_from_interactions()
+{
+    std::cout << __LINE__ << std::endl;
+    assert(interactions_.has_value());
+    reset_simplex_tree();
+    add_vertices(vertices_);
+    add_simplices(*interactions_);
+    std::cout << __LINE__ << std::endl;
 }
 
 template <typename Iterator>
 ISimplexList Network::convert_to_raw_simplices(const Iterator &simplex_range)
 {
+    std::cout << __LINE__ << std::endl;
     ISimplexList result{};
-    for (const auto &simplex : simplex_range)
-    {
-        ISimplex vertices{};
-        vertices.reserve(simplex_tree_.dimension(simplex) + 1U);
-        for (auto vertex : simplex_tree_.simplex_vertex_range(simplex))
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplex_range.begin(),
+        simplex_range.end(),
+        [&](const auto &simplex)
         {
-            vertices.push_back(vertex);
-        }
-        std::sort(vertices.begin(), vertices.end());
-        result.push_back(vertices);
-    }
+            VertexList vertices{};
+            vertices.reserve(simplex_tree_->dimension(simplex) + 1U);
+            for (auto vertex : simplex_tree_->simplex_vertex_range(simplex))
+            {
+                vertices.push_back(vertex);
+            }
+            std::sort(vertices.begin(), vertices.end());
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back(vertices);
+        });
+    std::cout << __LINE__ << std::endl;
     return result;
 }
 
 void Network::set_simplices(const ISimplexList &simplices)
 {
-    simplex_tree_ = SimplexTree();
-    add_simplices(simplices);
-    is_persistence_calculated_ = false;
+    std::cout << __LINE__ << std::endl;
+    reset_simplex_tree();
+    facets_ = std::nullopt;
+    add_simplices_interface(simplices);
+    std::cout << __LINE__ << std::endl;
 }
 
 void Network::keep_only_vertices(const VertexList &vertices)
 {
-    filter_simplex_tree(vertices);
+    std::cout << __LINE__ << std::endl;
+    vertices_ = vertices;
     filter_interactions(vertices);
-    facets_ = std::nullopt;
-    is_persistence_calculated_ = false;
-}
-
-std::vector<uint32_t> Network::calc_simplex_dimension_distribution()
-{
-    std::vector<uint32_t> result(max_dimension_ + 1U, 0U);
-
-    for (const auto &simplex : simplex_tree_.filtration_simplex_range())
+    if (simplex_tree_.has_value())
     {
-        ++result[simplex_tree_.dimension(simplex)];
+        create_simplex_tree_from_interactions();
     }
-    return result;
-}
-
-std::vector<uint32_t> Network::calc_degree_sequence(
-    const Dimension simplex_dimension,
-    const Dimension neighbor_dimension)
-{
-    std::vector<uint32_t> result{};
-    for (const auto &simplex : simplex_tree_.filtration_simplex_range())
-    {
-        if (simplex_tree_.dimension(simplex) == static_cast<int32_t>(simplex_dimension))
-            result.push_back(
-                simplex_tree_.cofaces_simplex_range(simplex, neighbor_dimension - simplex_dimension).size());
-    }
-    std::sort(result.begin(), result.end());
-    return result;
+    std::cout << __LINE__ << std::endl;
 }
 
 void Network::filter_simplex_tree(const VertexList &vertices)
 {
+    std::cout << __LINE__ << std::endl;
     SimplexTree filtered_simplex_tree{};
-    for (const auto &simplex : simplex_tree_.filtration_simplex_range())
-    {
-        auto keep_simplex{true};
-        for (auto vertex : simplex_tree_.simplex_vertex_range(simplex))
-        {
-            const auto vertex_in_simplex{std::find(vertices.begin(), vertices.end(), vertex) != vertices.end()};
-            if (!vertex_in_simplex)
-            {
-                keep_simplex = false;
-                break;
-            }
-        }
-        if (keep_simplex)
-        {
+    const auto &simplices{get_simplices()};
 
-            filtered_simplex_tree.insert_simplex_and_subfaces(simplex_tree_.simplex_vertex_range(simplex));
-        }
-    }
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            auto keep_simplex{true};
+            for (auto vertex : simplex_tree_->simplex_vertex_range(simplex))
+            {
+                const auto vertex_in_simplex{std::find(vertices.begin(), vertices.end(), vertex) != vertices.end()};
+                if (!vertex_in_simplex)
+                {
+                    keep_simplex = false;
+                    break;
+                }
+            }
+            if (keep_simplex)
+            {
+                std::lock_guard<std::mutex> lock{mutex};
+                filtered_simplex_tree.insert_simplex_and_subfaces(simplex_tree_->simplex_vertex_range(simplex));
+            }
+        });
+
+    reset_simplex_tree();
     simplex_tree_ = filtered_simplex_tree;
+    std::cout << __LINE__ << std::endl;
 }
 
-void Network::filter_interactions(const ISimplex &vertices)
+void Network::filter_interactions(const VertexList &vertices)
 {
-    (void)vertices;
+    std::cout << __LINE__ << std::endl;
+    SimplexList filtered_interactions{};
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        interactions_->begin(),
+        interactions_->end(),
+        [&](const auto &interaction)
+        {
+            auto keep_interaction{true};
+            for (auto vertex : interaction.vertices())
+            {
+                const auto vertex_in_interaction{std::find(vertices.begin(), vertices.end(), vertex) != vertices.end()};
+                if (!vertex_in_interaction)
+                {
+                    keep_interaction = false;
+                    break;
+                }
+            }
+            if (keep_interaction)
+            {
+                std::lock_guard<std::mutex> lock{mutex};
+                filtered_interactions.push_back(interaction);
+            }
+        });
+    interactions_ = filtered_interactions;
+    std::cout << __LINE__ << std::endl;
 }
 
 Dimension Network::get_max_dimension() const
