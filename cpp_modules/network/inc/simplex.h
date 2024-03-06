@@ -3,11 +3,19 @@
 
 #include "typedefs.h"
 
+class Simplex;
+class SimplexHash;
+
+using SimplexList = std::vector<Simplex>;
+using SimplexSet = std::unordered_set<Simplex, SimplexHash>;
+
 class Simplex
 {
 public:
     Simplex(const VertexList &vertices);
     const VertexList &vertices() const;
+    bool is_valid() const;
+    std::vector<uint32_t> hash() const;
 
     bool is_face(const Simplex &other) const;
     SimplexList get_skeleton(const Dimension dimension) const;
@@ -38,5 +46,7 @@ SimplexList get_skeleton_simplices(const SimplexList &simplices_in, const Dimens
 SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension);
 SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension);
 void sort_simplices(SimplexList &simplices, const bool ascending);
+std::vector<Dimension> calc_dimension_distribution(const ISimplexList &simplices_in);
+std::vector<Dimension> calc_dimension_distribution(const SimplexList &simplices);
 
 #endif

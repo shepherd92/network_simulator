@@ -1,16 +1,21 @@
 #include <iostream>
 #include <execution>
+#include <mutex>
 
 #include "simplex.h"
 
 std::size_t SimplexHash::operator()(const Simplex &simplex) const
 {
-    const auto &vertices = simplex.vertices();
+    const auto &vertices{simplex.vertices()};
     std::size_t seed{vertices.size()};
-    for (auto &vertex : vertices)
-    {
-        seed ^= vertex + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    }
+    std::for_each(
+        std::execution::seq,
+        vertices.begin(), vertices.end(),
+        [&seed](const auto &vertex)
+        {
+            seed ^= vertex + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        });
+
     return seed;
 }
 
@@ -22,6 +27,11 @@ Simplex::Simplex(const VertexList &vertices)
 const VertexList &Simplex::vertices() const
 {
     return vertices_;
+}
+
+bool Simplex::is_valid() const
+{
+    return vertices_.size() > 0U;
 }
 
 Simplex Simplex::operator-(const Simplex &other) const
@@ -55,11 +65,20 @@ Dimension Simplex::dimension() const
 
 bool Simplex::is_face(const Simplex &other) const
 {
+    if (!is_valid())
+    {
+        return false;
+    }
     return std::includes(other.vertices().begin(), other.vertices().end(), vertices_.begin(), vertices_.end());
 }
 
 SimplexList Simplex::get_skeleton(const Dimension max_dimension) const
 {
+    if (!is_valid())
+    {
+        return SimplexList{};
+    }
+
     if (dimension() <= max_dimension)
     {
         return SimplexList{*this};
@@ -81,12 +100,14 @@ void Simplex::combination_util(
     if (combination_index == max_dimension + 1U)
     {
         // combination ready
-        result.push_back(Simplex{current_combination});
+        result.emplace_back(Simplex{current_combination});
         return;
     }
 
-    if (array_index > dimension())
+    if (static_cast<int32_t>(array_index) > dimension())
+    {
         return;
+    }
 
     current_combination[combination_index] = vertices()[array_index];
     combination_util(max_dimension, combination_index + 1U, result, current_combination, array_index + 1U);
@@ -95,13 +116,31 @@ void Simplex::combination_util(
 
 SimplexList create_simplices(const std::vector<VertexList> &simplices_in)
 {
-    std::cout << __LINE__ << std::endl;
     SimplexList simplices;
-    for (const auto &simplex : simplices_in)
+    std::mutex mutex{};
+    const auto total{simplices_in.size()};
+    std::atomic<uint32_t> counter{0U};
+    simplices.reserve(total);
+
+    std::for_each(
+        execution_policy,
+        simplices_in.begin(),
+        simplices_in.end(),
+        [&](const auto &simplex_in)
+        {
+            std::lock_guard<std::mutex> lock(mutex);
+            simplices.emplace_back(Simplex(simplex_in));
+            if (++counter % 1000 == 0 && total > 10000U)
+            {
+                std::cout << "\rCreate simplices ... " << counter << " / " << total;
+            }
+        });
+
+    if (total > 10000U)
     {
-        simplices.push_back(Simplex(simplex));
+        std::cout << "\rCreate simplices ... " << total << " / " << total;
     }
-    std::cout << __LINE__ << std::endl;
+
     return simplices;
 }
 
@@ -117,26 +156,40 @@ ISimplexList create_raw_simplices(const SimplexList &simplices_in)
 
 SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension dimension)
 {
-    std::cout << __LINE__ << std::endl;
-    std::mutex mutex;
     SimplexList skeleton_simplices{};
+    std::mutex mutex{};
+    const auto total{simplices.size()};
+    std::atomic<uint32_t> counter{0U};
+
     std::for_each(
         execution_policy,
         simplices.begin(),
         simplices.end(),
         [&](const auto &simplex)
         {
-            auto skeleton{simplex.get_skeleton(dimension)};
-            std::lock_guard<std::mutex> lock(mutex);
-            skeleton_simplices.insert(skeleton_simplices.end(), skeleton.begin(), skeleton.end());
+            ++counter;
+            if (simplex.is_valid())
+            {
+                auto skeleton{simplex.get_skeleton(dimension)};
+                std::lock_guard<std::mutex> lock(mutex);
+                if (counter % 1000 == 0 && total > 10000U)
+                {
+                    std::cout << "\rCalc skeleton (simplices) ... " << counter << " / " << total;
+                }
+                skeleton_simplices.insert(skeleton_simplices.end(), skeleton.begin(), skeleton.end());
+            }
         });
-    std::cout << __LINE__ << std::endl;
+
+    if (total > 10000U)
+    {
+        std::cout << "\rCalc skeleton (simplices) ... " << total << " / " << total;
+    }
+
     return skeleton_simplices;
 }
 
 SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension)
 {
-    std::cout << __LINE__ << std::endl;
     SimplexList selected_simplices;
 
     std::copy_if(simplices.begin(), simplices.end(),
@@ -144,13 +197,11 @@ SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Di
                  [dimension](const Simplex &simplex)
                  { return simplex.dimension() == dimension; });
 
-    std::cout << __LINE__ << std::endl;
     return selected_simplices;
 }
 
 SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension)
 {
-    std::cout << __LINE__ << std::endl;
     SimplexList selected_simplices;
 
     std::copy_if(simplices.begin(), simplices.end(),
@@ -158,13 +209,11 @@ SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, co
                  [dimension](const Simplex &simplex)
                  { return simplex.dimension() >= dimension; });
 
-    std::cout << __LINE__ << std::endl;
     return selected_simplices;
 }
 
 void sort_simplices(SimplexList &simplices, const bool ascending)
 {
-    std::cout << __LINE__ << std::endl;
     if (ascending)
     {
         std::sort(simplices.begin(), simplices.end(),
@@ -177,5 +226,45 @@ void sort_simplices(SimplexList &simplices, const bool ascending)
                   [](const Simplex &lhs, const Simplex &rhs)
                   { return lhs.vertices().size() > rhs.vertices().size(); });
     }
-    std::cout << __LINE__ << std::endl;
+}
+
+std::vector<Dimension> calc_dimension_distribution(const ISimplexList &simplices_in)
+{
+    const auto simplices{create_simplices(simplices_in)};
+    return calc_dimension_distribution(simplices);
+}
+
+std::vector<Dimension> calc_dimension_distribution(const SimplexList &simplices)
+{
+    std::mutex mutex{};
+    const auto total{simplices.size()};
+    std::atomic<uint32_t> counter{0U};
+    std::vector<Dimension> result{};
+    result.reserve(total);
+
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            const auto dimension{simplex.dimension()};
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back(dimension);
+
+            if (++counter % 1000 == 0 && total > 10000U)
+            {
+                std::cout << "\rCalc dimension distribution (simplices) ... "
+                          << counter << " / " << total;
+            }
+        });
+
+    if (total > 10000U)
+    {
+        std::cout << "\rCalc dimension distribution (simplices) ... "
+                  << total << " / " << total;
+    }
+
+    std::sort(result.begin(), result.end());
+    return result;
 }

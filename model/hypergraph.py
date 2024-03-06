@@ -133,6 +133,9 @@ class HypergraphModel(Model):
             interaction_birth_times,
         )
 
+        # TEMPORARY: Add simplices to the network
+        network.cpp_network.add_simplices(interactions)
+
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 

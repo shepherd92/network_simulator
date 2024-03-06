@@ -64,10 +64,7 @@ class Network:
         # assert self.simplicial_complex.num_vertices() != 0, 'Simplicial complex is not built.'
 
         graph = nx.Graph()
-        graph.add_nodes_from([
-            simplex[0] for simplex in self._cpp_network.get_skeleton(0)
-        ])
-
+        graph.add_nodes_from(self.vertices)
         graph.add_edges_from([
             [*simplex]
             for simplex in self._cpp_network.get_skeleton(1)
