@@ -12,6 +12,7 @@ Network::Network(const VertexList &vertices, const ISimplexList &interactions)
       facets_{std::nullopt},
       simplex_tree_{std::nullopt}
 {
+    sort_simplices(interactions_, true);
 }
 
 void Network::reset()
@@ -81,6 +82,35 @@ ISimplexList Network::get_facets_interface()
     return create_raw_simplices(get_facets());
 }
 
+ISimplexList Network::get_simplices_interface()
+{
+    return convert_to_raw_simplices(get_simplices());
+}
+
+template <typename Iterator>
+ISimplexList Network::convert_to_raw_simplices(const Iterator &simplex_range)
+{
+    ISimplexList result{};
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplex_range.begin(),
+        simplex_range.end(),
+        [&](const auto &simplex)
+        {
+            VertexList vertices{};
+            vertices.reserve(simplex_tree_->dimension(simplex) + 1U);
+            for (auto vertex : simplex_tree_->simplex_vertex_range(simplex))
+            {
+                vertices.push_back(vertex);
+            }
+            std::sort(vertices.begin(), vertices.end());
+            std::lock_guard<std::mutex> lock{mutex};
+            result.push_back(vertices);
+        });
+    return result;
+}
+
 uint32_t Network::num_vertices()
 {
     return vertices_.size();
@@ -126,9 +156,10 @@ std::vector<uint32_t> Network::calc_degree_sequence_simplicial_complex(
     assert(is_valid());
     assert(neighbor_dimension > simplex_dimension);
     std::vector<uint32_t> result{};
-    const auto &simplices(get_simplices());
+    // const auto &simplices(get_simplices());
+    const auto &simplices(simplex_tree_->skeleton_simplex_range(simplex_dimension));
     std::mutex mutex{};
-    const auto total{simplices.size()};
+    // const auto total{simplices.size()};
     std::atomic<uint32_t> counter{0U};
 
     std::for_each(
@@ -137,10 +168,10 @@ std::vector<uint32_t> Network::calc_degree_sequence_simplicial_complex(
         simplices.end(),
         [&](const auto &simplex)
         {
-            if (++counter % 1000 == 0 && total > 10000U)
+            if (++counter % 1000 == 0)
             {
                 std::lock_guard<std::mutex> lock_guard(mutex);
-                std::cout << "\rCalc degree sequence (simplex tree) ... " << counter << " / " << total;
+                std::cout << "\rCalc degree sequence (simplex tree) ... " << counter;
             }
             if (simplex_tree_->dimension(simplex) == simplex_dimension)
             {
@@ -150,10 +181,7 @@ std::vector<uint32_t> Network::calc_degree_sequence_simplicial_complex(
             }
         });
 
-    if (total > 10000U)
-    {
-        std::cout << "\rCalc degree sequence (simplex tree) ... " << total << " / " << total;
-    }
+    std::cout << "\rCalc degree sequence (simplex tree) ... " << counter;
 
     return result;
 }
@@ -219,7 +247,6 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
 
 void Network::calc_facets()
 {
-    sort_interactions(true);
     std::mutex mutex{};
     facets_ = SimplexList{};
     const auto total{interactions_.size()};
@@ -258,16 +285,6 @@ void Network::calc_facets()
     {
         std::cout << "\rCalc facets (interactions) ... " << total << " / " << total;
     }
-}
-
-void Network::sort_interactions(const bool ascending)
-{
-    sort_simplices(interactions_, ascending);
-}
-
-void Network::set_facets(const ISimplexList &facets)
-{
-    facets_ = create_simplices(facets);
 }
 
 const SimplexList &Network::get_interactions() const

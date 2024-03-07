@@ -11,18 +11,20 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-# pylint: disable-next=no-name-in-module
+# pylint: disable=no-name-in-module
 from cpp_modules.build.network import FiniteNetwork as CppFiniteNetwork
 from cpp_modules.build.network import InfiniteNetwork as CppInfiniteNetwork
+# pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
 
 
 class Network:
     """Base class representing a data set or a simulated network."""
 
-    def __init__(self) -> None:
+    def __init__(self, max_dimension: int) -> None:
         """Construct an empty network."""
         self._cpp_network = None
+        self._max_dimension = max_dimension
         self._graph: nx.Graph() | None = None
         self._digraph: nx.DiGraph() | None = None
         self._vertex_positions: dict[int, tuple[float, ...]] | None = None
@@ -39,15 +41,17 @@ class Network:
         self.generate_simplicial_complex_from_graph()
         self.expand()
 
+    def create_simplicial_complex(self) -> None:
+        """Create a simplicial complex."""
+        self._cpp_network.create_simplicial_complex(self._max_dimension)
+
     def expand(self) -> None:
         """Expand simplicial complex to a clique complex."""
-        self._cpp_network.expand()
+        self._cpp_network.expand(self.max_dimension)
 
     def filter_to_graph(self) -> None:
         """Filter out those simplices from the simplicial complex that are not present in the graph."""
-        graph_nodes_set = list(self.graph.nodes)
-        self._cpp_network.keep_only_vertices(graph_nodes_set)
-        self.filter_interactions_from_graph()
+        self._cpp_network.keep_only_vertices(list(self.graph.nodes))
 
     def filter_interactions_from_graph(self) -> None:
         """Filter out interactions that are not present in the graph."""
@@ -71,10 +75,6 @@ class Network:
             if len(simplex) == 2
         ])
         return graph
-
-    def add_simplices(self, simplices: list[list[int]]) -> None:
-        """Insert simplex to the simplicial complex."""
-        self._cpp_network.add_simplices(simplices)
 
     def num_of_vertices_in_component(self, component_index: int) -> int:
         """Return the number of vertices in a component."""
@@ -122,8 +122,7 @@ class Network:
 
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each dimension."""
-        interaction_dimension_distribution = self.cpp_network.calc_interaction_dimension_distribution()
-        return EmpiricalDistribution(interaction_dimension_distribution)
+        return EmpiricalDistribution(self.cpp_network.calc_interaction_dimension_distribution())
 
     def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 
@@ -156,11 +155,6 @@ class Network:
         """Return the cpp network."""
         return self._cpp_network
 
-    @cpp_network.setter
-    def cpp_network(self, value: CppFiniteNetwork | CppInfiniteNetwork | None) -> None:
-        """Setter of cpp_network positions."""
-        self._cpp_network = value
-
     @property
     def num_simplices(self) -> int:
         """Return the number of simplices in the simplicial complex."""
@@ -174,7 +168,7 @@ class Network:
     @property
     def max_dimension(self) -> int:
         """Get the maximum dimension of the network."""
-        return self._cpp_network.max_dimension
+        return self._max_dimension
 
     @property
     def graph(self) -> nx.Graph:

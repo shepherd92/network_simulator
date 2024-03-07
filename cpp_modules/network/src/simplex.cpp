@@ -22,6 +22,7 @@ std::size_t SimplexHash::operator()(const Simplex &simplex) const
 Simplex::Simplex(const VertexList &vertices)
     : vertices_(vertices)
 {
+    std::sort(vertices_.begin(), vertices_.end());
 }
 
 const VertexList &Simplex::vertices() const
@@ -184,6 +185,8 @@ SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension
     {
         std::cout << "\rCalc skeleton (simplices) ... " << total << " / " << total;
     }
+
+    sort_simplices(skeleton_simplices, true);
 
     return skeleton_simplices;
 }

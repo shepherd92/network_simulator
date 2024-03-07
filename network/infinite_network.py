@@ -79,11 +79,11 @@ class InfiniteNetworkSet:
 class InfiniteNetwork(Network):
     """Represent an "infinite network" in which network size effects do not play a role."""
 
-    def __init__(self, max_dimension: int) -> None:
+    def __init__(self, max_dimension: int, vertices: list[int], interactions: list[list[int]]) -> None:
         """Construct an empty network."""
-        super().__init__()
+        super().__init__(max_dimension)
         assert isinstance(max_dimension, int)
-        self._cpp_network = CppInfiniteNetwork(max_dimension, 0)
+        self._cpp_network = CppInfiniteNetwork(vertices, interactions, 0)
 
     def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
         """Return a base property of the network.

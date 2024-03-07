@@ -37,7 +37,7 @@ public:
     void set_interactions(const ISimplexList &interactions);
 
     ISimplexList get_facets_interface();
-    void set_facets(const ISimplexList &facets);
+    ISimplexList get_simplices_interface();
 
 protected:
     struct SimplexTreeOptions
@@ -81,7 +81,9 @@ private:
     virtual SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) = 0;
     virtual SimplexList get_skeleton_interactions(const Dimension max_dimension) = 0;
 
-    void sort_interactions(const bool ascending);
+    template <typename Iterator>
+    ISimplexList convert_to_raw_simplices(const Iterator &simplex_range);
+
     std::vector<uint32_t> calc_degree_sequence_interactions(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension);

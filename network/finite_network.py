@@ -19,34 +19,32 @@ from network.property import BaseNetworkProperty, DerivedNetworkProperty
 class FiniteNetwork(Network):
     """Base class representing a data set or a simulated finite network."""
 
-    def __init__(self, max_dimension: int) -> None:
+    def __init__(self, max_dimension: int, vertices: list[int], interactions: list[list[int]]) -> None:
         """Construct an empty network."""
-        super().__init__()
+        super().__init__(max_dimension)
         assert isinstance(max_dimension, int)
-        self._cpp_network = CppFiniteNetwork(max_dimension)
+        self._cpp_network = CppFiniteNetwork(vertices, interactions)
         self._components: list[FiniteNetwork] | None = None
 
     def get_component(self, component_index: int) -> FiniteNetwork:
         """Return the network of the specified component."""
-        reduced_network = FiniteNetwork(self.max_dimension)
+        reduced_network = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
         if component_index != -1:
             components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
-            node_ids_in_component = components[component_index]
-            reduced_network.graph = self.graph.subgraph(node_ids_in_component)
-            reduced_network.cpp_network = self.cpp_network
-            reduced_network.interactions = self.interactions
+            vertices_in_component = components[component_index]
+            reduced_network.graph = self.graph.subgraph(vertices_in_component)
             reduced_network.filter_to_graph()
             if self.vertex_positions is not None:
                 reduced_network.vertex_positions = {
                     node_id: position
                     for node_id, position in self.vertex_positions.items()
-                    if node_id in node_ids_in_component
+                    if node_id in vertices_in_component
                 }
             if self.interaction_positions is not None:
                 reduced_network.interaction_positions = {
                     id: position
                     for id, position in self.interaction_positions.items()
-                    if id in node_ids_in_component
+                    if id in vertices_in_component
                 }
         return reduced_network
 
@@ -94,8 +92,7 @@ class FiniteNetwork(Network):
     def collapse(self) -> FiniteNetwork:
         """Collapse edges of the simplicial complex preserving its 1 homology."""
         debug(f'Collapsing network, containing currently: {self.num_vertices} vertices.')
-        collapsed_network = FiniteNetwork(self.max_dimension)
-        collapsed_network.cpp_network = self.cpp_network
+        collapsed_network = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
         collapsed_network.cpp_network.collapse()
         collapsed_network.expand()
         debug(f'Collapsed containing {collapsed_network.num_vertices} vertices.')
@@ -260,9 +257,8 @@ class FiniteNetwork(Network):
 
         components: list[FiniteNetwork] = []
         for graph_component in graph_components:
-            component = FiniteNetwork(self.max_dimension)
+            component = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
             component.graph = self.graph.subgraph(graph_component)
-            component.cpp_network = self.cpp_network
             component.filter_to_graph()
             components.append(component)
 

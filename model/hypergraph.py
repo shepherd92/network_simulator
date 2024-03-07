@@ -122,19 +122,14 @@ class HypergraphModel(Model):
                 node_birth_times, node_positions, interaction_birth_times, interaction_positions
             )
 
-        network = FiniteNetwork(self.parameters.max_dimension)
         vertex_ids = list(range(len(node_birth_times)))
-        network.vertices = vertex_ids
-        network.interactions = interactions
+        network = FiniteNetwork(self.parameters.max_dimension, vertex_ids, interactions)
 
         network.vertex_positions = self._create_vertex_positions_dict(node_positions, node_birth_times)
         network.interaction_positions = self._create_interaction_positions_dict(
             interaction_positions,
             interaction_birth_times,
         )
-
-        # TEMPORARY: Add simplices to the network
-        network.cpp_network.add_simplices(interactions)
 
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
@@ -151,11 +146,13 @@ class HypergraphModel(Model):
             for (connections, interactions, vertices) in infinite_networks_cpp:
                 interaction_birth_times, interaction_positions = interactions[:, 0], interactions[:, 1]
                 vertex_birth_times, vertex_positions = vertices[:, 0], vertices[:, 1]
+
+                vertex_ids = np.array(range(len(vertices)))[:, np.newaxis]
                 interactions = pd.DataFrame(
                     connections, columns=['interaction_id', 'vertex_id']
                 ).groupby('interaction_id')['vertex_id'].apply(list).tolist()
-                network = InfiniteNetwork(self.parameters.max_dimension)
-                network.interactions = interactions
+                network = InfiniteNetwork(self.parameters.max_dimension, vertex_ids, interactions)
+
                 network.vertex_positions = self._create_vertex_positions_dict(
                     vertex_positions,
                     vertex_birth_times
@@ -165,9 +162,6 @@ class HypergraphModel(Model):
                     interaction_birth_times,
                 )
 
-                vertex_ids = np.array(range(len(vertices)))[:, np.newaxis]
-                network.add_simplices(vertex_ids)
-                network.add_simplices(network.interactions)
                 infinite_networks.append(network)
         else:
             raise NotImplementedError

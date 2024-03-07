@@ -18,11 +18,6 @@ Network::SimplexHandleList InfiniteNetwork::get_simplices()
     return simplex_tree_->cofaces_simplex_range(typical_vertex_handle, 0U);
 }
 
-uint32_t InfiniteNetwork::num_simplices()
-{
-    return get_simplices().size();
-}
-
 SimplexList InfiniteNetwork::get_skeleton_interactions(const Dimension max_dimension)
 {
     SimplexList simplices_contatining_typical_vertex{};
@@ -41,24 +36,36 @@ SimplexList InfiniteNetwork::get_skeleton_interactions(const Dimension max_dimen
                 simplices_contatining_typical_vertex.push_back(simplex);
             }
         });
+
+    sort_simplices(simplices_contatining_typical_vertex, true);
     return simplices_contatining_typical_vertex;
+}
+
+uint32_t InfiniteNetwork::num_simplices()
+{
+    assert(is_valid());
+    return get_simplices().size();
 }
 
 SimplexList InfiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_dimension)
 {
     assert(is_valid());
     const auto typical_vertex_handle{simplex_tree_->find({typical_vertex_id_})};
-    auto simplices{simplex_tree_->cofaces_simplex_range(typical_vertex_handle, max_dimension)};
+    const auto simplices{simplex_tree_->cofaces_simplex_range(typical_vertex_handle, max_dimension)};
     SimplexList skeleton_simplices{};
+    std::mutex mutex{};
 
-    std::transform(
+    std::for_each(
         execution_policy,
         simplices.begin(),
         simplices.end(),
-        std::back_inserter(skeleton_simplices),
-        [this](const auto &simplex_handle) -> Simplex
+        [&](const auto &simplex_handle)
         {
-            return Simplex{get_vertices(simplex_handle)};
+            const auto simplex{Simplex{get_vertices(simplex_handle)}};
+            std::lock_guard<std::mutex> lock{mutex};
+            skeleton_simplices.push_back(simplex);
         });
+
+    sort_simplices(skeleton_simplices, true);
     return skeleton_simplices;
 }

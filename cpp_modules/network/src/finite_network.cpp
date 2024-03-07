@@ -130,5 +130,7 @@ SimplexList FiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_d
         {
             return Simplex{get_vertices(simplex_handle)};
         });
+
+    sort_simplices(skeleton_simplices, true);
     return skeleton_simplices;
 }
