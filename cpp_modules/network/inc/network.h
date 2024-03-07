@@ -1,6 +1,7 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
+#include <gudhi/Simplex_tree.h>
 #include <optional>
 
 #include "simplex.h"
@@ -9,18 +10,15 @@
 class Network
 {
 public:
-    Network();
+    Network(const VertexList &vertices, const ISimplexList &interactions);
 
-    virtual void add_vertices(const VertexList &vertices);
-    virtual void add_simplices_interface(const ISimplexList &simplices);
+    void create_simplicial_complex(const Dimension max_dimension);
+    virtual uint32_t num_simplices() = 0;
 
     void keep_only_vertices(const VertexList &vertices);
     void reset();
 
-    virtual uint32_t num_simplices() = 0;
-    uint32_t num_vertices();
-
-    virtual std::vector<Dimension> calc_simplex_dimension_distribution() = 0;
+    std::vector<Dimension> calc_simplex_dimension_distribution();
     std::vector<Dimension> calc_facet_dimension_distribution();
     std::vector<Dimension> calc_interaction_dimension_distribution();
 
@@ -29,7 +27,9 @@ public:
         const Dimension neighbor_dimension);
 
     ISimplexList get_skeleton_interface(const Dimension max_dimension);
+    virtual void expand(const Dimension max_dimension);
 
+    uint32_t num_vertices();
     const VertexList &get_vertices_interface() const;
     void set_vertices(const VertexList &vertices);
 
@@ -40,45 +40,55 @@ public:
     void set_facets(const ISimplexList &facets);
 
 protected:
-    template <typename Iterator>
-    ISimplexList convert_to_raw_simplices(const Iterator &simplex_range);
+    struct SimplexTreeOptions
+    {
+        typedef Gudhi::linear_indexing_tag Indexing_tag;
+        typedef int Vertex_handle;
+        typedef float Filtration_value;
+        typedef uint32_t Simplex_key;
+        static const bool store_key = true;
+        static const bool store_filtration = false;
+        static const bool contiguous_vertices = false;
+    };
 
-    void create_simplicial_complex_from_interactions();
+    using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
+    using SimplexHandle = SimplexTree::Simplex_handle;
+    using SimplexHandleList = std::vector<SimplexHandle>;
+
+    bool is_valid() const;
+
+    virtual void add_simplices(const SimplexList &simplices, const Dimension dimension);
+    virtual void add_vertices(const VertexList &vertices);
+    VertexList get_vertices(const SimplexHandle &simplex_handle);
+    void calc_facets();
+
+    virtual void reset_simplicial_complex();
+
+    SimplexList get_skeleton(const Dimension max_dimension);
 
     const SimplexList &get_interactions() const;
     const SimplexList &get_facets();
 
     VertexList vertices_;
-    std::optional<SimplexList> interactions_;
+    SimplexList interactions_;
     std::optional<SimplexList> facets_;
+    std::optional<SimplexTree> simplex_tree_;
 
 private:
-    virtual bool is_valid() const = 0;
-    virtual void initialize_simplicial_complex_if_needed() = 0;
+    void initialize_simplicial_complex_if_needed();
 
-    void add_simplices(const SimplexList &simplices);
-    virtual void add_simplex(const VertexList &simplex) = 0;
-
+    virtual SimplexHandleList get_simplices() = 0;
     virtual SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) = 0;
-    SimplexList get_skeleton(const Dimension max_dimension);
+    virtual SimplexList get_skeleton_interactions(const Dimension max_dimension) = 0;
+
     void sort_interactions(const bool ascending);
-
-    virtual SimplexList convert_to_representable_simplices(const SimplexList &simplices_in) const = 0;
-
-    void calc_facets_interactions();
-    virtual void calc_facets_simplicial_complex() = 0;
-
     std::vector<uint32_t> calc_degree_sequence_interactions(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension);
-    virtual std::vector<uint32_t> calc_degree_sequence_simplicial_complex(
+    std::vector<uint32_t> calc_degree_sequence_simplicial_complex(
         const Dimension simplex_dimension,
-        const Dimension neighbor_dimension) = 0;
+        const Dimension neighbor_dimension);
 
-    virtual void reset_simplicial_complex() = 0;
-    void reset_persistence();
-
-    virtual void filter_simplicial_complex(const VertexList &vertices) = 0;
     void filter_facets(const VertexList &vertices);
     void filter_interactions(const VertexList &vertices);
 };

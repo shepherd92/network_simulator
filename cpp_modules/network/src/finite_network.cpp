@@ -1,62 +1,62 @@
-#include "simplex_tree_finite_network.h"
+#include "finite_network.h"
 
-SimplexTreeFiniteNetwork::SimplexTreeFiniteNetwork(const Dimension max_dimension)
-    : SimplexTreeNetwork{max_dimension},
+FiniteNetwork::FiniteNetwork(const VertexList &vertices, const ISimplexList &interactions)
+    : Network{vertices, interactions},
       persistent_cohomology_{nullptr}
 {
 }
 
-SimplexTreeFiniteNetwork::~SimplexTreeFiniteNetwork()
+FiniteNetwork::~FiniteNetwork()
 {
     reset_persistence();
 }
 
-void SimplexTreeFiniteNetwork::add_vertices(const VertexList &vertices)
+void FiniteNetwork::add_vertices(const VertexList &vertices)
 {
     Network::add_vertices(vertices);
     reset_persistence();
 }
 
-void SimplexTreeFiniteNetwork::add_simplices_interface(const ISimplexList &simplices)
+void FiniteNetwork::reset_simplicial_complex()
 {
-    Network::add_simplices_interface(simplices);
+    Network::reset_simplicial_complex();
     reset_persistence();
 }
 
-void SimplexTreeFiniteNetwork::reset_simplicial_complex()
-{
-    SimplexTreeNetwork::reset_simplicial_complex();
-    reset_persistence();
-}
-
-void SimplexTreeFiniteNetwork::reset_persistence()
+void FiniteNetwork::reset_persistence()
 {
     delete persistent_cohomology_;
     persistent_cohomology_ = nullptr;
 }
 
-void SimplexTreeFiniteNetwork::expand()
+void FiniteNetwork::expand(const Dimension max_dimension)
 {
-    SimplexTreeNetwork::expand();
+    Network::expand(max_dimension);
     reset_persistence();
 }
 
-void SimplexTreeFiniteNetwork::calc_persistent_cohomology()
+void FiniteNetwork::calc_persistent_cohomology()
 {
-    auto &simplex_tree{get_simplex_tree()};
+    assert(is_valid());
     reset_persistence();
-    persistent_cohomology_ = new PersistentCohomology{simplex_tree};
+    persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
     persistent_cohomology_->init_coefficients(2);
     persistent_cohomology_->compute_persistent_cohomology();
 }
 
-SimplexTreeNetwork::SimplexHandleList SimplexTreeFiniteNetwork::get_simplices()
+void FiniteNetwork::add_simplices(const SimplexList &simplices, const Dimension dimension)
+{
+    Network::add_simplices(simplices, dimension);
+    reset_persistence();
+}
+
+Network::SimplexHandleList FiniteNetwork::get_simplices()
 {
     assert(is_valid());
     return simplex_tree_->filtration_simplex_range();
 }
 
-const SimplexTreeFiniteNetwork::PersistentCohomology &SimplexTreeFiniteNetwork::get_persistence()
+const FiniteNetwork::PersistentCohomology &FiniteNetwork::get_persistence()
 {
     if (!persistent_cohomology_)
     {
@@ -65,7 +65,7 @@ const SimplexTreeFiniteNetwork::PersistentCohomology &SimplexTreeFiniteNetwork::
     return *persistent_cohomology_;
 }
 
-std::vector<ISimplexList> SimplexTreeFiniteNetwork::calc_persistence_pairs()
+std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
 {
     const auto &persistent_cohomology{get_persistence()};
     const auto &persistent_pairs{persistent_cohomology.get_persistent_pairs()};
@@ -89,7 +89,7 @@ std::vector<ISimplexList> SimplexTreeFiniteNetwork::calc_persistence_pairs()
             {
                 std::cout << "\rCalc persistence pairs ... " << counter << " / " << total;
             }
-            result.emplace_back({birth_simplex, death_simplex});
+            result.push_back({birth_simplex, death_simplex});
         });
 
     if (total > 10000U)
@@ -100,15 +100,35 @@ std::vector<ISimplexList> SimplexTreeFiniteNetwork::calc_persistence_pairs()
     return result;
 }
 
-std::vector<int32_t> SimplexTreeFiniteNetwork::calc_betti_numbers()
+std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
 {
     const auto &persistent_cohomology{get_persistence()};
     const auto result{persistent_cohomology.betti_numbers()};
     return result;
 }
 
-uint32_t SimplexTreeFiniteNetwork::num_simplices()
+uint32_t FiniteNetwork::num_simplices()
 {
     assert(is_valid());
     return simplex_tree_->num_simplices();
+}
+
+SimplexList FiniteNetwork::get_skeleton_interactions(const Dimension max_dimension)
+{
+    return get_skeleton_simplices(interactions_, max_dimension);
+}
+
+SimplexList FiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_dimension)
+{
+    const auto &simplices{simplex_tree_->skeleton_simplex_range(max_dimension)};
+    SimplexList skeleton_simplices{};
+    std::transform(
+        simplices.begin(),
+        simplices.end(),
+        std::back_inserter(skeleton_simplices),
+        [this](const auto &simplex_handle)
+        {
+            return Simplex{get_vertices(simplex_handle)};
+        });
+    return skeleton_simplices;
 }
