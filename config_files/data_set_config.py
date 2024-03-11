@@ -21,17 +21,17 @@ class DataSetConfig(NamedTuple):
     type_: DataSet.Type = DataSet.Type.ARXIV
     plot: bool = True
     properties_to_calculate: list[BaseNetworkProperty.Type] = [
-        # BaseNetworkProperty.Type.NUM_OF_NODES,
-        # BaseNetworkProperty.Type.NUM_OF_EDGES,
-        # BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
-        # BaseNetworkProperty.Type.NUM_OF_INTERACTIONS,
+        BaseNetworkProperty.Type.NUM_OF_VERTICES,
+        BaseNetworkProperty.Type.NUM_OF_EDGES,
+        BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
+        BaseNetworkProperty.Type.NUM_OF_INTERACTIONS,
         # BaseNetworkProperty.Type.EDGES,
-        # BaseNetworkProperty.Type.AVERAGE_DEGREE,
-        # BaseNetworkProperty.Type.MAX_DEGREE,
-        # BaseNetworkProperty.Type.AVG_CLUSTERING,
-        # BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
-        # BaseNetworkProperty.Type.NUM_OF_SIMPLICES,
-        # BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
+        BaseNetworkProperty.Type.AVERAGE_DEGREE,
+        BaseNetworkProperty.Type.MAX_DEGREE,
+        BaseNetworkProperty.Type.AVG_CLUSTERING,
+        BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
+        BaseNetworkProperty.Type.NUM_OF_SIMPLICES,
+        BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
         # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
         # BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
         BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
@@ -39,20 +39,20 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
         BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
         # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
-        # BaseNetworkProperty.Type.BETTI_NUMBERS,
-        # BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
-        # BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
+        BaseNetworkProperty.Type.BETTI_NUMBERS,
+        BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
+        BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
         # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
     ]
 
 
 ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
-    location=Path('../../../collaboration_network/data/arxiv'),
+    location=Path('../../collaboration_network/data/arxiv'),
     max_dimension=2,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2024-12-31')),
-    fields=[ArxivField.computer_science],
+    fields=[ArxivField.mathematics],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

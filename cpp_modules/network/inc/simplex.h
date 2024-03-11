@@ -42,6 +42,8 @@ struct SimplexHash
 
 SimplexList create_simplices(const std::vector<VertexList> &simplices_in);
 ISimplexList create_raw_simplices(const SimplexList &simplices_in);
+ISimplexList filter_simplices_interface(const ISimplexList &simplices, const VertexList &vertices_to_keep);
+SimplexList filter_simplices(const SimplexList &simplices, const VertexList &vertices_to_keep);
 SimplexList get_skeleton_simplices(const SimplexList &simplices_in, const Dimension dimension);
 SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension);
 SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension);

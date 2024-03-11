@@ -32,13 +32,13 @@ data_analysis_directories = {
     # 'finance':          input_base_path / '20231208_083259',
     # 'mathematics':      input_base_path / '20231208_075316',
     # 'statistics':       input_base_path / '20231208_074547',
-    'computer_science': input_base_path / '20240126_144648_cs',
-    'biology':          input_base_path / '20231208_083044',
-    'economics':        input_base_path / '20231208_083202',
-    'engineering':      input_base_path / '20240126_190028_eess',
-    'finance':          input_base_path / '20231208_083259',
-    'mathematics':      input_base_path / '20240126_183746_math',
-    'statistics':       input_base_path / '20240126_174310_stat',
+    'computer_science': input_base_path / '',
+    'biology':          input_base_path / '20240311_161350',
+    'economics':        input_base_path / '20240311_161414',
+    'engineering':      input_base_path / '',
+    'finance':          input_base_path / '20240311_160315',
+    'mathematics':      input_base_path / '20240311_161955',
+    'statistics':       input_base_path / '20240311_161506',
 }
 
 model_sample_for_data_directories = {

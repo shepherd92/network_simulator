@@ -6,8 +6,9 @@
 #include "numpy_cpp_conversion.h"
 #include "simplex.h"
 
-Network::Network(const VertexList &vertices, const ISimplexList &interactions)
-    : vertices_{vertices},
+Network::Network(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions)
+    : max_dimension_{max_dimension},
+      vertices_{vertices},
       interactions_{create_simplices(interactions)},
       facets_{std::nullopt},
       simplex_tree_{std::nullopt}
@@ -21,10 +22,10 @@ void Network::reset()
     facets_ = std::nullopt;
 }
 
-void Network::add_simplices(const SimplexList &simplices, const Dimension dimension)
+void Network::add_simplices(const SimplexList &simplices)
 {
     initialize_simplicial_complex_if_needed();
-    const auto representable_simplices{get_skeleton_simplices(simplices, dimension)};
+    const auto representable_simplices{get_skeleton_simplices(simplices, max_dimension_)};
     const auto total{representable_simplices.size()};
     std::atomic<uint32_t> counter{0U};
 
@@ -59,12 +60,23 @@ void Network::add_vertices(const VertexList &vertices)
         [](const auto vertex)
         { return Simplex{VertexList{vertex}}; });
 
-    add_simplices(simplices, 0);
+    add_simplices(simplices);
 }
 
 const VertexList &Network::get_vertices_interface() const
 {
     return vertices_;
+}
+
+Dimension Network::get_max_dimension() const
+{
+    return max_dimension_;
+}
+
+void Network::set_max_dimension(const Dimension dimension)
+{
+    max_dimension_ = dimension;
+    reset();
 }
 
 void Network::set_vertices(const VertexList &vertices)
@@ -90,6 +102,7 @@ ISimplexList Network::get_simplices_interface()
 template <typename Iterator>
 ISimplexList Network::convert_to_raw_simplices(const Iterator &simplex_range)
 {
+    assert(is_valid());
     ISimplexList result{};
     std::mutex mutex{};
     std::for_each(
@@ -153,7 +166,7 @@ std::vector<uint32_t> Network::calc_degree_sequence_simplicial_complex(
     const Dimension simplex_dimension,
     const Dimension neighbor_dimension)
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     assert(neighbor_dimension > simplex_dimension);
     std::vector<uint32_t> result{};
     // const auto &simplices(get_simplices());
@@ -191,8 +204,10 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
     const Dimension neighbor_dimension)
 {
     assert(neighbor_dimension > simplex_dimension);
-    const auto &facets{select_higher_dimensional_simplices(get_facets(), simplex_dimension)};
-    const auto &simplex_list{get_skeleton_simplices(facets, simplex_dimension)};
+    const auto &facets{get_facets()};
+    auto possible_cofaces{select_higher_dimensional_simplices(facets, neighbor_dimension)};
+    sort_simplices(possible_cofaces, true);
+    const auto &simplex_list{select_simplices_by_dimension(get_skeleton(simplex_dimension), simplex_dimension)};
     SimplexSet simplices{simplex_list.begin(), simplex_list.end()};
     std::vector<uint32_t> degree_sequence{};
     degree_sequence.reserve(simplices.size());
@@ -220,8 +235,8 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
             // iterate over all facets
             std::for_each(
                 execution_policy,
-                facets.begin(),
-                facets.end(),
+                possible_cofaces.begin(),
+                possible_cofaces.end(),
                 [&](const auto &facet)
                 {
                     if (simplex.is_face(facet))
@@ -302,11 +317,11 @@ ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
     return create_raw_simplices(get_skeleton(max_dimension));
 }
 
-void Network::create_simplicial_complex(const Dimension max_dimension)
+void Network::create_simplicial_complex()
 {
     reset_simplicial_complex();
     add_vertices(vertices_);
-    add_simplices(interactions_, max_dimension);
+    add_simplices(interactions_);
     facets_ = std::nullopt;
 }
 
@@ -314,11 +329,7 @@ void Network::keep_only_vertices(const VertexList &vertices)
 {
     vertices_ = vertices;
     filter_interactions(vertices);
-    if (is_valid())
-    {
-        const auto max_dimension{simplex_tree_->dimension()};
-        create_simplicial_complex(max_dimension);
-    }
+    reset_simplicial_complex();
 }
 
 SimplexList Network::get_skeleton(const Dimension max_dimension)
@@ -332,6 +343,7 @@ SimplexList Network::get_skeleton(const Dimension max_dimension)
 
 void Network::filter_interactions(const VertexList &vertices)
 {
+    interactions_ = filter_simplices(interactions_, vertices);
     SimplexList filtered_interactions{};
     std::mutex mutex{};
     std::for_each(
@@ -359,10 +371,18 @@ void Network::filter_interactions(const VertexList &vertices)
     interactions_ = filtered_interactions;
 }
 
-void Network::expand(const Dimension max_dimension)
+void Network::expand()
 {
-    assert(is_valid());
-    simplex_tree_->expansion(max_dimension + 1U);
+    assert_simplicial_complex_is_built();
+    simplex_tree_->expansion(max_dimension_ + 1U);
+}
+
+void Network::assert_simplicial_complex_is_built()
+{
+    if (!is_valid())
+    {
+        create_simplicial_complex();
+    }
 }
 
 void Network::initialize_simplicial_complex_if_needed()
@@ -385,7 +405,7 @@ void Network::reset_simplicial_complex()
 
 std::vector<Dimension> Network::calc_simplex_dimension_distribution()
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     const auto &simplices{get_simplices()};
     std::vector<Dimension> result{};
 
@@ -422,7 +442,7 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
 
 VertexList Network::get_vertices(const SimplexHandle &simplex_handle)
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     VertexList result{};
     if (simplex_handle != simplex_tree_->null_simplex())
     {

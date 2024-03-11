@@ -25,7 +25,6 @@ class ArxivDataSet(DataSet):
     def __init__(self, data_set_properties: Parameters) -> None:
         """Create data set without loading data."""
         super().__init__(data_set_properties)
-        self._data_set_properties = data_set_properties
         self._authors: pd.DataFrame = pd.DataFrame()
         self._documents: pd.DataFrame = pd.DataFrame()
 
@@ -100,6 +99,25 @@ class ArxivDataSet(DataSet):
         self._documents = filtered_documents
         # self._fill_authors_table()
 
+    def _get_vertices(self) -> list[int]:
+        """Build a simplicial complex based on the loaded data."""
+        assert not self._documents.empty, 'Data is not loaded.'
+
+        vertices = list(set(self._documents['authors'].sum()))
+        return vertices
+
+    def _get_interactions(self) -> list[list[int]]:
+        """Build a simplicial complex based on the loaded data."""
+        assert not self._documents.empty, 'Data is not loaded.'
+
+        interactions = [
+            list(simplex)
+            for simplex in self.documents['authors']
+            if len(simplex) != 0
+        ]
+
+        return interactions
+
     def _fill_authors_table(self) -> None:
 
         list_of_author_ids = sorted(list(set(self.documents['authors'].sum())))
@@ -117,23 +135,6 @@ class ArxivDataSet(DataSet):
             return author_ids
 
         self.documents['authors'] = self.documents['authors'].apply(multiple_author_names_translator)
-
-    def _build_simplicial_complex(self) -> None:
-        """Build a simplicial complex based on the loaded data."""
-        assert not self._documents.empty, 'Data is not loaded.'
-
-        debug('Building simplicial complex...')
-
-        self.add_simplices(self.documents['authors'])
-
-        # pylint: disable-next=attribute-defined-outside-init
-        self._interactions = [
-            list(simplex)
-            for simplex in self.documents['authors']
-            if len(simplex) != 0
-        ]
-
-        debug('done.')
 
     @property
     def authors(self) -> pd.DataFrame:

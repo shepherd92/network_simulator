@@ -429,7 +429,6 @@ def _report_betti_number_1_by_component(
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
-    return
     axes.set_title('Betti Number 1 by Component')
     if betti_numbers_by_component.shape[1] < 2:
         print_not_calculated(axes)

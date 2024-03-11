@@ -3,17 +3,18 @@
 #include "infinite_network.h"
 
 InfiniteNetwork::InfiniteNetwork(
+    const Dimension max_dimension,
     const VertexList &vertices,
     const ISimplexList &interactions,
     const VertexId typical_vertex_id)
-    : Network{vertices, interactions},
+    : Network{max_dimension, vertices, interactions},
       typical_vertex_id_{typical_vertex_id}
 {
 }
 
 Network::SimplexHandleList InfiniteNetwork::get_simplices()
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     const auto typical_vertex_handle{simplex_tree_->find({typical_vertex_id_})};
     return simplex_tree_->cofaces_simplex_range(typical_vertex_handle, 0U);
 }
@@ -43,13 +44,12 @@ SimplexList InfiniteNetwork::get_skeleton_interactions(const Dimension max_dimen
 
 uint32_t InfiniteNetwork::num_simplices()
 {
-    assert(is_valid());
     return get_simplices().size();
 }
 
 SimplexList InfiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_dimension)
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     const auto typical_vertex_handle{simplex_tree_->find({typical_vertex_id_})};
     const auto simplices{simplex_tree_->cofaces_simplex_range(typical_vertex_handle, max_dimension)};
     SimplexList skeleton_simplices{};

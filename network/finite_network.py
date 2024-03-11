@@ -8,10 +8,14 @@ from typing import Any
 
 import networkx as nx
 import numpy as np
+import numpy.typing as npt
 from tqdm import tqdm
 
 from distribution.empirical_distribution import EmpiricalDistribution
+# pylint: disable=no-name-in-module
+from cpp_modules.build.network import filter_simplices
 from cpp_modules.build.network import FiniteNetwork as CppFiniteNetwork
+# pylint: enable=no-name-in-module
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
@@ -21,45 +25,24 @@ class FiniteNetwork(Network):
 
     def __init__(self, max_dimension: int, vertices: list[int], interactions: list[list[int]]) -> None:
         """Construct an empty network."""
-        super().__init__(max_dimension)
+        super().__init__()
         assert isinstance(max_dimension, int)
-        self._cpp_network = CppFiniteNetwork(vertices, interactions)
+        self._cpp_network = CppFiniteNetwork(max_dimension, vertices, interactions)
         self._components: list[FiniteNetwork] | None = None
 
     def get_component(self, component_index: int) -> FiniteNetwork:
         """Return the network of the specified component."""
-        reduced_network = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
-        if component_index != -1:
-            components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
-            vertices_in_component = components[component_index]
-            reduced_network.graph = self.graph.subgraph(vertices_in_component)
-            reduced_network.filter_to_graph()
-            if self.vertex_positions is not None:
-                reduced_network.vertex_positions = {
-                    node_id: position
-                    for node_id, position in self.vertex_positions.items()
-                    if node_id in vertices_in_component
-                }
-            if self.interaction_positions is not None:
-                reduced_network.interaction_positions = {
-                    id: position
-                    for id, position in self.interaction_positions.items()
-                    if id in vertices_in_component
-                }
-        return reduced_network
+        return self.components[component_index] if component_index != -1 else self
 
     def reduce_to_component(self, component_index: int) -> None:
         """Reduce the network to the specified component only."""
         if component_index != -1:
-            components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
-            node_ids_in_component = components[component_index]
-            self.graph = self.graph.subgraph(node_ids_in_component)
-            self.filter_to_graph()
+            component = self.components[component_index]
             if self.vertex_positions is not None:
                 self.vertex_positions = {
-                    node_id: position
-                    for node_id, position in self.vertex_positions.items()
-                    if node_id in node_ids_in_component
+                    id: position
+                    for id, position in self.vertex_positions.items()
+                    if id in component.vertices
                 }
 
     def calc_network_summary(
@@ -91,30 +74,23 @@ class FiniteNetwork(Network):
 
     def collapse(self) -> FiniteNetwork:
         """Collapse edges of the simplicial complex preserving its 1 homology."""
-        debug(f'Collapsing network, containing currently: {self.num_vertices} vertices.')
+        debug(f'Collapsing network, containing currently: {self.num_simplices(0)} vertices.')
         collapsed_network = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
         collapsed_network.cpp_network.collapse()
         collapsed_network.expand()
-        debug(f'Collapsed containing {collapsed_network.num_vertices} vertices.')
+        debug(f'Collapsed containing {collapsed_network.num_simplices(0)} vertices.')
         return collapsed_network
 
     def calc_base_property(self, property_type: BaseNetworkProperty.Type) -> Any:
         """Return a base property of the network."""
         debug(f'Calculating {property_type.name}...')
 
-        if property_type == BaseNetworkProperty.Type.NUM_OF_NODES:
-            property_value = self.num_vertices
+        if property_type == BaseNetworkProperty.Type.NUM_OF_VERTICES:
+            property_value = self.num_simplices(0)
         elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
-            simplex_dimension_value_counts = self._calculate_simplex_dimension_distribution().calc_value_counts()
-            property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1][0, 1] \
-                if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 1]) > 0 \
-                else 0
+            property_value = self.num_simplices(1)
         elif property_type == BaseNetworkProperty.Type.NUM_OF_TRIANGLES:
-            simplex_dimension_value_counts = self._calculate_simplex_dimension_distribution().calc_value_counts()
-            if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2]) == 0:
-                property_value = 0
-            else:
-                property_value = simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == 2][0, 1]
+            property_value = self.num_simplices(2)
         elif property_type == BaseNetworkProperty.Type.NUM_OF_INTERACTIONS:
             property_value = len(self.interactions)
         elif property_type == BaseNetworkProperty.Type.EDGES:
@@ -143,7 +119,7 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS:
             property_value = nx.number_connected_components(self.graph)
         elif property_type == BaseNetworkProperty.Type.NUM_OF_SIMPLICES:
-            property_value = self.num_simplices
+            property_value = self.num_simplices()
         elif property_type == BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION:
@@ -170,11 +146,11 @@ class FiniteNetwork(Network):
     def get_info_as_dict(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         return {
-            'num_of_vertices': self.num_vertices,
+            'num_of_vertices': self.num_simplices(0),
             'num_of_interactions': len(self.interactions),
-            'num_of_simplices': self.num_simplices,
+            'num_of_simplices': self.num_simplices(),
             'max_dimension': self.max_dimension,
-            'num_of_components': len(list(nx.connected_components(self.graph))),
+            'num_of_components': len(self.components),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
 
@@ -218,24 +194,24 @@ class FiniteNetwork(Network):
 
         return EmpiricalDistribution(degree_sequence)
 
-    def _calculate_betti_numbers_in_components(self) -> list[list[int]]:
+    def _calculate_betti_numbers_in_components(self) -> npt.NDArray[np.int_]:
 
         betti_numbers_by_component: list[list[int]] = [
-            component.calc_base_property(BaseNetworkProperty.Type.BETTI_NUMBERS)
+            component.calc_base_property(BaseNetworkProperty.Type.BETTI_NUMBERS)[:, 1]
             for component in tqdm(
                 self.components,
                 desc='Calculating Betti numbers in components',
                 delay=10,
             )
         ]
-        return betti_numbers_by_component
+        return np.array(betti_numbers_by_component)
 
     def _calculate_vertices_in_components(self) -> list[int]:
 
         vertices_in_components_list: list[int] = [
-            component.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
-            for component in tqdm(
-                self.components,
+            len(vertices_in_component)
+            for vertices_in_component in tqdm(
+                self._get_vertices_in_components(),
                 desc='Calculating vertices in components',
                 delay=10,
             )
@@ -246,30 +222,89 @@ class FiniteNetwork(Network):
 
     def _calculate_betti_numbers(self) -> list[int]:
         """Calculate the Betti numbers for different dimensions."""
-        return self.cpp_network.calc_betti_numbers()
+        betti_numbers = self.cpp_network.calc_betti_numbers()
+        result = np.c_[
+            np.array(range(len(betti_numbers)), dtype=int),
+            betti_numbers
+        ]
+        return result
 
     def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:
         return self._cpp_network.calc_persistence_pairs()
 
-    def _get_all_components(self) -> list[FiniteNetwork]:
+    def _get_vertices_in_components(self) -> list[list[int]]:
         """Reduce the network to the specified component only."""
-        graph_components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
+        vertices_in_components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
+        return [list(element) for element in vertices_in_components]
 
-        components: list[FiniteNetwork] = []
-        for graph_component in graph_components:
-            component = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
-            component.graph = self.graph.subgraph(graph_component)
-            component.filter_to_graph()
-            components.append(component)
+    def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 
-        return components
+        assert neighbor_dimension > simplex_dimension, \
+            f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
+
+        num_simplices = self.num_simplices(simplex_dimension)
+        degree_sequence: list[int] = []
+        for part in self.get_partition(10000):
+            degree_sequence_of_part = \
+                part.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+            degree_sequence.extend(degree_sequence_of_part)
+
+        remaining_simplices = num_simplices - len(degree_sequence)
+        degree_sequence.extend([0] * remaining_simplices)
+
+        return sorted(degree_sequence)
+
+    def get_partition(
+        self,
+        min_vertices_in_part: int
+    ) -> list[FiniteNetwork]:
+        """Return a partition of the network based on the number of vertices."""
+        vertices_in_components = self._get_vertices_in_components()
+        partitions: list[FiniteNetwork] = []
+        interactions = self.interactions  # not to convert interactions any more
+
+        vertices_in_part: list[int] = []
+        for vertices_in_component in vertices_in_components:
+            vertices_in_part.extend(vertices_in_component)
+            if len(vertices_in_part) >= min_vertices_in_part:
+                interactions_in_partition = filter_simplices(interactions, vertices_in_part)
+                partitions.append(FiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition))
+                vertices_in_part = []
+
+        # k_cliques = list(nx.community.k_clique_communities(self.graph, max_intersecting_simplex_dimension))
+        # vertices_in_part: list[int] = []
+        # for k_clique in k_cliques:
+        #     vertices_in_part.extend(k_clique)
+        #     if len(vertices_in_part) >= min_vertices_in_part:
+        #         interactions_in_partition = filter_simplices(interactions, vertices_in_part)
+        #         partitions.append(FiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition))
+        #         vertices_in_part = []
+
+        if len(vertices_in_part) > 0:
+            interactions_in_partition = filter_simplices(interactions, vertices_in_part)
+            partitions.append(FiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition))
+
+        return partitions
 
     @property
     def components(self) -> list[FiniteNetwork]:
         """Getter of Betti numbers."""
+        components: list[FiniteNetwork] = []
         if self._components is None:
-            self._components = self._get_all_components()
+            vertices_in_components = self._get_vertices_in_components()
+            interactions = self.interactions  # not to convert interactions any more
+            for vertices_in_component in vertices_in_components:
+                interactions_in_component = filter_simplices(interactions, vertices_in_component)
+                component = FiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
+                component.graph = self.graph.subgraph(vertices_in_component)
+                components.append(component)
+            self._components = components
+
         return self._components
+
+    def _num_edges(self) -> int:
+        """Return the number of edges in the graph."""
+        return self.graph.number_of_edges()
 
     def __copy__(self):
         """Shallow copy of self."""
@@ -282,10 +317,6 @@ class FiniteNetwork(Network):
     def __str__(self) -> str:
         """Return a string representation based on the network properties."""
         return '\n'.join([
-            f'Number of vertices: {self.num_vertices}',
-            f'Number of interactions: {len(self.cpp_network.interactions)}',
-            f'Number of simplices: {self.num_simplices}',
-            f'Max Dimension: {self.max_dimension}',
-            f'Number of components: {len(list(nx.connected_components(self.graph)))}',
-            f'Number of vertices in component 0: {self.num_of_vertices_in_component(0)}',
+            f'{key}: {item}'
+            for key, item in self.get_info_as_dict().items()
         ])

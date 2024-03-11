@@ -1,7 +1,10 @@
 #include "finite_network.h"
 
-FiniteNetwork::FiniteNetwork(const VertexList &vertices, const ISimplexList &interactions)
-    : Network{vertices, interactions},
+FiniteNetwork::FiniteNetwork(
+    const Dimension max_dimension,
+    const VertexList &vertices,
+    const ISimplexList &interactions)
+    : Network{max_dimension, vertices, interactions},
       persistent_cohomology_{nullptr}
 {
 }
@@ -29,30 +32,30 @@ void FiniteNetwork::reset_persistence()
     persistent_cohomology_ = nullptr;
 }
 
-void FiniteNetwork::expand(const Dimension max_dimension)
+void FiniteNetwork::expand()
 {
-    Network::expand(max_dimension);
+    Network::expand();
     reset_persistence();
 }
 
 void FiniteNetwork::calc_persistent_cohomology()
 {
-    assert(is_valid());
     reset_persistence();
+    assert_simplicial_complex_is_built();
     persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
     persistent_cohomology_->init_coefficients(2);
     persistent_cohomology_->compute_persistent_cohomology();
 }
 
-void FiniteNetwork::add_simplices(const SimplexList &simplices, const Dimension dimension)
+void FiniteNetwork::add_simplices(const SimplexList &simplices)
 {
-    Network::add_simplices(simplices, dimension);
+    Network::add_simplices(simplices);
     reset_persistence();
 }
 
 Network::SimplexHandleList FiniteNetwork::get_simplices()
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     return simplex_tree_->filtration_simplex_range();
 }
 
@@ -102,14 +105,25 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
 
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
 {
-    const auto &persistent_cohomology{get_persistence()};
-    const auto result{persistent_cohomology.betti_numbers()};
+    std::vector<int32_t> result{max_dimension_, 0};
+    if (num_simplices() == 1U)
+    {
+        // handle an error in Gudhi
+        result[0] = 1;
+    }
+    else
+    {
+        const auto &persistent_cohomology{get_persistence()};
+        result = persistent_cohomology.betti_numbers();
+        result.resize(max_dimension_);
+    }
+    assert(static_cast<int32_t>(result.size()) == max_dimension_);
     return result;
 }
 
 uint32_t FiniteNetwork::num_simplices()
 {
-    assert(is_valid());
+    assert_simplicial_complex_is_built();
     return simplex_tree_->num_simplices();
 }
 
@@ -120,6 +134,7 @@ SimplexList FiniteNetwork::get_skeleton_interactions(const Dimension max_dimensi
 
 SimplexList FiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_dimension)
 {
+    assert_simplicial_complex_is_built();
     const auto &simplices{simplex_tree_->skeleton_simplex_range(max_dimension)};
     SimplexList skeleton_simplices{};
     std::transform(

@@ -32,13 +32,12 @@ class DataSet(FiniteNetwork):
 
     def __init__(self, data_set_properties: Parameters) -> None:
         """Create data set without loading data."""
-        super().__init__(data_set_properties.max_dimension)
         self._data_set_properties = data_set_properties
-
-    def load_data(self) -> None:
-        """Load data from the disk for further processing."""
         self._read_data()
-        self._build_simplicial_complex()
+        vertices = self._get_vertices()
+        interactions = self._get_interactions()
+
+        super().__init__(data_set_properties.max_dimension, vertices, interactions)
         self.reduce_to_component(self._data_set_properties.component_index_from_largest)
 
     def calc_scalar_property(
@@ -63,10 +62,10 @@ class DataSet(FiniteNetwork):
         """Read data from the disk."""
         raise NotImplementedError
 
-    def _build_simplicial_complex(self) -> None:
+    def _get_vertices(self) -> list[int]:
         """Build a simplicial complex based on the loaded data."""
         raise NotImplementedError
 
-    def _build_graph(self) -> None:
-        """Build a simple networkx graph."""
+    def _get_interactions(self) -> list[list[int]]:
+        """Get interactions."""
         raise NotImplementedError

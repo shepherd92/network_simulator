@@ -8,6 +8,7 @@ class InfiniteNetwork : public Network
 {
 public:
     InfiniteNetwork(
+        const Dimension max_dimension,
         const VertexList &vertices,
         const ISimplexList &interactions,
         const VertexId typical_vertex_id);

@@ -10,11 +10,11 @@
 class FiniteNetwork : public Network
 {
 public:
-    FiniteNetwork(const VertexList &vertices, const ISimplexList &interactions);
+    FiniteNetwork(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions);
     ~FiniteNetwork();
 
     void add_vertices(const VertexList &vertices) override;
-    void expand(const Dimension max_dimension) override;
+    void expand() override;
 
     uint32_t num_simplices() override;
     std::vector<ISimplexList> calc_persistence_pairs();
@@ -24,7 +24,7 @@ private:
     using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
     using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
-    void add_simplices(const SimplexList &simplices, const Dimension dimension) override;
+    void add_simplices(const SimplexList &simplices) override;
     SimplexHandleList get_simplices() override;
 
     SimplexList get_skeleton_interactions(const Dimension max_dimension) override;

@@ -16,7 +16,7 @@ class BaseNetworkProperty:
     class Type(Enum):
         """Represent the calculatable property types of a network."""
 
-        NUM_OF_NODES: int = auto()
+        NUM_OF_VERTICES: int = auto()
         NUM_OF_EDGES: int = auto()
         NUM_OF_TRIANGLES: int = auto()
         NUM_OF_INTERACTIONS: int = auto()

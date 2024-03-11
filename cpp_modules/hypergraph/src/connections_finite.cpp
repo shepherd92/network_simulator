@@ -45,19 +45,28 @@ NetworkInterface generate_finite_network_interface(
 
     MarkPositionList interaction_mark_position_pairs{};
     interaction_mark_position_pairs.reserve(num_of_interactions);
-    for (const auto &interaction : interactions)
-    {
-        interaction_mark_position_pairs.push_back(std::make_pair(interaction.mark(), interaction.position()));
-    }
+
+    std::transform(
+        interactions.begin(),
+        interactions.end(),
+        std::back_inserter(interaction_mark_position_pairs),
+        [](const auto &interaction)
+        {
+            return std::make_pair(interaction.mark(), interaction.position());
+        });
     const auto return_value_2{to_numpy(interaction_mark_position_pairs)};
 
-    MarkPositionList node_mark_position_pairs{};
-    node_mark_position_pairs.reserve(num_of_vertices);
-    for (const auto &vertex : vertices)
-    {
-        node_mark_position_pairs.push_back(std::make_pair(vertex.mark(), vertex.position()));
-    }
-    const auto return_value_3{to_numpy(node_mark_position_pairs)};
+    MarkPositionList vertex_mark_position_pairs{};
+    vertex_mark_position_pairs.reserve(num_of_vertices);
+    std::transform(
+        vertices.begin(),
+        vertices.end(),
+        std::back_inserter(vertex_mark_position_pairs),
+        [](const auto &vertex)
+        {
+            return std::make_pair(vertex.mark(), vertex.position());
+        });
+    const auto return_value_3{to_numpy(vertex_mark_position_pairs)};
 
     return std::make_tuple(std::move(return_value_1), std::move(return_value_2), std::move(return_value_3));
 }

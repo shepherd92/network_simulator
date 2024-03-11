@@ -32,7 +32,7 @@ class AgeDependentRandomSimplexParameterOptions(ModelParameterOptions):
     def __init__(self, data_set: DataSet) -> None:
         """Construct parameter options for model fitting."""
         super().__init__()
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
         average_degree: float = data_set.calc_base_property(BaseNetworkProperty.Type.AVERAGE_DEGREE)
         in_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
             BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION
@@ -63,7 +63,7 @@ class ErdosRenyiParameterOptions(ModelParameterOptions):
     def __init__(self, data_set: DataSet) -> None:
         """Construct parameter options for model fitting."""
         super().__init__()
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
         num_of_edges: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_EDGES)
         edge_probability_guess = num_of_edges / (num_of_nodes * (num_of_nodes - 1) / 2)
 
@@ -81,7 +81,7 @@ class NetworkGeometryWithFlavorParameterOptions(ModelParameterOptions):
     def __init__(self, data_set: DataSet) -> None:
         """Construct parameter options for model fitting."""
         super().__init__()
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
 
         self.options = (
             #                              name,           initial guess,  lb,    ub, integer, optimize,  step)
@@ -99,7 +99,7 @@ class PreferentialAttachmentParameterOptions(ModelParameterOptions):
     def __init__(self, data_set: DataSet) -> None:
         """Construct parameter options for model fitting."""
         super().__init__()
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
         num_of_edges: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_EDGES)
         edges_of_new_node_guess = round(num_of_edges / num_of_nodes)
 
@@ -117,7 +117,7 @@ class PriceParameterOptions(ModelParameterOptions):
     def __init__(self, data_set: DataSet) -> None:
         """Construct parameter options for model fitting."""
         super().__init__()
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
 
         self.options = (
             #                                        name,           initial guess,  lb,   ub, integer,  optimize, step)
@@ -133,7 +133,7 @@ class WattsStrogatzParameterOptions(ModelParameterOptions):
     def __init__(self, data_set: DataSet) -> None:
         """Construct parameter options for model fitting."""
         super().__init__()
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_NODES)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
         num_of_edges: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_EDGES)
         edges_of_new_node_guess = round(num_of_edges / num_of_nodes)
 

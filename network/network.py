@@ -21,20 +21,18 @@ from distribution.empirical_distribution import EmpiricalDistribution
 class Network:
     """Base class representing a data set or a simulated network."""
 
-    def __init__(self, max_dimension: int) -> None:
+    def __init__(self) -> None:
         """Construct an empty network."""
         self._cpp_network = None
-        self._max_dimension = max_dimension
-        self._graph: nx.Graph() | None = None
-        self._digraph: nx.DiGraph() | None = None
+        self._graph: nx.Graph | None = None
+        self._digraph: nx.DiGraph | None = None
         self._vertex_positions: dict[int, tuple[float, ...]] | None = None
         self._interaction_positions: dict[int, tuple[float, ...]] | None = None
 
     def generate_simplicial_complex_from_graph(self) -> None:
         """Set the simplicial complex to represent the graph."""
-        self._cpp_network.reset()
-        self._cpp_network.add_simplices([[node] for node in self.graph.nodes])
-        self._cpp_network.add_simplices(self.graph.edges)
+        cpp_network_type = type(self._cpp_network)
+        self._cpp_network = cpp_network_type(self.max_dimension, self.graph.nodes, self.graph.edges)
 
     def generate_clique_complex_from_graph(self) -> None:
         """Given graph, generate the clique complex and store it in the simplicial complex member."""
@@ -43,7 +41,7 @@ class Network:
 
     def create_simplicial_complex(self) -> None:
         """Create a simplicial complex."""
-        self._cpp_network.create_simplicial_complex(self._max_dimension)
+        self._cpp_network.create_simplicial_complex()
 
     def expand(self) -> None:
         """Expand simplicial complex to a clique complex."""
@@ -115,7 +113,7 @@ class Network:
         vertices_in_interactions = np.array(list(chain(*self.interactions)))
         degree_sequence = np.unique(vertices_in_interactions, return_counts=True)[1]
 
-        num_of_zero_degree_vertices = self.num_vertices - len(degree_sequence)
+        num_of_zero_degree_vertices = self.num_simplices(0) - len(degree_sequence)
         interaction_degree_distribution = EmpiricalDistribution(
             list(degree_sequence) + [0] * num_of_zero_degree_vertices)
         return interaction_degree_distribution
@@ -128,8 +126,6 @@ class Network:
 
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
-
-        assert self.num_vertices > 0, 'Simplicial complex is empty.'
 
         degree_sequence: list[int] = self.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
 
@@ -155,20 +151,28 @@ class Network:
         """Return the cpp network."""
         return self._cpp_network
 
-    @property
-    def num_simplices(self) -> int:
+    def num_simplices(self, dimension: int = -1) -> int:
         """Return the number of simplices in the simplicial complex."""
-        return self._cpp_network.num_simplices()
+        if dimension == -1:
+            return self._cpp_network.num_simplices()
+        elif dimension == 0:
+            return self._cpp_network.num_vertices()
+        elif dimension == 1:
+            return self._num_edges()
+        else:
+            simplex_dimension_value_counts = self._calculate_simplex_dimension_distribution().calc_value_counts()
+            return 0 \
+                if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == dimension]) == 0 \
+                else simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == dimension][0, 1]
 
-    @property
-    def num_vertices(self) -> int:
-        """Return the number of nodes in the graph."""
-        return self._cpp_network.num_vertices()
+    def _num_edges(self) -> int:
+        """Return the number of edges in the graph."""
+        raise NotImplementedError
 
     @property
     def max_dimension(self) -> int:
         """Get the maximum dimension of the network."""
-        return self._max_dimension
+        return self._cpp_network.max_dimension
 
     @property
     def graph(self) -> nx.Graph:

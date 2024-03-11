@@ -2,7 +2,6 @@
 """Data Loader."""
 
 from logging import info
-from pathlib import Path
 
 from config_files.data_set_config import ARXIV_DATA_SET_PARAMETERS
 from config_files.data_set_config import BIANCONI_DATA_SET_PARAMETERS
@@ -18,8 +17,6 @@ from data_set.test_data_set import TestDataSet
 
 def load_data(data_set_to_load: DataSet.Type) -> DataSet:
     """Load the specified data set."""
-    data_set_properties = DataSet.Parameters(Path(), 0, 0, -1)
-    data = DataSet(data_set_properties)
     if data_set_to_load == DataSet.Type.BIANCONI:
         data = BianconiDataSet(BIANCONI_DATA_SET_PARAMETERS)
     elif data_set_to_load == DataSet.Type.NATURE:
@@ -31,6 +28,5 @@ def load_data(data_set_to_load: DataSet.Type) -> DataSet:
     else:
         raise NotImplementedError(f'The requested data set {data_set_to_load.name} is not yet implemented')
 
-    data.load_data()
     info(f'Data set {data_set_to_load.name} loaded.')
     return data

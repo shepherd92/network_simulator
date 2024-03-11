@@ -79,6 +79,9 @@ $(BLDDIR)/$(PROJECT)$(SHOBJEXT) : $(SRCS) | $(BLDDIR)
 	$(CXX) $^ -o $@ $(CXXFLAGS) $(LDFLAGS) 
 	@touch $(BLDDIR)/__init__.py
 
+cudacode.o:
+	nvcc -c -arch=sm_20 cudacode.cu 
+
 $(BLDDIR)/$(PROJECT)_test : $(BLDDIR)/$(PROJECT)_test.$(OBJEXT) | $(BLDDIR)
 	@ln -sf $(BLDDIR)/$(PROJECT)$(SHOBJEXT) $(BLDDIR)/lib$(PROJECT)$(SHOBJEXT)
 	$(CXX) $(LDFLAGS) -L $(BLDDIR) -l $(PROJECT)${SHOBJEXT%.*} $^ -o $@

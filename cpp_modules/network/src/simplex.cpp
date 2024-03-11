@@ -20,7 +20,7 @@ std::size_t SimplexHash::operator()(const Simplex &simplex) const
 }
 
 Simplex::Simplex(const VertexList &vertices)
-    : vertices_(vertices)
+    : vertices_{vertices}
 {
     std::sort(vertices_.begin(), vertices_.end());
 }
@@ -131,16 +131,7 @@ SimplexList create_simplices(const std::vector<VertexList> &simplices_in)
         {
             std::lock_guard<std::mutex> lock(mutex);
             simplices.emplace_back(Simplex(simplex_in));
-            if (++counter % 1000 == 0 && total > 10000U)
-            {
-                std::cout << "\rCreate simplices ... " << counter << " / " << total;
-            }
         });
-
-    if (total > 10000U)
-    {
-        std::cout << "\rCreate simplices ... " << total << " / " << total;
-    }
 
     return simplices;
 }
@@ -159,8 +150,6 @@ SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension
 {
     SimplexList skeleton_simplices{};
     std::mutex mutex{};
-    const auto total{simplices.size()};
-    std::atomic<uint32_t> counter{0U};
 
     std::for_each(
         execution_policy,
@@ -168,26 +157,15 @@ SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension
         simplices.end(),
         [&](const auto &simplex)
         {
-            ++counter;
             if (simplex.is_valid())
             {
                 auto skeleton{simplex.get_skeleton(dimension)};
                 std::lock_guard<std::mutex> lock(mutex);
-                if (counter % 1000 == 0 && total > 10000U)
-                {
-                    std::cout << "\rCalc skeleton (simplices) ... " << counter << " / " << total;
-                }
                 skeleton_simplices.insert(skeleton_simplices.end(), skeleton.begin(), skeleton.end());
             }
         });
 
-    if (total > 10000U)
-    {
-        std::cout << "\rCalc skeleton (simplices) ... " << total << " / " << total;
-    }
-
     sort_simplices(skeleton_simplices, true);
-
     return skeleton_simplices;
 }
 
@@ -203,14 +181,14 @@ SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Di
     return selected_simplices;
 }
 
-SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension)
+SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension min_dimension)
 {
     SimplexList selected_simplices;
 
     std::copy_if(simplices.begin(), simplices.end(),
                  std::back_inserter(selected_simplices),
-                 [dimension](const Simplex &simplex)
-                 { return simplex.dimension() >= dimension; });
+                 [min_dimension](const Simplex &simplex)
+                 { return simplex.dimension() >= min_dimension; });
 
     return selected_simplices;
 }
@@ -235,6 +213,40 @@ std::vector<Dimension> calc_dimension_distribution(const ISimplexList &simplices
 {
     const auto simplices{create_simplices(simplices_in)};
     return calc_dimension_distribution(simplices);
+}
+
+ISimplexList filter_simplices_interface(const ISimplexList &simplices, const VertexList &vertices_to_keep)
+{
+    return create_raw_simplices(filter_simplices(create_simplices(simplices), vertices_to_keep));
+}
+
+SimplexList filter_simplices(const SimplexList &simplices, const VertexList &vertices_to_keep)
+{
+    SimplexList filtered_simplices{};
+    std::mutex mutex{};
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            auto keep_simplex{true};
+            for (auto vertex : simplex.vertices())
+            {
+                const auto vertex_is_kept{std::find(vertices_to_keep.begin(), vertices_to_keep.end(), vertex) != vertices_to_keep.end()};
+                if (!vertex_is_kept)
+                {
+                    keep_simplex = false;
+                    break;
+                }
+            }
+            if (keep_simplex)
+            {
+                std::lock_guard<std::mutex> lock{mutex};
+                filtered_simplices.push_back(simplex);
+            }
+        });
+    return filtered_simplices;
 }
 
 std::vector<Dimension> calc_dimension_distribution(const SimplexList &simplices)

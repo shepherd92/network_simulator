@@ -10,9 +10,12 @@
 class Network
 {
 public:
-    Network(const VertexList &vertices, const ISimplexList &interactions);
+    Network(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions);
 
-    void create_simplicial_complex(const Dimension max_dimension);
+    void assert_simplicial_complex_is_built();
+    void create_simplicial_complex();
+    Dimension get_max_dimension() const;
+    void set_max_dimension(const Dimension dimension);
     virtual uint32_t num_simplices() = 0;
 
     void keep_only_vertices(const VertexList &vertices);
@@ -27,7 +30,7 @@ public:
         const Dimension neighbor_dimension);
 
     ISimplexList get_skeleton_interface(const Dimension max_dimension);
-    virtual void expand(const Dimension max_dimension);
+    virtual void expand();
 
     uint32_t num_vertices();
     const VertexList &get_vertices_interface() const;
@@ -55,9 +58,7 @@ protected:
     using SimplexHandle = SimplexTree::Simplex_handle;
     using SimplexHandleList = std::vector<SimplexHandle>;
 
-    bool is_valid() const;
-
-    virtual void add_simplices(const SimplexList &simplices, const Dimension dimension);
+    virtual void add_simplices(const SimplexList &simplices);
     virtual void add_vertices(const VertexList &vertices);
     VertexList get_vertices(const SimplexHandle &simplex_handle);
     void calc_facets();
@@ -69,12 +70,14 @@ protected:
     const SimplexList &get_interactions() const;
     const SimplexList &get_facets();
 
+    Dimension max_dimension_;
     VertexList vertices_;
     SimplexList interactions_;
     std::optional<SimplexList> facets_;
     std::optional<SimplexTree> simplex_tree_;
 
 private:
+    bool is_valid() const;
     void initialize_simplicial_complex_if_needed();
 
     virtual SimplexHandleList get_simplices() = 0;

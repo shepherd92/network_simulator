@@ -29,7 +29,7 @@ class InfiniteNetworkSet:
 
         largest_network = max(
             self._infinite_networks,
-            key=lambda network: network.num_vertices
+            key=lambda network: network.num_simplices(0)
         )
         return largest_network
 
@@ -71,7 +71,7 @@ class InfiniteNetworkSet:
         """Return a dict representation based on the network properties."""
         return {
             'num_of_networks': len(self._infinite_networks),
-            'num_of_simplices': sum([network.num_simplices for network in self._infinite_networks]),
+            'num_of_simplices': sum([network.num_simplices() for network in self._infinite_networks]),
             'max_dimension': self._infinite_networks[0].max_dimension,
         }
 
@@ -81,9 +81,9 @@ class InfiniteNetwork(Network):
 
     def __init__(self, max_dimension: int, vertices: list[int], interactions: list[list[int]]) -> None:
         """Construct an empty network."""
-        super().__init__(max_dimension)
+        super().__init__()
         assert isinstance(max_dimension, int)
-        self._cpp_network = CppInfiniteNetwork(vertices, interactions, 0)
+        self._cpp_network = CppInfiniteNetwork(max_dimension, vertices, interactions, 0)
 
     def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
         """Return a base property of the network.
@@ -108,6 +108,10 @@ class InfiniteNetwork(Network):
             )
 
         return property_value_set
+
+    def _num_edges(self) -> int:
+        """Return the number of edges in the graph."""
+        return self.graph.degree(0)
 
     def get_info_as_dict(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""

@@ -99,13 +99,24 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
     interactions_to_plot = _determine_interactions_to_plot(network.interactions)
     debug(f'Number of facets to plot: {len(interactions_to_plot)}')
 
-    simplex_node_positions = [
-        list(itemgetter(*facet)(vertex_positions))
-        for facet in interactions_to_plot
-    ]
+    interaction_vertex_positions: list[list[tuple[float]]] = []
+    all_vertex_coordintes = [coordinate for coordinates in vertex_positions.values() for coordinate in coordinates]
+    estimated_torus_size = max(all_vertex_coordintes) - min(all_vertex_coordintes)
+    for interaction in interactions_to_plot:
+        this_interaction_vertex_positions = list(itemgetter(*interaction)(vertex_positions))
+        size_of_this_interaction = \
+            max([coordinates[0] for coordinates in this_interaction_vertex_positions]) - \
+            min([coordinates[0] for coordinates in this_interaction_vertex_positions])
+        if determined_vertex_positions:
+            if size_of_this_interaction < 0.3 * estimated_torus_size:
+                # exclude polygons which were created by wrap around torus effect
+                interaction_vertex_positions.append(this_interaction_vertex_positions)
+        else:
+            interaction_vertex_positions.append(this_interaction_vertex_positions)
+
     convex_hulls = [
         ConvexHull(simplex_node_pos, qhull_options='QJ Pp')
-        for simplex_node_pos in simplex_node_positions
+        for simplex_node_pos in interaction_vertex_positions
     ]
 
     polygon_coordinates = [
@@ -113,13 +124,8 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
             node_positions[node_index]
             for node_index in convex_hull.vertices
         ])
-        for convex_hull, node_positions in zip(convex_hulls, simplex_node_positions)
+        for convex_hull, node_positions in zip(convex_hulls, interaction_vertex_positions)
     ]
-
-    # from pickle import dump
-    # with open('interactions.dat', "wb") as fp:  # Pickling
-    #     dump(interactiopip list --outdatedns_to_plot, fp)
-    # np.save('polygon_coordinates.npy', np.array(polygon_coordinates, dtype=object), allow_pickle=True)
 
     if len(interactions_to_plot) > 0:
         face_colors = _get_simplex_colors(interactions_to_plot, color_map_name)
@@ -214,6 +220,7 @@ def plot_approximation_histogram(
     padding: PaddingSide,
     axes: plt.Axes
 ) -> None:
+    """Plot the histogram and the theoretical distribution on a given axes."""
 
     if distribution_pair.empirical.valid:
         histogram, bins = distribution_pair.empirical.calc_histogram(histogram_type)
@@ -738,9 +745,9 @@ def plot_hypergraph_determined_positions(network: FiniteNetwork, save_path: Path
     """Plot the entire network with predetermined vertex positions."""
     plt.rcParams["text.usetex"] = False
 
-    debug('Plotting simplicial complex with fixed positions started.')
+    debug('Plotting hypergraph fixed positions started.')
     figure, axes = plt.subplots(1, 1, figsize=(50, 50))
     plot_hypergraph(network, True, axes)
     figure.savefig(save_path)
     figure.clf()
-    debug('Plotting simplicial complex with fixed positions finished.')
+    debug('Plotting hypergraph fixed positions finished.')

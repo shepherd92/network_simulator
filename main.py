@@ -134,7 +134,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
 
             scalar_property_reports.append(scalar_property_report)
 
-        model_test_save_dir = (configuration.general.output_dir / 'model_test')
+        model_test_save_dir = configuration.general.output_dir / 'model_test'
         model_test_save_dir.mkdir(parents=True, exist_ok=True)
         model.save_info(model_test_save_dir / 'model_info.csv')
 
@@ -158,7 +158,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
             data_set = load_data(data_set_type)
             model.set_relevant_parameters_from_data_set(data_set)
 
-        model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_finite')
+        model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_finite'
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
         seed = 0 if debugger_is_active() else random.randint(0, 2**31 - 1)
@@ -171,7 +171,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         )
 
         if configuration.model.analysis.num_of_infinite_networks != 0:
-            model_analysis_save_dir = (configuration.general.output_dir / 'model_analysis_infinite')
+            model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_infinite'
             model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
             typical_infinite_network_set = model.generate_infinite_network_set(
                 configuration.model.analysis.num_of_infinite_networks,
