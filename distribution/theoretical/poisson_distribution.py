@@ -18,7 +18,7 @@ class PoissonDistribution(TheoreticalDistribution):
     """Poisson theoretical degree distribution."""
 
     @dataclass
-    class Parameters(TheoreticalDistribution.Parameters):
+    class DistributionParameters(TheoreticalDistribution.DistributionParameters):
         """Parameters of the Poisson distribution."""
 
         lambda_: float = np.nan
@@ -37,12 +37,12 @@ class PoissonDistribution(TheoreticalDistribution):
             MAXIMUM_LIKELIHOOD: int = auto()
 
         method: Method.MAXIMUM_LIKELIHOOD
-        fixed_parameters: PoissonDistribution.Parameters
+        fixed_parameters: PoissonDistribution.DistributionParameters
 
     def __init__(self) -> None:
         """Create a default Poisson distribution."""
         super().__init__()
-        self._parameters = PoissonDistribution.Parameters()
+        self._parameters = PoissonDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
@@ -50,13 +50,12 @@ class PoissonDistribution(TheoreticalDistribution):
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return poisson.ppf(quantiles_to_calculate, mu=self.parameters.lambda_)
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         return {
             'distribution_type': 'poisson',
             'valid': self.valid,
-            'domain_min': self.domain.min_,
-            'domain_max': self.domain.max_,
+            'domain': self.domain,
             'lambda': self.parameters.lambda_,
         }
 
@@ -82,7 +81,7 @@ class PoissonDistribution(TheoreticalDistribution):
 
         Method = PoissonDistribution.ParameterFitting.Method
         if parameter_fitting_parameters.method == Method.MAXIMUM_LIKELIHOOD:
-            self._parameters = PoissonDistribution.Parameters(value_sequence.mean())
+            self._parameters = PoissonDistribution.DistributionParameters(value_sequence.mean())
         else:
             assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
@@ -99,17 +98,6 @@ class PoissonDistribution(TheoreticalDistribution):
         return cdf_values
 
     @property
-    def parameters(self) -> PoissonDistribution.Parameters:
+    def parameters(self) -> PoissonDistribution.DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters
-
-    def __str__(self) -> str:
-        """Return string representation for reporting."""
-        if not self.valid:
-            return 'Invalid Theoretical Distribution'
-
-        return '\n'.join([
-            'Distribution: Poisson',
-            f'Theoretical Domain: {self.domain}',
-            f'Parameter: {self._parameters.lambda_:.4f}'
-        ])

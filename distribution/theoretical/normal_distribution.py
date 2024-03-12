@@ -19,7 +19,7 @@ class NormalDistribution(TheoreticalDistribution):
     """Normal theoretical distribution."""
 
     @dataclass
-    class Parameters(TheoreticalDistribution.Parameters):
+    class DistributionParameters(TheoreticalDistribution.DistributionParameters):
         """Parameters of the normal distribution."""
 
         mean: float = np.nan
@@ -40,7 +40,7 @@ class NormalDistribution(TheoreticalDistribution):
             MATCH_QUANTILE = auto()
 
         method: Method
-        fixed_parameters: NormalDistribution.Parameters
+        fixed_parameters: NormalDistribution.DistributionParameters
 
     @dataclass
     class ParameterFittingMatchQuantile(ParameterFitting):
@@ -51,7 +51,7 @@ class NormalDistribution(TheoreticalDistribution):
     def __init__(self) -> None:
         """Create a default normal distribution."""
         super().__init__()
-        self._parameters = NormalDistribution.Parameters()
+        self._parameters = NormalDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
@@ -59,13 +59,12 @@ class NormalDistribution(TheoreticalDistribution):
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return norm.ppf(quantiles_to_calculate, *astuple(self.parameters))
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         return {
             'distribution_type': 'poisson',
             'valid': self.valid,
-            'domain_min': self.domain.min_,
-            'domain_max': self.domain.max_,
+            'domain': self.domain,
             'mean': self.parameters.mean,
             'std': self.parameters.std,
         }
@@ -99,19 +98,19 @@ class NormalDistribution(TheoreticalDistribution):
         self,
         empirical_distribution: EmpiricalDistribution,
         fitting_parameters: ParameterFitting
-    ) -> Parameters:
+    ) -> DistributionParameters:
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
         mean = value_sequence.mean() \
             if np.isnan(fitting_parameters.fixed_parameters.mean) else fitting_parameters.fixed_parameters.mean
         std = value_sequence.std() \
             if np.isnan(fitting_parameters.fixed_parameters.std) else fitting_parameters.fixed_parameters.std
-        return NormalDistribution.Parameters(mean, std)
+        return NormalDistribution.DistributionParameters(mean, std)
 
     def _fit_match_quantile(
         self,
         empirical_distribution: EmpiricalDistribution,
         fitting_parameters: ParameterFittingMatchQuantile,
-    ) -> Parameters:
+    ) -> DistributionParameters:
         """Set the variance so that the specified quantiles match.
 
         If F_data(x) = quantile_to_compute, then F_approximation(x) should be quantile_to_compute as well.
@@ -130,7 +129,7 @@ class NormalDistribution(TheoreticalDistribution):
         else:
             std = fitting_parameters.fixed_parameters.std
 
-        return NormalDistribution.Parameters(mean, std)
+        return NormalDistribution.DistributionParameters(mean, std)
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the PDF of the distribution evaluted at the given x_values."""
@@ -143,18 +142,6 @@ class NormalDistribution(TheoreticalDistribution):
         return cdf_values
 
     @property
-    def parameters(self) -> NormalDistribution.Parameters:
+    def parameters(self) -> NormalDistribution.DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters
-
-    def __str__(self) -> str:
-        """Return string representation for reporting."""
-        if not self.valid:
-            return 'Invalid Theoretical Distribution'
-
-        return '\n'.join([
-            'Distribution: Normal',
-            f'Theoretical Domain: {self.domain}',
-            f'Mean: {self._parameters.mean:.4f}',
-            f'Std: {self._parameters.std:.4f}'
-        ])

@@ -127,13 +127,13 @@ class Distribution:
         p_values = 2. * np.nanmin(np.c_[self.cdf(test_values), 1. - self.cdf(test_values)], axis=1)
         return p_values
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         raise NotImplementedError
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        info = self.get_info_as_dict()
+        info = self.info()
         data_frame = pd.DataFrame(info, index=[0])
         data_frame.to_csv(save_path, index=False)
 
@@ -157,5 +157,8 @@ class Distribution:
         return self._domain
 
     def __str__(self) -> str:
-        """Return string representation for reporting."""
-        raise NotImplementedError
+        """Return a string representation based on the network properties."""
+        return '\n'.join([
+            f'{key}: {item}'
+            for key, item in self.info().items()
+        ])

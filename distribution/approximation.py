@@ -14,6 +14,7 @@ from distribution.factory import (
     create_theoretical_distribution
 )
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+from distribution.theoretical.power_law_distribution import PowerLawDistribution
 
 
 class DistributionApproximation:
@@ -231,8 +232,8 @@ class DistributionApproximation:
 
     def get_info_as_dict(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        empirical_info = self.empirical.get_info_as_dict()
-        theoretical_info = self.theoretical.get_info_as_dict()
+        empirical_info = self.empirical.info()
+        theoretical_info = self.theoretical.info()
 
         joint_info: dict[str, int | float] = {}
         for key, value in empirical_info.items():
@@ -286,12 +287,14 @@ class DistributionApproximation:
         return text
 
 
-def guess_power_law_exponent(distribution: EmpiricalDistribution) -> float:
+def guess_power_law_exponent(distribution: EmpiricalDistribution, minimum_value: int | None = None) -> float:
     """Guess the value of parameter gamma."""
     approximation = DistributionApproximation(
         distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters: PowerLawDistribution.FittingParameters = create_fitting_parameters_power_law_data_set()
+    if minimum_value is not None:
+        fitting_parameters.minimum_value = minimum_value
     approximation.fit(fitting_parameters)
     return approximation.theoretical.parameters.exponent

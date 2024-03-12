@@ -17,18 +17,15 @@ class TestDataSet(DataSet):
         """Load data from the disk for further processing."""
         return
 
-    def _build_simplicial_complex(self) -> None:
-        """Build a simplicial complex based on the loaded data."""
-        simplices = [
+    def _get_interactions(self) -> list[list[int]]:
+        """Interactions of the loaded data."""
+        return [
             # [0, 1, 2, 3], [1, 2, 3, 4],
             [3, 4, 5, 6],
             [2, 3, 4], [4, 5, 8], [4, 6, 8], [5, 6, 8],
             [1, 2], [1, 7], [2, 7],
             [0]
         ]
-        # pylint: disable-next=attribute-defined-outside-init
-        self._interactions = simplices
-        self.add_simplices(simplices)
 
     def __str__(self) -> str:
         """Return a string representation based on the data set properties."""

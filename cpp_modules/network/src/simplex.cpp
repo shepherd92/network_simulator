@@ -23,6 +23,10 @@ Simplex::Simplex(const VertexList &vertices)
     : vertices_{vertices}
 {
     std::sort(vertices_.begin(), vertices_.end());
+    for (const auto &vertex : vertices_)
+    {
+        bloom_filter_.set(vertex % BLOOM_FILTER_SIZE);
+    }
 }
 
 const VertexList &Simplex::vertices() const
@@ -32,7 +36,7 @@ const VertexList &Simplex::vertices() const
 
 bool Simplex::is_valid() const
 {
-    return vertices_.size() > 0U;
+    return !vertices_.empty();
 }
 
 Simplex Simplex::operator-(const Simplex &other) const
@@ -42,12 +46,12 @@ Simplex Simplex::operator-(const Simplex &other) const
         vertices_.begin(), vertices_.end(),
         other.vertices().begin(), other.vertices().end(),
         std::inserter(remaining_vertices, remaining_vertices.begin()));
-    return Simplex(remaining_vertices);
+    return Simplex{remaining_vertices};
 }
 
 bool Simplex::operator==(const Simplex &other) const
 {
-    return std::is_permutation(vertices_.begin(), vertices_.end(), other.vertices().begin(), other.vertices().end());
+    return vertices_ == other.vertices();
 }
 
 std::ostream &operator<<(std::ostream &os, const Simplex &simplex)
@@ -62,15 +66,6 @@ std::ostream &operator<<(std::ostream &os, const Simplex &simplex)
 Dimension Simplex::dimension() const
 {
     return vertices_.size() - 1;
-}
-
-bool Simplex::is_face(const Simplex &other) const
-{
-    if (!is_valid())
-    {
-        return false;
-    }
-    return std::includes(other.vertices().begin(), other.vertices().end(), vertices_.begin(), vertices_.end());
 }
 
 SimplexList Simplex::get_skeleton(const Dimension max_dimension) const

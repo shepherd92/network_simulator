@@ -95,7 +95,7 @@ class EmpiricalDistribution(Distribution):
         """Execute a standard normality test on the data and return the resulting p value."""
         return kstest(self.value_sequence, 'norm').pvalue
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         return {
             'distribution_type': 'empirical',
@@ -172,7 +172,7 @@ class EmpiricalDistribution(Distribution):
         maximum_value = self.value_sequence.max()
         self.value_sequence.sort()
         a = self.value_sequence - minimum_value
-        fd = np.lib.histograms._hist_bin_fd(a, range)
+        fd = np.lib.histograms._hist_bin_fd(a, range)  # pylint: disable=protected-access
         left_edges = a // fd * fd
         right_edges = left_edges + fd
         new_bins = np.unique(np.concatenate((left_edges, right_edges))) + minimum_value
@@ -236,12 +236,3 @@ class EmpiricalDistribution(Distribution):
         if self.empty:
             return False
         return np.isclose(self.value_sequence, self.value_sequence[0]).all()
-
-    def __str__(self) -> str:
-        """Return string representation for reporting."""
-        return '\n'.join([
-            f'Empirical Domain: {self.domain}',
-            f'Empirical Values: {len(self.value_sequence)}',
-            f'Empirical Mean: {self.mean:.4f}',
-            f'Empirical Std: {self.std_dev:.4f}',
-        ])

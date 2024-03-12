@@ -27,7 +27,7 @@ class TheoreticalDistribution(Distribution):
         INVALID: int = auto()
 
     @dataclass
-    class Parameters:
+    class DistributionParameters:
         """Represent the parameters of the distribution."""
 
     @dataclass
@@ -48,7 +48,7 @@ class TheoreticalDistribution(Distribution):
     def __init__(self) -> None:
         """Create a default theoretical distribution."""
         super().__init__()
-        self._parameters = TheoreticalDistribution.Parameters()
+        self._parameters = TheoreticalDistribution.DistributionParameters()
 
     def fit(self, empirical_distribution: EmpiricalDistribution, fitting_parameters: FittingParameters) -> None:
         """Fit the parameters of the probability distribution."""
@@ -83,6 +83,10 @@ class TheoreticalDistribution(Distribution):
         raise NotImplementedError
 
     @property
-    def parameters(self) -> Parameters:
+    def parameters(self) -> DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters
+
+    @parameters.setter
+    def parameters(self, parameters: DistributionParameters) -> None:
+        self._parameters = parameters

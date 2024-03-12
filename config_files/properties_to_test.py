@@ -134,7 +134,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             NormalDistribution.DomainCalculation(),
             NormalDistribution.ParameterFittingMatchQuantile(
                 NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
-                NormalDistribution.Parameters(),
+                NormalDistribution.DistributionParameters(),
                 quantile=0.025,
             ),
         ),
@@ -147,7 +147,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
+                StableDistribution.DistributionParameters(
                     alpha=min(1 / GAMMA, 2.),
                     # alpha=np.nan,
                     beta=1.,
@@ -171,7 +171,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             NormalDistribution.DomainCalculation(),
             NormalDistribution.ParameterFittingMatchQuantile(
                 NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
-                NormalDistribution.Parameters(),
+                NormalDistribution.DistributionParameters(),
                 quantile=0.025,
             ),
         ),
@@ -184,7 +184,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
+                StableDistribution.DistributionParameters(
                     alpha=min(1 / GAMMA, 2.),
                     # alpha=np.nan,
                     beta=1.,
@@ -209,7 +209,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
+                StableDistribution.DistributionParameters(
                     alpha=min(1 / GAMMA, 2.),
                     # alpha=np.nan,
                     beta=-1.,
@@ -235,7 +235,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
+                StableDistribution.DistributionParameters(
                     alpha=min(1 / GAMMA, 2.),
                     # alpha=np.nan,
                     beta=-1.,
@@ -261,7 +261,7 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
+                StableDistribution.DistributionParameters(
                     alpha=min(1 / GAMMA, 2.),
                     beta=-1.,
                     location=np.nan,

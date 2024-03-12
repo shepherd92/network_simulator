@@ -22,7 +22,7 @@ class StableDistribution(TheoreticalDistribution):
     """Levy-stable theoretical distribution."""
 
     @dataclass
-    class Parameters(TheoreticalDistribution.Parameters):
+    class DistributionParameters(TheoreticalDistribution.DistributionParameters):
         """Parameters of the stable distribution."""
 
         alpha: float = np.nan
@@ -46,12 +46,12 @@ class StableDistribution(TheoreticalDistribution):
             OPTIMIZATION = auto()
 
         method: Method
-        fixed_parameters: StableDistribution.Parameters
+        fixed_parameters: StableDistribution.DistributionParameters
 
     def __init__(self) -> None:
         """Create a default stable distribution."""
         super().__init__()
-        self._parameters = StableDistribution.Parameters()
+        self._parameters = StableDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
@@ -60,14 +60,14 @@ class StableDistribution(TheoreticalDistribution):
         quantiles = levy_stable.ppf(quantiles_to_calculate, *astuple(self._parameters))
         return quantiles
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
+
         return {
             'distribution_type': 'stable',
             'valid': self.valid,
-            'domain_min': self.domain.min_,
-            'domain_max': self.domain.max_,
-            'alpa': self._parameters.alpha,
+            'domain': [self.domain.min_, self.domain.max_],
+            'alpha': self._parameters.alpha,
             'beta': self._parameters.beta,
             'location': self._parameters.location,
             'scale': self._parameters.scale,
@@ -107,8 +107,8 @@ class StableDistribution(TheoreticalDistribution):
     def _estimate_parameters_mle_scipy(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fixed_parameters: Parameters,
-    ) -> Parameters:
+        fixed_parameters: DistributionParameters,
+    ) -> DistributionParameters:
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
 
         kwargs: dict[str, np.float_] = {}
@@ -127,7 +127,7 @@ class StableDistribution(TheoreticalDistribution):
             # sometimes the fitting converges to parameters outside the domain
             params = (np.nan, np.nan, np.nan, np.nan)
 
-        return StableDistribution.Parameters(
+        return StableDistribution.DistributionParameters(
             params[0],
             params[1],
             params[2],
@@ -137,9 +137,14 @@ class StableDistribution(TheoreticalDistribution):
     def _estimate_parameters_quick_fit(
         self,
         empirical_distribution: EmpiricalDistribution
-    ) -> Parameters:
-        def pconv(alpha: float, beta: float, location: float, sigma: float) -> StableDistribution.Parameters:
-            result = StableDistribution.Parameters(
+    ) -> DistributionParameters:
+        def pconv(
+            alpha: float,
+            beta: float,
+            location: float,
+            sigma: float
+        ) -> StableDistribution.DistributionParameters:
+            result = StableDistribution.DistributionParameters(
                 alpha=alpha,
                 beta=beta,
                 location=location - sigma * beta * np.tan(np.pi * alpha / 2.),
@@ -154,7 +159,7 @@ class StableDistribution(TheoreticalDistribution):
     def _estimate_parameters_optimization(
         self,
         empirical_distribution: EmpiricalDistribution
-    ) -> Parameters:
+    ) -> DistributionParameters:
 
         initial_guess = (
             self.parameters.alpha,
@@ -195,7 +200,7 @@ class StableDistribution(TheoreticalDistribution):
         )
         self._valid = False
 
-        fitted_prameters = StableDistribution.Parameters(*result.x)
+        fitted_prameters = StableDistribution.DistributionParameters(*result.x)
         return fitted_prameters
 
     @staticmethod
@@ -204,9 +209,9 @@ class StableDistribution(TheoreticalDistribution):
         theoretical_distribution: StableDistribution,
         empirical_distribution: EmpiricalDistribution
     ) -> float:
-        parameters = StableDistribution.Parameters(*tuple(guess.tolist()))
+        parameters = StableDistribution.DistributionParameters(*tuple(guess.tolist()))
         print(f'Guessing: {parameters}')
-        theoretical_distribution._parameters = parameters
+        theoretical_distribution.parameters = parameters
         kolmogorov_smirnov_statistic = theoretical_distribution.kolmogorov_smirnov(
             empirical_distribution,
             empirical_distribution.natural_x_values
@@ -229,20 +234,6 @@ class StableDistribution(TheoreticalDistribution):
         return cdf_values
 
     @property
-    def parameters(self) -> StableDistribution.Parameters:
+    def parameters(self) -> StableDistribution.DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters
-
-    def __str__(self) -> str:
-        """Return string representation for reporting."""
-        if not self.valid:
-            return 'Invalid Theoretical Distribution'
-
-        return '\n'.join([
-            'Distribution: Stable',
-            f'Theoretical Domain: {self.domain}',
-            f'Alpha: {self._parameters.alpha:.4f}',
-            f'Beta: {self._parameters.beta}',
-            f'Location: {self._parameters.location}',
-            f'Scale: {self._parameters.scale}'
-        ])

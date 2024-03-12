@@ -24,6 +24,7 @@ from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.finite_network import FiniteNetwork
+from tools.logging_helper import log_function_name
 
 
 class PaddingSide(Enum):
@@ -35,6 +36,7 @@ class PaddingSide(Enum):
     BOTH: int = auto()
 
 
+@log_function_name
 def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
     """Save a particular axes as a separate figure."""
     figure = plt.figure()
@@ -42,6 +44,7 @@ def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
     figure.savefig(file_path)
 
 
+@log_function_name
 def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: plt.Axes) -> None:
     """Plot a hypergraph complex on the given axis."""
     if determined_positions:
@@ -88,6 +91,7 @@ def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: pl
     axes.set_ylim(0., 1.)
 
 
+@log_function_name
 def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: bool, axes: plt.Axes) -> None:
     """Plot a simplicial complex on the given axis."""
     color_map_name = 'viridis_r'  # viridis, plasma, inferno, magma, cividis
@@ -108,7 +112,7 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
             max([coordinates[0] for coordinates in this_interaction_vertex_positions]) - \
             min([coordinates[0] for coordinates in this_interaction_vertex_positions])
         if determined_vertex_positions:
-            if size_of_this_interaction < 0.3 * estimated_torus_size:
+            if size_of_this_interaction < 0.5 * estimated_torus_size:
                 # exclude polygons which were created by wrap around torus effect
                 interaction_vertex_positions.append(this_interaction_vertex_positions)
         else:
@@ -145,6 +149,7 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
     axes.set_axis_off()
 
 
+@log_function_name
 def plot_distribution_approximation(
     distribution_pair: DistributionApproximation,
     data_set_value: float,
@@ -186,6 +191,7 @@ def plot_distribution_approximation(
         )
 
 
+@log_function_name
 def _determine_node_positions(graph: nx.Graph):
 
     if graph.number_of_nodes() <= 1000:
@@ -196,12 +202,14 @@ def _determine_node_positions(graph: nx.Graph):
     return node_positions
 
 
+@log_function_name
 def _determine_interactions_to_plot(interactions: list[list[int]]) -> list[list[int]]:
     # remove facets with dimension 0 and 1 (points and edges)
     interactions_to_plot = sorted([facet for facet in interactions if len(facet) - 1 > 1], key=len, reverse=False)
     return interactions_to_plot
 
 
+@log_function_name
 def _get_simplex_colors(simplices: list[list[int]], color_map_name: str):
     dimensions = np.array([len(simplex) - 1 for simplex in simplices])
     color_values_on_map = {dimension: (dimensions < dimension).mean() for dimension in np.unique(dimensions)}
@@ -213,6 +221,7 @@ def _get_simplex_colors(simplices: list[list[int]], color_map_name: str):
     return face_colors
 
 
+@log_function_name
 def plot_approximation_histogram(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
@@ -251,6 +260,7 @@ def plot_approximation_histogram(
     print_info([distribution_pair, test_result], axes)
 
 
+@log_function_name
 def plot_approximation_histogram_standardized(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
@@ -305,6 +315,7 @@ def plot_approximation_histogram_standardized(
     return values_plotted_empirical, values_plotted_theoretical
 
 
+@log_function_name
 def plot_value_counts_log(
     value_counts: npt.NDArray[np.int_],
     axes: plt.Axes
@@ -321,6 +332,7 @@ def plot_value_counts_log(
     return value_counts
 
 
+@log_function_name
 def plot_approximation_value_counts_log(
     distribution_pair: DistributionApproximation,
     data_set_value: float,

@@ -7,7 +7,7 @@ from shutil import copyfile, copytree
 import pandas as pd
 
 input_base_path = Path('../output')
-output_path = Path('../output/_prepared_data')
+output_path_root = Path('../output/_prepared_data')
 
 model_sample_directory = input_base_path / '20230724_112745'
 model_sample_directory_plot = input_base_path / '20230713_204802'
@@ -32,12 +32,12 @@ data_analysis_directories = {
     # 'finance':          input_base_path / '20231208_083259',
     # 'mathematics':      input_base_path / '20231208_075316',
     # 'statistics':       input_base_path / '20231208_074547',
-    'computer_science': input_base_path / '',
+    'computer_science': input_base_path / '20240312_193303',
     'biology':          input_base_path / '20240311_161350',
     'economics':        input_base_path / '20240311_161414',
-    'engineering':      input_base_path / '',
+    'engineering':      input_base_path / '20240312_191910',
     'finance':          input_base_path / '20240311_160315',
-    'mathematics':      input_base_path / '20240311_161955',
+    'mathematics':      input_base_path / '20240312_190315',
     'statistics':       input_base_path / '20240311_161506',
 }
 
@@ -58,11 +58,11 @@ degree_distribution_directories = {
     # '10000':    input_base_path / '20230614_170118',
     # '100000':   input_base_path / '20230614_185624',
     # 'infinite': input_base_path / '20230615_074249',
-    '10':       input_base_path / '20230614_165042',
-    '100':      input_base_path / '20240126_222418_100',
-    '1000':     input_base_path / '20240126_224543_1000',
-    '10000':    input_base_path / '20240126_234532_10000',
-    '100000':   input_base_path / '20240127_083444_100000',
+    '10':       input_base_path / '20240312_095450',
+    '100':      input_base_path / '20240312_095423',
+    '1000':     input_base_path / '20240312_095344',
+    '10000':    input_base_path / '20240312_073803',
+    '100000':   input_base_path / '20240311_205605',
 }
 
 # simplex_count_directories = {
@@ -132,16 +132,16 @@ hypothesis_testing_directories = {
 
 def main() -> None:
     """Prepare all data for publication."""
-    output_path.mkdir(parents=True, exist_ok=True)
+    output_path_root.mkdir(parents=True, exist_ok=True)
 
     # prepare_data_analysis_data(data_analysis_directories, output_path)
     # prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
     # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path)
     # prepare_model_analysis_data(model_sample_directory, output_path)
     # prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
-    prepare_simulation_betti_number_data(betti_number_directories, output_path)
-    prepare_simulation_simplex_count_data(simplex_count_directories, output_path)
-    prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path)
+    prepare_simulation_betti_number_data(betti_number_directories, output_path_root)
+    prepare_simulation_simplex_count_data(simplex_count_directories, output_path_root)
+    prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path_root)
 
 
 def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -> None:

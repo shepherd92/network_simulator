@@ -9,6 +9,7 @@ import pandas as pd
 
 from data_set.data_set import DataSet
 from data_set.arxiv_categories import ArxivField, ArxivSubCategory
+from tools.logging_helper import log_function_name
 
 
 class ArxivDataSet(DataSet):
@@ -53,10 +54,10 @@ class ArxivDataSet(DataSet):
             'date_interval_min': date_interval[0],
             'date_interval_max': date_interval[1],
             'component': self._data_set_properties.component_index_from_largest,
-
         })
         return result
 
+    @log_function_name
     def _read_data(self) -> None:
         """Load data from the disk for further processing."""
         # the dataset contains large integers as node ids
@@ -99,25 +100,20 @@ class ArxivDataSet(DataSet):
         self._documents = filtered_documents
         # self._fill_authors_table()
 
-    def _get_vertices(self) -> list[int]:
-        """Build a simplicial complex based on the loaded data."""
-        assert not self._documents.empty, 'Data is not loaded.'
-
-        vertices = list(set(self._documents['authors'].sum()))
-        return vertices
-
+    @log_function_name
     def _get_interactions(self) -> list[list[int]]:
         """Build a simplicial complex based on the loaded data."""
         assert not self._documents.empty, 'Data is not loaded.'
 
         interactions = [
-            list(simplex)
-            for simplex in self.documents['authors']
-            if len(simplex) != 0
+            list(authors)
+            for authors in self.documents['authors']
+            if len(authors) != 0
         ]
 
         return interactions
 
+    @log_function_name
     def _fill_authors_table(self) -> None:
 
         list_of_author_ids = sorted(list(set(self.documents['authors'].sum())))
@@ -145,31 +141,3 @@ class ArxivDataSet(DataSet):
     def documents(self) -> pd.DataFrame:
         """Get the documents of the data set."""
         return self._documents
-
-    def __str__(self) -> str:
-        """Return a string representation based on the data set properties."""
-        date_interval = \
-            f"[{self._data_set_properties.date_interval[0].strftime('%Y-%m-%d')}, " + \
-            f"{self._data_set_properties.date_interval[1].strftime('%Y-%m-%d')}]"
-
-        component_index = self._data_set_properties.component_index_from_largest
-        component = f'component_{component_index}' if component_index != -1 else 'whole'
-
-        if ArxivField.INVALID in self._data_set_properties.fields:
-            field_names = 'Not filtered'
-        else:
-            field_names = [field.name for field in self._data_set_properties.fields]
-
-        if ArxivSubCategory.INVALID in self._data_set_properties.primary_categories:
-            categories = 'Not filtered'
-        else:
-            categories = [category.name for category in self._data_set_properties.primary_categories]
-
-        return '\n'.join([
-            'Name: Arxiv',
-            f'Fields: {field_names}',
-            f'Categories: {categories}',
-            f'Date Interval: {date_interval},',
-            f'Component: {component}',
-            super().__str__(self)
-        ])

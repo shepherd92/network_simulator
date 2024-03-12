@@ -12,6 +12,14 @@ InfiniteNetwork::InfiniteNetwork(
 {
 }
 
+InfiniteNetwork InfiniteNetwork::get_filtered_network(const VertexList &vertices) const
+{
+    assert(std::find(vertices.begin(), vertices.end(), typical_vertex_id_) != vertices.end());
+    const auto interactions{create_raw_simplices(filter_simplices(interactions_, vertices))};
+    InfiniteNetwork filtered_network{max_dimension_, vertices, interactions, typical_vertex_id_};
+    return filtered_network;
+}
+
 Network::SimplexHandleList InfiniteNetwork::get_simplices()
 {
     assert_simplicial_complex_is_built();

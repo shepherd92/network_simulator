@@ -51,13 +51,17 @@ class BianconiDataSet(DataSet):
             'triangles': triangles,
         }
 
-    def _build_simplicial_complex(self) -> None:
+    def _get_vertices(self) -> list[int]:
         """Build a simplicial complex based on the loaded data."""
         assert self._data, 'Data is not loaded.'
+        return self._data['nodes'].values
 
-        self.add_simplices_batch(self._data['nodes'].values)
-        self.add_simplices_batch(self._data['edges'][['node_0', 'node_1']].values)
-        self.add_simplices_batch(self._data['triangles'][['node_0', 'node_1', 'node_2']].values)
+    def _get_interactions(self) -> list[list[int]]:
+        """Build a simplicial complex based on the loaded data."""
+        assert self._data, 'Data is not loaded.'
+        edges = self._data['edges'][['node_0', 'node_1']].values
+        triangles = self._data['triangles'][['node_0', 'node_1', 'node_2']].values
+        return edges + triangles
 
     def __str__(self) -> str:
         """Return a string representation based on the data set properties."""

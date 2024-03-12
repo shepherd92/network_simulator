@@ -18,7 +18,7 @@ class UniformDistribution(TheoreticalDistribution):
     """Uniform theoretical distribution."""
 
     @dataclass
-    class Parameters(TheoreticalDistribution.Parameters):
+    class DistributionParameters(TheoreticalDistribution.DistributionParameters):
         """Parameters of the uniform distribution."""
 
     @dataclass
@@ -35,12 +35,12 @@ class UniformDistribution(TheoreticalDistribution):
             DEFAULT: int = auto()
 
         method: Method
-        fixed_parameters: UniformDistribution.Parameters
+        fixed_parameters: UniformDistribution.DistributionParameters
 
     def __init__(self) -> None:
         """Create a default uniform distribution."""
         super().__init__()
-        self._parameters = UniformDistribution.Parameters()
+        self._parameters = UniformDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
@@ -48,13 +48,12 @@ class UniformDistribution(TheoreticalDistribution):
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return uniform.ppf(quantiles_to_calculate, *astuple(self.parameters))
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         return {
             'distribution_type': 'uniform',
             'valid': self.valid,
-            'domain_min': self.domain.min_,
-            'domain_max': self.domain.max_,
+            'domain': self.domain,
         }
 
     def _fit_domain(
@@ -90,18 +89,6 @@ class UniformDistribution(TheoreticalDistribution):
         return cdf_values
 
     @ property
-    def parameters(self) -> UniformDistribution.Parameters:
+    def parameters(self) -> UniformDistribution.DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters
-
-    def __str__(self) -> str:
-        """Return string representation for reporting."""
-        if not self.valid:
-            return 'Invalid Theoretical Distribution'
-
-        return '\n'.join([
-            'Distribution: Normal',
-            f'Theoretical Domain: {self.domain}',
-            f'Min: {self._parameters.min_:.4f}',
-            f'Max: {self._parameters.max_:.4f}'
-        ])

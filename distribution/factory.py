@@ -32,7 +32,7 @@ def create_fitting_parameters_normal() -> NormalDistribution.FittingParameters:
         NormalDistribution.DomainCalculation(),
         NormalDistribution.ParameterFitting(
             NormalDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
-            NormalDistribution.Parameters(),
+            NormalDistribution.DistributionParameters(),
         )
     )
 
@@ -43,7 +43,7 @@ def create_fitting_parameters_poisson() -> PoissonDistribution.FittingParameters
         PoissonDistribution.DomainCalculation(),
         PoissonDistribution.ParameterFitting(
             PoissonDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
-            PoissonDistribution.Parameters(),
+            PoissonDistribution.DistributionParameters(),
         )
     )
 
@@ -58,7 +58,7 @@ def create_fitting_parameters_power_law_data_set() -> PowerLawDistribution.Fitti
         ),
         PowerLawDistribution.ParameterFitting(
             PowerLawDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
-            PowerLawDistribution.Parameters(),
+            PowerLawDistribution.DistributionParameters(),
         )
     )
 
@@ -73,7 +73,7 @@ def create_fitting_parameters_power_law_model() -> PowerLawDistribution.FittingP
         ),
         PowerLawDistribution.ParameterFitting(
             PowerLawDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
-            PowerLawDistribution.Parameters(),
+            PowerLawDistribution.DistributionParameters(),
         )
     )
 
@@ -84,7 +84,7 @@ def create_fitting_parameters_stable() -> StableDistribution.FittingParameters:
         StableDistribution.DomainCalculation(),
         StableDistribution.ParameterFitting(
             StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-            StableDistribution.Parameters(),
+            StableDistribution.DistributionParameters(),
         )
     )
 
@@ -95,6 +95,6 @@ def create_fitting_parameters_uniform() -> UniformDistribution.FittingParameters
         UniformDistribution.DomainCalculation(),
         UniformDistribution.ParameterFitting(
             UniformDistribution.ParameterFitting.Method.DEFAULT,
-            UniformDistribution.Parameters(),
+            UniformDistribution.DistributionParameters(),
         )
     )

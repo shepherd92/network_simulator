@@ -13,6 +13,7 @@ public:
         const ISimplexList &interactions,
         const VertexId typical_vertex_id);
     uint32_t num_simplices() override;
+    InfiniteNetwork get_filtered_network(const VertexList &vertices) const;
 
 private:
     SimplexHandleList get_simplices() override;

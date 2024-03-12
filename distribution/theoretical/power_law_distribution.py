@@ -19,7 +19,7 @@ class PowerLawDistribution(TheoreticalDistribution):
     """Power law theoretical distribution."""
 
     @dataclass
-    class Parameters(TheoreticalDistribution.Parameters):
+    class DistributionParameters(TheoreticalDistribution.DistributionParameters):
         """Parameters of the power law distribution."""
 
         exponent: float = np.nan
@@ -76,12 +76,12 @@ class PowerLawDistribution(TheoreticalDistribution):
             MAXIMUM_LIKELIHOOD = auto()
 
         method: Method
-        fixed_parameters: PowerLawDistribution.Parameters
+        fixed_parameters: PowerLawDistribution.DistributionParameters
 
     def __init__(self) -> None:
         """Create a default power law distribution."""
         super().__init__()
-        self._parameters = PowerLawDistribution.Parameters()
+        self._parameters = PowerLawDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
         """Return the CDF of the distribution evaluted at the given x_values."""
@@ -90,13 +90,12 @@ class PowerLawDistribution(TheoreticalDistribution):
         quantiles = self.domain.min_ * (1. - quantiles_to_calculate)**(1. / (1 - self._parameters.exponent))
         return quantiles
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         return {
             'distribution_type': 'power_law',
             'valid': self.valid,
-            'domain_min': self.domain.min_,
-            'domain_max': self.domain.max_,
+            'domain': self.domain,
             'exponent': self._parameters.exponent,
         }
 
@@ -161,7 +160,7 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def _determine_domain_deterministic(
         self,
-        empirical_distribution: EmpiricalDistribution,
+        _: EmpiricalDistribution,
         domain_calculation_parameters: DeterministicDomain,
     ) -> None:
         """Find the domain at which the power-law holds."""
@@ -220,8 +219,8 @@ class PowerLawDistribution(TheoreticalDistribution):
     def _estimate_exponent_mle(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_params: ParameterFitting,
-    ) -> Parameters:
+        _: ParameterFitting,
+    ) -> DistributionParameters:
         """Estimate the power law  with maximum likelihood estimation.
 
         Notations are consistent with the methods described in
@@ -239,7 +238,7 @@ class PowerLawDistribution(TheoreticalDistribution):
     def _estimate_exponent_linear_regression(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_params: ParameterFitting,
+        _: ParameterFitting,
     ) -> float:
         """Estimate the power law exponent."""
         value_counts = empirical_distribution.calc_value_counts()
@@ -289,17 +288,6 @@ class PowerLawDistribution(TheoreticalDistribution):
         return cdf_values
 
     @property
-    def parameters(self) -> PowerLawDistribution.Parameters:
+    def parameters(self) -> PowerLawDistribution.DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters
-
-    def __str__(self) -> str:
-        """Return string representation for reporting."""
-        if not self.valid:
-            return 'Invalid Theoretical Distribution'
-
-        return '\n'.join([
-            'Distribution: Power Law',
-            f'Theoretical Domain: {self.domain}',
-            f'Exponent: {self._parameters.exponent:.4f}'
-        ])

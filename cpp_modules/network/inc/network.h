@@ -95,7 +95,6 @@ private:
         const Dimension neighbor_dimension);
 
     void filter_facets(const VertexList &vertices);
-    void filter_interactions(const VertexList &vertices);
 };
 
 #endif

@@ -103,6 +103,13 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
     return result;
 }
 
+FiniteNetwork FiniteNetwork::get_filtered_network(const VertexList &vertices) const
+{
+    const auto interactions{create_raw_simplices(filter_simplices(interactions_, vertices))};
+    FiniteNetwork filtered_network{max_dimension_, vertices, interactions};
+    return filtered_network;
+}
+
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
 {
     std::vector<int32_t> result{max_dimension_, 0};

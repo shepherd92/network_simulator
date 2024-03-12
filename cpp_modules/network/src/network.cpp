@@ -14,6 +14,23 @@ Network::Network(const Dimension max_dimension, const VertexList &vertices, cons
       simplex_tree_{std::nullopt}
 {
     sort_simplices(interactions_, true);
+    if (vertices_.empty())
+    {
+        std::set<VertexId> unique_vertices{};
+        std::for_each(
+            std::execution::seq,
+            interactions_.begin(),
+            interactions_.end(),
+            [&](const auto &interaction)
+            {
+                for (const auto &vertex : interaction.vertices())
+                {
+                    unique_vertices.insert(vertex);
+                }
+            });
+        vertices_ = VertexList{unique_vertices.begin(), unique_vertices.end()};
+    }
+    std::sort(vertices_.begin(), vertices_.end());
 }
 
 void Network::reset()
@@ -229,8 +246,12 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
                           << counter << " / " << total;
             }
             // Container of vertices with which the simplex forms a simplex of neighbor dimension
-
+            // used if neighbor_dimension = simplex_dimension + 1
             SimplexSet combinations_of_remaining_vertices;
+
+            // set of those vertices with which the simplex forms a simplex of neighbor dimension
+            // used if neighbor_dimension = simplex_dimension + 1
+            std::unordered_set<VertexId> extra_vertices{};
 
             // iterate over all facets
             std::for_each(
@@ -242,13 +263,30 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
                     if (simplex.is_face(facet))
                     {
                         const auto difference{facet - simplex}; // vertices of facet that are not in the simplex
-                        const auto skeleton{difference.get_skeleton(neighbor_dimension - simplex_dimension - 1)};
-
-                        std::lock_guard<std::mutex> lock_guard(mutex);
-                        std::copy(skeleton.begin(), skeleton.end(), std::inserter(combinations_of_remaining_vertices, combinations_of_remaining_vertices.end()));
+                        if (neighbor_dimension == simplex_dimension + 1)
+                        {
+                            std::lock_guard<std::mutex> lock_guard(mutex);
+                            std::copy(
+                                difference.vertices().begin(),
+                                difference.vertices().end(),
+                                std::inserter(extra_vertices, extra_vertices.end()));
+                        }
+                        else
+                        {
+                            const auto skeleton{difference.get_skeleton(neighbor_dimension - simplex_dimension - 1)};
+                            std::lock_guard<std::mutex> lock_guard(mutex);
+                            std::copy(
+                                skeleton.begin(),
+                                skeleton.end(),
+                                std::inserter(combinations_of_remaining_vertices, combinations_of_remaining_vertices.end()));
+                        }
                     }
                 });
-            const auto degree{combinations_of_remaining_vertices.size()};
+            const auto degree{
+                neighbor_dimension == simplex_dimension + 1
+                    ? extra_vertices.size() - simplex_dimension - 1
+                    : combinations_of_remaining_vertices.size()};
+
             std::lock_guard<std::mutex> lock_guard(mutex);
             degree_sequence.push_back(degree);
         });
@@ -328,7 +366,7 @@ void Network::create_simplicial_complex()
 void Network::keep_only_vertices(const VertexList &vertices)
 {
     vertices_ = vertices;
-    filter_interactions(vertices);
+    interactions_ = filter_simplices(interactions_, vertices);
     reset_simplicial_complex();
 }
 
@@ -339,36 +377,6 @@ SimplexList Network::get_skeleton(const Dimension max_dimension)
         return get_skeleton_simplicial_complex(max_dimension);
     }
     return get_skeleton_interactions(max_dimension);
-}
-
-void Network::filter_interactions(const VertexList &vertices)
-{
-    interactions_ = filter_simplices(interactions_, vertices);
-    SimplexList filtered_interactions{};
-    std::mutex mutex{};
-    std::for_each(
-        execution_policy,
-        interactions_.begin(),
-        interactions_.end(),
-        [&](const auto &interaction)
-        {
-            auto keep_interaction{true};
-            for (auto vertex : interaction.vertices())
-            {
-                const auto vertex_in_interaction{std::find(vertices.begin(), vertices.end(), vertex) != vertices.end()};
-                if (!vertex_in_interaction)
-                {
-                    keep_interaction = false;
-                    break;
-                }
-            }
-            if (keep_interaction)
-            {
-                std::lock_guard<std::mutex> lock{mutex};
-                filtered_interactions.push_back(interaction);
-            }
-        });
-    interactions_ = filtered_interactions;
 }
 
 void Network::expand()

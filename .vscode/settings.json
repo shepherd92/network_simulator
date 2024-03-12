@@ -158,5 +158,6 @@
         "shared_mutex": "cpp",
         "syncstream": "cpp",
         "*.ipp": "cpp"
-    }
+    },
+    "editor.formatOnType": true
 }

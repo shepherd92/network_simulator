@@ -18,6 +18,7 @@ from cpp_modules.build.network import FiniteNetwork as CppFiniteNetwork
 # pylint: enable=no-name-in-module
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
+from tools.logging_helper import log_function_name
 
 
 class FiniteNetwork(Network):
@@ -30,14 +31,20 @@ class FiniteNetwork(Network):
         self._cpp_network = CppFiniteNetwork(max_dimension, vertices, interactions)
         self._components: list[FiniteNetwork] | None = None
 
+    @log_function_name
     def get_component(self, component_index: int) -> FiniteNetwork:
         """Return the network of the specified component."""
-        return self.components[component_index] if component_index != -1 else self
+        if component_index == -1:
+            return self
+        vertices_in_component = self._get_vertices_in_components()[component_index]
+        interactions_in_component = filter_simplices(self.interactions, vertices_in_component)
+        return FiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
 
+    @log_function_name
     def reduce_to_component(self, component_index: int) -> None:
         """Reduce the network to the specified component only."""
         if component_index != -1:
-            component = self.components[component_index]
+            component = self.get_component(component_index)
             if self.vertex_positions is not None:
                 self.vertex_positions = {
                     id: position
@@ -45,6 +52,7 @@ class FiniteNetwork(Network):
                     if id in component.vertices
                 }
 
+    @log_function_name
     def calc_network_summary(
         self,
         properties_to_calculate: list[BaseNetworkProperty.Type]
@@ -72,6 +80,7 @@ class FiniteNetwork(Network):
         scalar_property_value = scalar_property_params.calculator_default(source_base_property)
         return scalar_property_value
 
+    @log_function_name
     def collapse(self) -> FiniteNetwork:
         """Collapse edges of the simplicial complex preserving its 1 homology."""
         debug(f'Collapsing network, containing currently: {self.num_simplices(0)} vertices.')
@@ -81,6 +90,7 @@ class FiniteNetwork(Network):
         debug(f'Collapsed containing {collapsed_network.num_simplices(0)} vertices.')
         return collapsed_network
 
+    @log_function_name
     def calc_base_property(self, property_type: BaseNetworkProperty.Type) -> Any:
         """Return a base property of the network."""
         debug(f'Calculating {property_type.name}...')
@@ -150,28 +160,33 @@ class FiniteNetwork(Network):
             'num_of_interactions': len(self.interactions),
             'num_of_simplices': self.num_simplices(),
             'max_dimension': self.max_dimension,
-            'num_of_components': len(self.components),
+            'num_of_components': len(self._get_vertices_in_components()),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
 
+    @log_function_name
     def _calculate_average_degree(self) -> float:
         num_of_nodes = self.graph.number_of_nodes()
         num_of_edges = self.graph.number_of_edges()
         average_degree = num_of_edges / num_of_nodes * 2
         return average_degree
 
+    @log_function_name
     def _calculate_degree_distribution(self) -> EmpiricalDistribution:
         degree_sequence = [degree for _, degree in self.graph.degree()]
         return EmpiricalDistribution(degree_sequence)
 
+    @log_function_name
     def _calculate_in_degree_distribution(self) -> EmpiricalDistribution:
         degree_sequence = [degree for _, degree in self.digraph.in_degree()]
         return EmpiricalDistribution(degree_sequence)
 
+    @log_function_name
     def _calculate_out_degree_distribution(self) -> EmpiricalDistribution:
         degree_sequence = [degree for _, degree in self.digraph.out_degree()]
         return EmpiricalDistribution(degree_sequence)
 
+    @log_function_name
     def _calculate_higher_order_degree_distribution(
         self,
         simplex_dimension: int,
@@ -194,6 +209,7 @@ class FiniteNetwork(Network):
 
         return EmpiricalDistribution(degree_sequence)
 
+    @log_function_name
     def _calculate_betti_numbers_in_components(self) -> npt.NDArray[np.int_]:
 
         betti_numbers_by_component: list[list[int]] = [
@@ -206,7 +222,8 @@ class FiniteNetwork(Network):
         ]
         return np.array(betti_numbers_by_component)
 
-    def _calculate_vertices_in_components(self) -> list[int]:
+    @log_function_name
+    def _calculate_vertices_in_components(self) -> npt.NDArray[np.int_]:
 
         vertices_in_components_list: list[int] = [
             len(vertices_in_component)
@@ -229,14 +246,17 @@ class FiniteNetwork(Network):
         ]
         return result
 
+    @log_function_name
     def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:
-        return self._cpp_network.calc_persistence_pairs()
+        return self.cpp_network.calc_persistence_pairs()
 
+    @log_function_name
     def _get_vertices_in_components(self) -> list[list[int]]:
         """Reduce the network to the specified component only."""
         vertices_in_components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
         return [list(element) for element in vertices_in_components]
 
+    @log_function_name
     def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 
         assert neighbor_dimension > simplex_dimension, \
@@ -254,6 +274,7 @@ class FiniteNetwork(Network):
 
         return sorted(degree_sequence)
 
+    @log_function_name
     def get_partition(
         self,
         min_vertices_in_part: int
@@ -289,19 +310,24 @@ class FiniteNetwork(Network):
     @property
     def components(self) -> list[FiniteNetwork]:
         """Getter of Betti numbers."""
-        components: list[FiniteNetwork] = []
         if self._components is None:
-            vertices_in_components = self._get_vertices_in_components()
-            interactions = self.interactions  # not to convert interactions any more
-            for vertices_in_component in vertices_in_components:
-                interactions_in_component = filter_simplices(interactions, vertices_in_component)
-                component = FiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
-                component.graph = self.graph.subgraph(vertices_in_component)
-                components.append(component)
-            self._components = components
-
+            self._calc_components()
         return self._components
 
+    def _calc_components(self) -> None:
+        components: list[FiniteNetwork] = []
+        vertices_in_components = self._get_vertices_in_components()
+        interactions = self.interactions  # not to convert interactions any more
+        for vertices_in_component in vertices_in_components:
+            print(f'vertices: {len(vertices_in_component)}', end=' ')
+            interactions_in_component = filter_simplices(interactions, vertices_in_component)
+            component = FiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
+            component.graph = self.graph.subgraph(vertices_in_component)
+            components.append(component)
+            print('done')
+        self._components = components
+
+    @log_function_name
     def _num_edges(self) -> int:
         """Return the number of edges in the graph."""
         return self.graph.number_of_edges()
@@ -313,10 +339,3 @@ class FiniteNetwork(Network):
     def __deepcopy__(self, memo):
         """Deep copy of self."""
         return self
-
-    def __str__(self) -> str:
-        """Return a string representation based on the network properties."""
-        return '\n'.join([
-            f'{key}: {item}'
-            for key, item in self.get_info_as_dict().items()
-        ])

@@ -76,20 +76,10 @@ class ModelConfig:
     network_testing = Testing()
 
 
-AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
-    max_dimension=2,
-    network_size=10000,  # expected number of nodes
-    torus_dimension=1,
-    alpha=0.5,
-    beta=1.0,
-    gamma=0.7,
-)
-
-
 # ==============================================================================
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=10000,  # expected number of nodes
+    network_size=100000,  # expected number of nodes
     interaction_intensity=1.,  # expected number of interactions = network_size * interaction_intensity
     torus_dimension=1,
     beta=1.0,
@@ -97,6 +87,17 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     gamma_prime=0.2,
 )
 # ==============================================================================
+
+
+AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
+    max_dimension=2,
+    network_size=100,  # expected number of nodes
+    torus_dimension=1,
+    alpha=0.5,
+    beta=1.0,
+    gamma=0.7,
+)
+
 
 ERDOS_RENYI_MODEL_PARAMETERS = ErdosRenyiModel.Parameters(
     max_dimension=2,

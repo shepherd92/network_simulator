@@ -29,8 +29,10 @@ from reports.plotting_helper import (
     plot_value_counts_log,
     print_not_calculated,
 )
+from tools.logging_helper import log_function_name
 
 
+@log_function_name
 def analyze_data_set_network(
     network: FiniteNetwork,
     calculated_properties: list[BaseNetworkProperty.Type],

@@ -12,6 +12,7 @@ class FiniteNetwork : public Network
 public:
     FiniteNetwork(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions);
     ~FiniteNetwork();
+    FiniteNetwork get_filtered_network(const VertexList &vertices) const;
 
     void add_vertices(const VertexList &vertices) override;
     void expand() override;

@@ -9,10 +9,13 @@ from typing import Any
 
 import pandas as pd
 
+# pylint: disable=no-name-in-module
 from cpp_modules.build.network import InfiniteNetwork as CppInfiniteNetwork
+# pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
 from network.property import BaseNetworkProperty
+from tools.logging_helper import log_function_name
 
 
 class InfiniteNetworkSet:
@@ -22,6 +25,7 @@ class InfiniteNetworkSet:
         """Construct an empty network."""
         self._infinite_networks = infinite_networks
 
+    @log_function_name
     def get_largest_network(self) -> InfiniteNetwork | None:
         """Return the largest infinite network."""
         if len(self._infinite_networks) == 0:
@@ -33,6 +37,7 @@ class InfiniteNetworkSet:
         )
         return largest_network
 
+    @log_function_name
     def calc_network_summary(
         self,
         properties_to_calculate: list[BaseNetworkProperty.Type]
@@ -46,6 +51,7 @@ class InfiniteNetworkSet:
         info('Infinite network summary calculation finished.')
         return summary
 
+    @log_function_name
     def calc_typical_property_distribution(
         self,
         property_type: BaseNetworkProperty.Type,
@@ -109,6 +115,7 @@ class InfiniteNetwork(Network):
 
         return property_value_set
 
+    @log_function_name
     def _num_edges(self) -> int:
         """Return the number of edges in the graph."""
         return self.graph.degree(0)

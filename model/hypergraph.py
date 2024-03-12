@@ -88,7 +88,7 @@ class HypergraphModel(Model):
         self._parameters.gamma_prime = gamma_prime_guess
         # pylint: enable=attribute-defined-outside-init
 
-        print('\n'.join([
+        info('\n'.join([
             '\nHypergraph model parameters after setting from data set:',
             f'network_size          = {self._parameters.network_size}',
             f'max_dim               = {self._parameters.max_dimension}',
