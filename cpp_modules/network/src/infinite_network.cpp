@@ -4,18 +4,28 @@
 
 InfiniteNetwork::InfiniteNetwork(
     const Dimension max_dimension,
-    const VertexList &vertices,
+    const PointIdList &vertices,
     const ISimplexList &interactions,
-    const VertexId typical_vertex_id)
+    const PointId typical_vertex_id)
+    : Network{max_dimension, vertices, create_simplices(interactions)},
+      typical_vertex_id_{typical_vertex_id}
+{
+}
+
+InfiniteNetwork::InfiniteNetwork(
+    const Dimension max_dimension,
+    const PointIdList &vertices,
+    const SimplexList &interactions,
+    const PointId typical_vertex_id)
     : Network{max_dimension, vertices, interactions},
       typical_vertex_id_{typical_vertex_id}
 {
 }
 
-InfiniteNetwork InfiniteNetwork::get_filtered_network(const VertexList &vertices) const
+InfiniteNetwork InfiniteNetwork::get_filtered_network(const PointIdList &vertices) const
 {
     assert(std::find(vertices.begin(), vertices.end(), typical_vertex_id_) != vertices.end());
-    const auto interactions{create_raw_simplices(filter_simplices(interactions_, vertices))};
+    const auto interactions{filter_simplices(interactions_, vertices)};
     InfiniteNetwork filtered_network{max_dimension_, vertices, interactions, typical_vertex_id_};
     return filtered_network;
 }

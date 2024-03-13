@@ -3,9 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
                 "${workspaceFolder}/cpp_modules/inc/**",
                 "${workspaceFolder}/cpp_modules/**",
+                "${workspaceFolder}/**",
                 "/usr/include",
                 "/usr/include/python3.10"
             ],

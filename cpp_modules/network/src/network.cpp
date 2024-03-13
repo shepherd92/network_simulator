@@ -5,18 +5,19 @@
 #include "network.h"
 #include "numpy_cpp_conversion.h"
 #include "simplex.h"
+#include "typedefs.h"
 
-Network::Network(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions)
+Network::Network(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions)
     : max_dimension_{max_dimension},
       vertices_{vertices},
-      interactions_{create_simplices(interactions)},
+      interactions_{interactions},
       facets_{std::nullopt},
       simplex_tree_{std::nullopt}
 {
     sort_simplices(interactions_, true);
     if (vertices_.empty())
     {
-        std::set<VertexId> unique_vertices{};
+        std::set<PointId> unique_vertices{};
         std::for_each(
             std::execution::seq,
             interactions_.begin(),
@@ -28,7 +29,7 @@ Network::Network(const Dimension max_dimension, const VertexList &vertices, cons
                     unique_vertices.insert(vertex);
                 }
             });
-        vertices_ = VertexList{unique_vertices.begin(), unique_vertices.end()};
+        vertices_ = PointIdList{unique_vertices.begin(), unique_vertices.end()};
     }
     std::sort(vertices_.begin(), vertices_.end());
 }
@@ -65,7 +66,7 @@ void Network::add_simplices(const SimplexList &simplices)
     }
 }
 
-void Network::add_vertices(const VertexList &vertices)
+void Network::add_vertices(const PointIdList &vertices)
 {
     SimplexList simplices{};
     simplices.reserve(vertices.size());
@@ -75,12 +76,12 @@ void Network::add_vertices(const VertexList &vertices)
         vertices.end(),
         std::back_inserter(simplices),
         [](const auto vertex)
-        { return Simplex{VertexList{vertex}}; });
+        { return Simplex{PointIdList{vertex}}; });
 
     add_simplices(simplices);
 }
 
-const VertexList &Network::get_vertices_interface() const
+const PointIdList &Network::get_vertices_interface() const
 {
     return vertices_;
 }
@@ -96,7 +97,7 @@ void Network::set_max_dimension(const Dimension dimension)
     reset();
 }
 
-void Network::set_vertices(const VertexList &vertices)
+void Network::set_vertices(const PointIdList &vertices)
 {
     vertices_ = vertices;
 }
@@ -128,7 +129,7 @@ ISimplexList Network::convert_to_raw_simplices(const Iterator &simplex_range)
         simplex_range.end(),
         [&](const auto &simplex)
         {
-            VertexList vertices{};
+            PointIdList vertices{};
             vertices.reserve(simplex_tree_->dimension(simplex) + 1U);
             for (auto vertex : simplex_tree_->simplex_vertex_range(simplex))
             {
@@ -251,7 +252,7 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
 
             // set of those vertices with which the simplex forms a simplex of neighbor dimension
             // used if neighbor_dimension = simplex_dimension + 1
-            std::unordered_set<VertexId> extra_vertices{};
+            std::unordered_set<PointId> extra_vertices{};
 
             // iterate over all facets
             std::for_each(
@@ -363,7 +364,7 @@ void Network::create_simplicial_complex()
     facets_ = std::nullopt;
 }
 
-void Network::keep_only_vertices(const VertexList &vertices)
+void Network::keep_only_vertices(const PointIdList &vertices)
 {
     vertices_ = vertices;
     interactions_ = filter_simplices(interactions_, vertices);
@@ -448,10 +449,10 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
     return result;
 }
 
-VertexList Network::get_vertices(const SimplexHandle &simplex_handle)
+PointIdList Network::get_vertices(const SimplexHandle &simplex_handle)
 {
     assert_simplicial_complex_is_built();
-    VertexList result{};
+    PointIdList result{};
     if (simplex_handle != simplex_tree_->null_simplex())
     {
         for (const auto &vertex : simplex_tree_->simplex_vertex_range(simplex_handle))

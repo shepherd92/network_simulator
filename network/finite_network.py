@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 from distribution.empirical_distribution import EmpiricalDistribution
 # pylint: disable=no-name-in-module
-from cpp_modules.build.network import filter_simplices
-from cpp_modules.build.network import FiniteNetwork as CppFiniteNetwork
+from cpp_modules.build.cpp_plugin import filter_simplices
+from cpp_modules.build.cpp_plugin import FiniteNetwork as CppFiniteNetwork
 # pylint: enable=no-name-in-module
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty

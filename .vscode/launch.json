@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Data Set Analysis",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
@@ -24,7 +24,7 @@
         },
         {
             "name": "Model Testing",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
@@ -57,7 +57,7 @@
         },
         {
             "name": "Model Fitting",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
@@ -75,7 +75,7 @@
         },
         {
             "name": "Model Example",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "console": "integratedTerminal",
@@ -93,7 +93,7 @@
         },
         {
             "name": "Data Preparation",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/data_preparation/main.py",
             "console": "integratedTerminal",
@@ -105,7 +105,7 @@
         },
         {
             "name": "Experiment",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/sandbox/experiments.py",
             "console": "integratedTerminal",
@@ -117,7 +117,7 @@
         },
         {
             "name": "Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
@@ -128,7 +128,7 @@
         },
         {
             "name": "Valgrind",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "valgrind",
             "console": "integratedTerminal",

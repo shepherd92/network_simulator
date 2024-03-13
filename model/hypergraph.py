@@ -37,11 +37,11 @@ class HypergraphModel(Model):
         gamma: float = 0.5
         gamma_prime: float = 0.5
         torus_dimension: int = 0
-        torus_size_in_1_dimension: float = 0.5  # the total size of the torus
 
         def to_numpy(self) -> npt.NDArray[np.float_]:
             """Return the parameters as a numpy array."""
             return np.array([
+                self.max_dimension,
                 self.network_size,
                 self.interaction_intensity,
                 self.beta,
@@ -91,7 +91,7 @@ class HypergraphModel(Model):
         info('\n'.join([
             '\nHypergraph model parameters after setting from data set:',
             f'network_size          = {self._parameters.network_size}',
-            f'max_dim               = {self._parameters.max_dimension}',
+            f'max_dimension         = {self._parameters.max_dimension}',
             f'interaction_intensity = {self._parameters.interaction_intensity:4f}',
             f'beta                  = {self._parameters.beta:4f}',
             f'gamma                 = {self._parameters.gamma:4f}',
@@ -103,9 +103,6 @@ class HypergraphModel(Model):
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
         assert isinstance(self.parameters, HypergraphModel.Parameters), \
             f'Wrong model parameter type {type(self.parameters)}'
-
-        self.parameters.torus_size_in_1_dimension = \
-            self.parameters.network_size ** (1. / self.parameters.torus_dimension)
 
         if self.parameters.torus_dimension == 1:
             connections, interactions, nodes = generate_finite_network_cpp(self.parameters.to_numpy(), seed)
@@ -200,8 +197,7 @@ class HypergraphModel(Model):
         num_of_nodes = self._random_number_generator.poisson(lam=self.parameters.network_size)
         node_birth_times = self._random_number_generator.random(size=num_of_nodes)
         node_positions = self._random_number_generator.uniform(
-            -self.parameters.torus_size_in_1_dimension / 2,
-            +self.parameters.torus_size_in_1_dimension / 2,
+            -0.5, +0.5,
             size=(num_of_nodes, self.parameters.torus_dimension)
         )
         return node_birth_times, node_positions
@@ -212,8 +208,7 @@ class HypergraphModel(Model):
             lam=self.parameters.network_size * self.parameters.interaction_intensity)
         interaction_birth_times = self._random_number_generator.random(size=num_of_interactions)
         interaction_positions = self._random_number_generator.uniform(
-            -self.parameters.torus_size_in_1_dimension / 2,
-            +self.parameters.torus_size_in_1_dimension / 2,
+            -0.5, +0.5,
             size=(num_of_interactions, self.parameters.torus_dimension)
         )
         return interaction_birth_times, interaction_positions
@@ -265,13 +260,13 @@ class HypergraphModel(Model):
         # calculate the distances by dimension inside the boundaries without going around the edges
         distances_by_dimension_inside = np.abs(position_pairs[:, :dimensions] - position_pairs[:, dimensions:])
 
-        # if the distance in one dimension is greater than the half of the size of the torus,
-        # then it is better to go around the edge, when the distance in that direction is
+        # if the distance in one dimension is greater than the half of the size of the torus (= 1),
+        # then it is better to go around the edge of the torus, when the distance in that direction is
         # 1 - distance_inside
         distances_by_dimension = np.where(
-            distances_by_dimension_inside < 0.5 * self.parameters.torus_size_in_1_dimension,
+            distances_by_dimension_inside < 0.5,
             distances_by_dimension_inside,
-            self.parameters.torus_size_in_1_dimension - distances_by_dimension_inside
+            1. - distances_by_dimension_inside
         )
 
         # the final distances are the length of the difference vectors
@@ -288,11 +283,11 @@ class HypergraphModel(Model):
         return {
             'max_dimension': self.parameters.max_dimension,
             'network_size': self.parameters.network_size,
+            'interaction_intensity': self.parameters.interaction_intensity,
             'parameter_beta': self.parameters.beta,
             'parameter_gamma': self.parameters.gamma,
             'parameter_gamma_prime': self.parameters.gamma_prime,
             'torus_dimension': self.parameters.torus_dimension,
-            'torus_size_in_1_dimension': self.parameters.torus_size_in_1_dimension,
         }
 
     @ property

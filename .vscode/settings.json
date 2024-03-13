@@ -13,15 +13,15 @@
         "sandbox"
     ],
     "python.analysis.extraPaths": [
-        "/home/au725389/venv/tda/lib/python3.10/site-packages",
-        "/home/au725389/venv/tda/lib/python3.10/site-packages/gudhi",
+        "/home/au725389/venv/tda/lib/python3.12/site-packages",
+        "/home/au725389/venv/tda/lib/python3.12/site-packages/gudhi",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build/cpp_library",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
     ],
     "python.analysis.indexing": true,
     "python.autoComplete.extraPaths": [
-        "/home/au725389/venv/tda/lib/python3.10/site-packages",
-        "/home/au725389/venv/tda/lib/python3.10/site-packages/gudhi",
+        "/home/au725389/venv/tda/lib/python3.12/site-packages",
+        "/home/au725389/venv/tda/lib/python3.12/site-packages/gudhi",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
     ],

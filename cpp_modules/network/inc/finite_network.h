@@ -10,11 +10,12 @@
 class FiniteNetwork : public Network
 {
 public:
-    FiniteNetwork(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions);
+    FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions);
+    FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions);
     ~FiniteNetwork();
-    FiniteNetwork get_filtered_network(const VertexList &vertices) const;
+    FiniteNetwork get_filtered_network(const PointIdList &vertices) const;
 
-    void add_vertices(const VertexList &vertices) override;
+    void add_vertices(const PointIdList &vertices) override;
     void expand() override;
 
     uint32_t num_simplices() override;

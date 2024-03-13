@@ -1,9 +1,9 @@
 #ifndef _RECTANGLE_H_
 #define _RECTANGLE_H_
 
-#include <mutex>
-
 #include "typedefs.h"
+
+class Point;
 
 class Rectangle
 {
@@ -16,10 +16,7 @@ public:
 
     Rectangle(Rectangle &&other);
 
-    ConnectionList calc_connected_point_pairs(
-        const Rectangle &other,
-        const float beta,
-        const float torus_size) const;
+    ConnectionList calc_connected_point_pairs(const Rectangle &other, const float beta) const;
 
     const Mark &top() const;
     const Mark &bottom() const;
@@ -34,10 +31,6 @@ public:
     const PointList &points() const;
 
 private:
-    bool can_connect(
-        const Rectangle &other,
-        const float beta,
-        const double torus_size) const;
     bool contains(const Point &point) const;
 
     const Mark bottom_mark_;
@@ -50,5 +43,7 @@ private:
     mutable std::mutex mutex;
     PointList points_;
 };
+
+void fill_rectangles(RectangleList &rectangles, const PointList &points);
 
 #endif

@@ -1,11 +1,12 @@
 #include <cassert>
 #include <cmath>
-#include <execution>
 #include <iostream>
 #include <mutex>
 
-#include "point.h"
+#include "hg_point.h"
 #include "rectangle.h"
+#include "tools.h"
+#include "typedefs.h"
 
 Rectangle::Rectangle(
     const Mark bottom_mark,
@@ -88,60 +89,33 @@ const PointList &Rectangle::points() const
     return points_;
 }
 
-bool Rectangle::can_connect(
-    const Rectangle &other,
-    const float beta,
-    const double torus_size) const
+void fill_rectangles(RectangleList &rectangles, const PointList &points)
 {
-    // assumption: no rectangles can wrap around the torus boundaries
-    if (left() <= other.right() && other.left() <= right())
-    {
-        // the distance is 0 if the intervals overlapif (distance < max_distance)
-        return true;
-    }
-
-    const auto max_distance{
-        beta * std::pow(bottom(), -exponent()) *
-        std::pow(other.bottom(), -other.exponent())};
-
-    const auto distance_inside{right() < other.left()
-                                   ? other.left() - right()
-                                   : left() - other.right()};
-    const auto distance{
-        distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside};
-
-    return distance < max_distance;
-}
-
-ConnectionList Rectangle::calc_connected_point_pairs(
-    const Rectangle &other,
-    const float beta,
-    const float torus_size) const
-{
-    ConnectionList connections{};
-    if (!can_connect(other, beta, torus_size))
-    {
-        return connections;
-    }
-
+    // assume points are sorted with respect to marks
     std::for_each(
-        std::execution::par_unseq,
-        points().begin(),
-        points().end(),
-        [&](auto &&first_point)
+        execution_policy,
+        points.begin(),
+        points.end(),
+        [&](auto &&point)
         {
-            const auto partial_result{beta * first_point.mark_to_gamma()};
-            for (const auto &second_point : other.points())
+            auto min_rectangle_index{0U};
+            auto current_bottom{0.};
+            for (auto i{min_rectangle_index}; i < rectangles.size(); ++i)
             {
-                const auto max_distance{partial_result * second_point.mark_to_gamma()};
-                const auto distance{first_point.distance(second_point, torus_size)};
-                if (distance < max_distance)
+                if (!is_close(current_bottom, rectangles[i].bottom()))
                 {
-                    std::lock_guard<std::mutex> lock_guard(mutex);
-                    connections.push_back(std::pair(first_point.id(), second_point.id()));
+                    // we are now in the next row from the bottom
+                    min_rectangle_index = i;
+                    current_bottom = rectangles[i].bottom();
+                }
+                // assume that the rectangles are sorted, no need to check the bottom
+                if (point.mark() <= rectangles[i].top() &&
+                    point.position() >= rectangles[i].left() &&
+                    point.position() <= rectangles[i].right())
+                {
+                    rectangles[i].add_point(point);
+                    break;
                 }
             }
         });
-
-    return connections;
 }

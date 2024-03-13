@@ -1,6 +1,8 @@
 #ifndef _TOOLS_H_
 #define _TOOLS_H_
 
+#include <cmath>
+
 bool is_close(const double first, const double second);
 
 inline bool is_close(const double first, const double second)

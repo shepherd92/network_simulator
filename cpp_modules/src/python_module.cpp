@@ -1,21 +1,29 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
+#include "finite_model.h"
 #include "finite_network.h"
+#include "infinite_model.h"
 #include "infinite_network.h"
-#include "simplex.h"
-#include "typedefs.h"
 
-PYBIND11_MODULE(network, m)
+PYBIND11_MODULE(cpp_plugin, m)
 {
-    m.doc() = "pybind11 network plugin";
+    m.doc() = "pybind11 model plugin";
 
     m.def("filter_simplices",
           &filter_simplices_interface,
           "Filter simplices based on vertices to keep.");
 
+    py::class_<FiniteHypergraphModel>(m, "FiniteHypergraphModel")
+        .def(py::init<const py::array_t<double> &, const uint32_t>())
+        .def("generate_network", &FiniteHypergraphModel::generate_network);
+
+    py::class_<InfiniteHypergraphModel>(m, "InfiniteHypergraphModel")
+        .def(py::init<const py::array_t<double> &, const uint32_t>())
+        .def("generate_networks", &InfiniteHypergraphModel::generate_networks);
+
     py::class_<FiniteNetwork>(m, "FiniteNetwork")
-        .def(py::init<const Dimension, const VertexList &, const ISimplexList &>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &>())
         .def("calc_betti_numbers", &FiniteNetwork::calc_betti_numbers)
         .def("calc_persistence_pairs", &FiniteNetwork::calc_persistence_pairs)
         .def("create_simplicial_complex", &FiniteNetwork::create_simplicial_complex)
@@ -36,7 +44,7 @@ PYBIND11_MODULE(network, m)
         .def("calc_facets", &FiniteNetwork::get_facets_interface);
 
     py::class_<InfiniteNetwork>(m, "InfiniteNetwork")
-        .def(py::init<const Dimension, const VertexList &, const ISimplexList &, const VertexId>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const PointId>())
         .def("create_simplicial_complex", &InfiniteNetwork::create_simplicial_complex)
         .def("expand", &InfiniteNetwork::expand)
         .def("get_skeleton", &InfiniteNetwork::get_skeleton_interface)

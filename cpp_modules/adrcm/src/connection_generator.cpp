@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "model_parameters.h"
 #include "numpy_cpp_conversion.h"
-#include "point.h"
+#include "adrcm_point.h"
 #include "typedefs.h"
 
 namespace py = pybind11;

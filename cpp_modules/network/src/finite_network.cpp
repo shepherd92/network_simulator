@@ -1,9 +1,15 @@
 #include "finite_network.h"
 
+FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions)
+    : Network{max_dimension, vertices, create_simplices(interactions)},
+      persistent_cohomology_{nullptr}
+{
+}
+
 FiniteNetwork::FiniteNetwork(
     const Dimension max_dimension,
-    const VertexList &vertices,
-    const ISimplexList &interactions)
+    const PointIdList &vertices,
+    const SimplexList &interactions)
     : Network{max_dimension, vertices, interactions},
       persistent_cohomology_{nullptr}
 {
@@ -14,7 +20,7 @@ FiniteNetwork::~FiniteNetwork()
     reset_persistence();
 }
 
-void FiniteNetwork::add_vertices(const VertexList &vertices)
+void FiniteNetwork::add_vertices(const PointIdList &vertices)
 {
     Network::add_vertices(vertices);
     reset_persistence();
@@ -85,8 +91,8 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
         persistent_pairs.end(),
         [&](const auto &persistent_interval)
         {
-            VertexList birth_simplex{get_vertices(std::get<0>(persistent_interval))};
-            VertexList death_simplex{get_vertices(std::get<1>(persistent_interval))};
+            PointIdList birth_simplex{get_vertices(std::get<0>(persistent_interval))};
+            PointIdList death_simplex{get_vertices(std::get<1>(persistent_interval))};
             std::lock_guard<std::mutex> lock{mutex};
             if (++counter % 1000 == 0 && total > 10000U)
             {
@@ -103,9 +109,9 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
     return result;
 }
 
-FiniteNetwork FiniteNetwork::get_filtered_network(const VertexList &vertices) const
+FiniteNetwork FiniteNetwork::get_filtered_network(const PointIdList &vertices) const
 {
-    const auto interactions{create_raw_simplices(filter_simplices(interactions_, vertices))};
+    const auto interactions{filter_simplices(interactions_, vertices)};
     FiniteNetwork filtered_network{max_dimension_, vertices, interactions};
     return filtered_network;
 }

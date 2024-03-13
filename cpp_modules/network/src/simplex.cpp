@@ -1,5 +1,5 @@
 #include <iostream>
-#include <execution>
+#include <map>
 #include <mutex>
 
 #include "simplex.h"
@@ -19,7 +19,7 @@ std::size_t SimplexHash::operator()(const Simplex &simplex) const
     return seed;
 }
 
-Simplex::Simplex(const VertexList &vertices)
+Simplex::Simplex(const PointIdList &vertices)
     : vertices_{vertices}
 {
     std::sort(vertices_.begin(), vertices_.end());
@@ -29,7 +29,7 @@ Simplex::Simplex(const VertexList &vertices)
     }
 }
 
-const VertexList &Simplex::vertices() const
+const PointIdList &Simplex::vertices() const
 {
     return vertices_;
 }
@@ -41,7 +41,7 @@ bool Simplex::is_valid() const
 
 Simplex Simplex::operator-(const Simplex &other) const
 {
-    VertexList remaining_vertices;
+    PointIdList remaining_vertices;
     std::set_difference(
         vertices_.begin(), vertices_.end(),
         other.vertices().begin(), other.vertices().end(),
@@ -79,7 +79,7 @@ SimplexList Simplex::get_skeleton(const Dimension max_dimension) const
     {
         return SimplexList{*this};
     }
-    VertexList current_combination(max_dimension + 1U);
+    PointIdList current_combination(max_dimension + 1U);
     SimplexList result{};
 
     combination_util(max_dimension, 0U, result, current_combination, 0U);
@@ -90,7 +90,7 @@ void Simplex::combination_util(
     const Dimension max_dimension,
     const uint32_t combination_index,
     SimplexList &result,
-    VertexList &current_combination,
+    PointIdList &current_combination,
     const uint32_t array_index) const
 {
     if (combination_index == max_dimension + 1U)
@@ -110,7 +110,7 @@ void Simplex::combination_util(
     combination_util(max_dimension, combination_index, result, current_combination, array_index + 1U);
 }
 
-SimplexList create_simplices(const std::vector<VertexList> &simplices_in)
+SimplexList create_simplices(const ISimplexList &simplices_in)
 {
     SimplexList simplices;
     std::mutex mutex{};
@@ -210,12 +210,29 @@ std::vector<Dimension> calc_dimension_distribution(const ISimplexList &simplices
     return calc_dimension_distribution(simplices);
 }
 
-ISimplexList filter_simplices_interface(const ISimplexList &simplices, const VertexList &vertices_to_keep)
+ISimplexList filter_simplices_interface(const ISimplexList &simplices, const PointIdList &vertices_to_keep)
 {
     return create_raw_simplices(filter_simplices(create_simplices(simplices), vertices_to_keep));
 }
 
-SimplexList filter_simplices(const SimplexList &simplices, const VertexList &vertices_to_keep)
+SimplexList create_simplices_from_connections(const ConnectionList &connections)
+{
+    std::map<PointId, std::vector<PointId>> interactions;
+    for (const auto &pair : connections)
+    {
+        interactions[pair.first].push_back(pair.second);
+    }
+
+    SimplexList simplices{};
+    for (const auto &interaction : interactions)
+    {
+        simplices.push_back(Simplex{interaction.second});
+    }
+
+    return simplices;
+}
+
+SimplexList filter_simplices(const SimplexList &simplices, const PointIdList &vertices_to_keep)
 {
     SimplexList filtered_simplices{};
     std::mutex mutex{};

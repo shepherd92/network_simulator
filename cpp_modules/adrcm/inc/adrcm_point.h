@@ -8,7 +8,7 @@
 class Point
 {
 public:
-    Point(const double birth_time, const Position &position);
+    Point(const Mark birth_time, const Position &position);
 
     inline double distance(const Point &other, const double torus_size) const;
 
@@ -17,13 +17,10 @@ public:
     inline const Position &position() const;
 
 private:
-    inline double distance_1d(const Point &other, const double torus_size) const;
-    inline double distance_general(const Point &other, const double torus_size) const;
-
-    const double birth_time_;
+    const Mark mark_;
     const Position position_;
 };
 
-#include "point.inl"
+#include "adrcm_point.inl"
 
 #endif

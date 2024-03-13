@@ -10,7 +10,7 @@
 class Network
 {
 public:
-    Network(const Dimension max_dimension, const VertexList &vertices, const ISimplexList &interactions);
+    Network(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions);
 
     void assert_simplicial_complex_is_built();
     void create_simplicial_complex();
@@ -18,7 +18,7 @@ public:
     void set_max_dimension(const Dimension dimension);
     virtual uint32_t num_simplices() = 0;
 
-    void keep_only_vertices(const VertexList &vertices);
+    void keep_only_vertices(const PointIdList &vertices);
     void reset();
 
     std::vector<Dimension> calc_simplex_dimension_distribution();
@@ -33,8 +33,8 @@ public:
     virtual void expand();
 
     uint32_t num_vertices();
-    const VertexList &get_vertices_interface() const;
-    void set_vertices(const VertexList &vertices);
+    const PointIdList &get_vertices_interface() const;
+    void set_vertices(const PointIdList &vertices);
 
     ISimplexList get_interactions_interface() const;
     void set_interactions(const ISimplexList &interactions);
@@ -59,8 +59,8 @@ protected:
     using SimplexHandleList = std::vector<SimplexHandle>;
 
     virtual void add_simplices(const SimplexList &simplices);
-    virtual void add_vertices(const VertexList &vertices);
-    VertexList get_vertices(const SimplexHandle &simplex_handle);
+    virtual void add_vertices(const PointIdList &vertices);
+    PointIdList get_vertices(const SimplexHandle &simplex_handle);
     void calc_facets();
 
     virtual void reset_simplicial_complex();
@@ -71,7 +71,7 @@ protected:
     const SimplexList &get_facets();
 
     Dimension max_dimension_;
-    VertexList vertices_;
+    PointIdList vertices_;
     SimplexList interactions_;
     std::optional<SimplexList> facets_;
     std::optional<SimplexTree> simplex_tree_;
@@ -94,7 +94,7 @@ private:
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension);
 
-    void filter_facets(const VertexList &vertices);
+    void filter_facets(const PointIdList &vertices);
 };
 
 #endif

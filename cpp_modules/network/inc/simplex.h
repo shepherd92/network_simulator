@@ -16,8 +16,8 @@ constexpr uint32_t BLOOM_FILTER_SIZE{64};
 class Simplex
 {
 public:
-    Simplex(const VertexList &vertices);
-    const VertexList &vertices() const;
+    Simplex(const PointIdList &vertices);
+    const PointIdList &vertices() const;
     bool is_valid() const;
     std::vector<uint32_t> hash() const;
 
@@ -34,10 +34,10 @@ private:
         const Dimension dimension,
         const uint32_t combination_index,
         SimplexList &result,
-        VertexList &current_combination,
+        PointIdList &current_combination,
         const uint32_t array_index) const;
 
-    VertexList vertices_;
+    PointIdList vertices_;
     std::bitset<BLOOM_FILTER_SIZE> bloom_filter_;
 };
 
@@ -64,10 +64,11 @@ inline std::bitset<BLOOM_FILTER_SIZE> Simplex::bloom_filter() const
     return bloom_filter_;
 }
 
-SimplexList create_simplices(const std::vector<VertexList> &simplices_in);
+SimplexList create_simplices(const std::vector<PointIdList> &simplices_in);
 ISimplexList create_raw_simplices(const SimplexList &simplices_in);
-ISimplexList filter_simplices_interface(const ISimplexList &simplices, const VertexList &vertices_to_keep);
-SimplexList filter_simplices(const SimplexList &simplices, const VertexList &vertices_to_keep);
+SimplexList create_simplices_from_connections(const ConnectionList &connections);
+ISimplexList filter_simplices_interface(const ISimplexList &simplices, const PointIdList &vertices_to_keep);
+SimplexList filter_simplices(const SimplexList &simplices, const PointIdList &vertices_to_keep);
 SimplexList get_skeleton_simplices(const SimplexList &simplices_in, const Dimension dimension);
 SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension);
 SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, const Dimension dimension);
