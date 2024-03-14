@@ -1,6 +1,7 @@
 # project name
 PROJECT := cpp_plugin
 PYTHON_VERSION := 3.12
+MAKEFLAGS += -j4
 
 # suppress Makefile output
 # .SILENT :
@@ -19,7 +20,7 @@ LD       := g++
 # ltbb: use parallel algorithms, i.e. parallel for_each
 CXXFLAGS := -std=c++17 -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pthread -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC -DBOOST_ALLOW_DEPRECATED_HEADERS
 CXXFLAGS += $(shell python$(PYTHON_VERSION) -m pybind11 --includes)
-LDFLAGS  := -lstdc++ -shared -m64 -lpthread -lutil -fPIC
+LDFLAGS  := -lstdc++ -shared -m64 -lutil -fPIC
 LDFLAGS  += $(shell python$(PYTHON_VERSION)-config --ldflags)
 
 # directories

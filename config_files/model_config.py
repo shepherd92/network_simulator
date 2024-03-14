@@ -70,7 +70,7 @@ class ModelConfig:
         num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
-    set_params_from_data_set: bool = False
+    set_params_from_data_set: bool = True
     analysis = Analysis()
     fitting = Fitting()
     network_testing = Testing()
@@ -79,10 +79,9 @@ class ModelConfig:
 # ==============================================================================
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=500000,  # vertex_intensity: expected number of vertices
-    interaction_intensity=500000,  # interaction_intensity: expected number of interactions
-    torus_dimension=1,
-    beta=1.0,
+    network_size=1000,  # vertex_intensity: expected number of vertices
+    interaction_intensity=1000,  # interaction_intensity: expected number of interactions
+    beta=0.001,
     gamma=0.7,
     gamma_prime=0.2,
 )
@@ -92,7 +91,6 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
     max_dimension=2,
     network_size=100,  # expected number of nodes
-    torus_dimension=1,
     alpha=0.5,
     beta=1.0,
     gamma=0.7,

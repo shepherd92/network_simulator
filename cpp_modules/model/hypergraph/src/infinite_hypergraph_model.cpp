@@ -13,24 +13,9 @@
 
 namespace py = pybind11;
 
-constexpr Mark MIN_MARK{1e-6};
-
 InfiniteHypergraphModel::InfiniteHypergraphModel(const py::array_t<double> &parameters_in, const uint32_t seed)
-    : HypergraphModel{parameters_in, seed}
+    : Model{seed}, HypergraphModel{parameters_in}
 {
-}
-
-std::vector<InfiniteNetwork> InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networks) const
-{
-    std::vector<InfiniteNetwork> result{};
-    result.reserve(num_of_infinite_networks);
-
-    for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
-    {
-        result.push_back(generate_network());
-        std::cout << "\rGenerating infinite networks: " << network_index + 1U << "/" << num_of_infinite_networks;
-    }
-    return result;
 }
 
 InfiniteNetwork InfiniteHypergraphModel::generate_network() const
@@ -111,7 +96,7 @@ PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions
 
 PointList InfiniteHypergraphModel::create_vertices_in_interaction_neighborhood(const Point &interaction) const
 {
-    const auto expected_num_of_vertices{2 * beta() * lambda() * std::pow(interaction.mark(), gamma_prime()) / (1. - gamma())};
+    const auto expected_num_of_vertices{2 * beta() * lambda() * std::pow(interaction.mark(), -gamma_prime()) / (1. - gamma())};
     const auto num_of_vertices{std::poisson_distribution<uint32_t>(expected_num_of_vertices)(random_number_generator_)};
     const auto marks{generate_marks(num_of_vertices, MIN_MARK)};
     const auto positions{generate_positions_in_interaction_neighborhood(interaction, marks)};
@@ -158,9 +143,4 @@ PositionList InfiniteHypergraphModel::generate_positions_in_neighborhood(
             positions.push_back(position);
         });
     return positions;
-}
-
-float InfiniteHypergraphModel::distance(const Point &first, const Point &second) const
-{
-    return fabs(first.position() - second.position());
 }

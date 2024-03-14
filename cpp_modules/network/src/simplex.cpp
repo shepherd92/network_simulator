@@ -23,20 +23,15 @@ Simplex::Simplex(const PointIdList &vertices)
     : vertices_{vertices}
 {
     std::sort(vertices_.begin(), vertices_.end());
-    for (const auto &vertex : vertices_)
+    for (const auto &vertex_id : vertices_)
     {
-        bloom_filter_.set(vertex % BLOOM_FILTER_SIZE);
+        bloom_filter_.set(vertex_id & 63);
     }
 }
 
 const PointIdList &Simplex::vertices() const
 {
     return vertices_;
-}
-
-bool Simplex::is_valid() const
-{
-    return !vertices_.empty();
 }
 
 Simplex Simplex::operator-(const Simplex &other) const
@@ -68,7 +63,7 @@ Dimension Simplex::dimension() const
     return vertices_.size() - 1;
 }
 
-SimplexList Simplex::get_skeleton(const Dimension max_dimension) const
+SimplexList Simplex::get_faces(const Dimension max_dimension) const
 {
     if (!is_valid())
     {
@@ -141,9 +136,9 @@ ISimplexList create_raw_simplices(const SimplexList &simplices_in)
     return simplices;
 }
 
-SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension dimension)
+SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension dimension)
 {
-    SimplexList skeleton_simplices{};
+    SimplexSet faces_set{};
     std::mutex mutex{};
 
     std::for_each(
@@ -154,14 +149,21 @@ SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension
         {
             if (simplex.is_valid())
             {
-                auto skeleton{simplex.get_skeleton(dimension)};
+                const auto faces{simplex.get_faces(dimension)};
                 std::lock_guard<std::mutex> lock(mutex);
-                skeleton_simplices.insert(skeleton_simplices.end(), skeleton.begin(), skeleton.end());
+                std::copy(faces.begin(), faces.end(), std::inserter(faces_set, faces_set.end()));
             }
         });
 
-    sort_simplices(skeleton_simplices, true);
-    return skeleton_simplices;
+    SimplexList faces{};
+    faces.reserve(faces_set.size());
+    for (auto it = faces_set.begin(); it != faces_set.end();)
+    {
+        faces.push_back(std::move(faces_set.extract(it++).value()));
+    }
+
+    sort_simplices(faces, true);
+    return faces;
 }
 
 SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension)
@@ -213,23 +215,6 @@ std::vector<Dimension> calc_dimension_distribution(const ISimplexList &simplices
 ISimplexList filter_simplices_interface(const ISimplexList &simplices, const PointIdList &vertices_to_keep)
 {
     return create_raw_simplices(filter_simplices(create_simplices(simplices), vertices_to_keep));
-}
-
-SimplexList create_simplices_from_connections(const ConnectionList &connections)
-{
-    std::map<PointId, std::vector<PointId>> interactions;
-    for (const auto &pair : connections)
-    {
-        interactions[pair.first].push_back(pair.second);
-    }
-
-    SimplexList simplices{};
-    for (const auto &interaction : interactions)
-    {
-        simplices.push_back(Simplex{interaction.second});
-    }
-
-    return simplices;
 }
 
 SimplexList filter_simplices(const SimplexList &simplices, const PointIdList &vertices_to_keep)

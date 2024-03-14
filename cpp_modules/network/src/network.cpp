@@ -43,7 +43,7 @@ void Network::reset()
 void Network::add_simplices(const SimplexList &simplices)
 {
     initialize_simplicial_complex_if_needed();
-    const auto representable_simplices{get_skeleton_simplices(simplices, max_dimension_)};
+    const auto representable_simplices{get_faces_simplices(simplices, max_dimension_)};
     const auto total{representable_simplices.size()};
     std::atomic<uint32_t> counter{0U};
 
@@ -274,11 +274,11 @@ std::vector<uint32_t> Network::calc_degree_sequence_interactions(
                         }
                         else
                         {
-                            const auto skeleton{difference.get_skeleton(neighbor_dimension - simplex_dimension - 1)};
+                            const auto faces{difference.get_faces(neighbor_dimension - simplex_dimension - 1)};
                             std::lock_guard<std::mutex> lock_guard(mutex);
                             std::copy(
-                                skeleton.begin(),
-                                skeleton.end(),
+                                faces.begin(),
+                                faces.end(),
                                 std::inserter(combinations_of_remaining_vertices, combinations_of_remaining_vertices.end()));
                         }
                     }
@@ -373,11 +373,7 @@ void Network::keep_only_vertices(const PointIdList &vertices)
 
 SimplexList Network::get_skeleton(const Dimension max_dimension)
 {
-    if (is_valid())
-    {
-        return get_skeleton_simplicial_complex(max_dimension);
-    }
-    return get_skeleton_interactions(max_dimension);
+    return get_skeleton_simplicial_complex(max_dimension);
 }
 
 void Network::expand()

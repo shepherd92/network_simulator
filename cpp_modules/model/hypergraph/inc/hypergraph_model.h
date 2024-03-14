@@ -5,11 +5,12 @@
 
 #include <pybind11/numpy.h>
 
+#include "model.h"
 #include "typedefs.h"
 
 namespace py = pybind11;
 
-class HypergraphModel
+class HypergraphModel : virtual public Model
 {
 public:
     struct Parameters
@@ -22,12 +23,11 @@ public:
         float gamma;
         float gamma_prime;
     };
-    HypergraphModel(const py::array_t<double> &parameters_in, const uint32_t seed);
+    HypergraphModel(const py::array_t<double> &parameters_in);
 
 protected:
-    MarkList generate_marks(const size_t num_nodes, const Mark min_mark = 0.) const;
-
     ConnectionList generate_connections(const PointList &vertices, const PointList &interactions) const;
+    SimplexList create_simplices_from_connections(const ConnectionList &connections) const;
 
     Dimension max_dimension() const;
     float beta() const;
@@ -39,15 +39,11 @@ protected:
     bool connects(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const;
     bool connects(const Point &vertex, const Point &interaction) const;
 
-    mutable std::mt19937 random_number_generator_;
-
 private:
     RectangleList create_rectangles(const PointList &points, const float exponent) const;
-    float determine_network_size(const PointList &points) const;
     ConnectionList calc_connected_point_pairs(
         const Rectangle &vertex_rectangle,
         const Rectangle &interaction_rectangle) const;
-    virtual float distance(const Point &first, const Point &second) const = 0;
 
     Parameters parameters_;
 };

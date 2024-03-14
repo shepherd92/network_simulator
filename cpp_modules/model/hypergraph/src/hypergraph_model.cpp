@@ -1,14 +1,16 @@
 #include <iostream>
+#include <map>
 #include <mutex>
 #include <random>
 #include <vector>
 
 #include <pybind11/numpy.h>
 
-#include "hg_point.h"
 #include "hypergraph_model.h"
 #include "numpy_cpp_conversion.h"
+#include "point.h"
 #include "rectangle.h"
+#include "simplex.h"
 #include "typedefs.h"
 
 namespace py = pybind11;
@@ -25,54 +27,9 @@ HypergraphModel::Parameters::Parameters(const py::array_t<double> &parameters_in
     gamma_prime = parameters[5];
 }
 
-HypergraphModel::HypergraphModel(const py::array_t<double> &parameters, const uint32_t seed)
-    : random_number_generator_{seed}, parameters_{parameters}
+HypergraphModel::HypergraphModel(const py::array_t<double> &parameters)
+    : parameters_{parameters}
 {
-}
-
-RectangleList HypergraphModel::create_rectangles(const PointList &points, const float exponent) const
-{
-    const auto n_points{points.size()};
-    RectangleList rectangles{};
-    const auto points_per_rectangle{std::max(100., std::pow(n_points, 0.5))};
-    const auto torus_size{determine_network_size(points)};
-    const auto area{points_per_rectangle / n_points * torus_size};
-
-    auto bottom{0.0};
-    while (bottom < 1.)
-    {
-        auto width{std::min(1., std::pow(bottom, -exponent))};
-        const auto height{std::min(area / width, 1. - bottom)};
-        width = area / height; // adjust width to match the height if height is too large
-        const auto rectangles_in_row{std::ceil(1. / width)};
-        width = torus_size / rectangles_in_row; // adjust width to match the number of rectangles
-
-        for (auto i{0U}; i < rectangles_in_row; ++i)
-        {
-            const auto left{i * width - torus_size / 2.};
-            auto rectangle{Rectangle(bottom, bottom + height, left, left + width)};
-            rectangle.set_exponent(exponent);
-            rectangles.push_back(std::move(rectangle));
-        }
-        bottom += height;
-    }
-    fill_rectangles(rectangles, points);
-    return rectangles;
-}
-
-MarkList HypergraphModel::generate_marks(const size_t num_nodes, const Mark min_mark) const
-{
-    std::uniform_real_distribution<Mark> uniform_distribution(0., 1.);
-    MarkList marks(num_nodes, 0.0);
-
-    for (auto i{0U}; i < num_nodes; ++i)
-    {
-        marks.at(i) = std::max(min_mark, uniform_distribution(random_number_generator_));
-    }
-
-    std::sort(marks.begin(), marks.end());
-
-    return marks;
 }
 
 ConnectionList HypergraphModel::generate_connections(
@@ -106,17 +63,46 @@ ConnectionList HypergraphModel::generate_connections(
     return connections;
 }
 
+RectangleList HypergraphModel::create_rectangles(const PointList &points, const float exponent) const
+{
+    const auto n_points{points.size()};
+    RectangleList rectangles{};
+    const auto points_per_rectangle{std::max(100., std::pow(n_points, 0.5))};
+    const auto space_size{determine_space_size(points)};
+    const auto area{points_per_rectangle / n_points * space_size};
+
+    auto bottom{0.0};
+    while (bottom < 1.)
+    {
+        auto width{std::min(1., std::pow(bottom, -exponent))};
+        const auto height{std::min(area / width, 1. - bottom)};
+        width = area / height; // adjust width to match the height if height is too large
+        const auto rectangles_in_row{std::ceil(1. / width)};
+        width = space_size / rectangles_in_row; // adjust width to match the number of rectangles
+
+        for (auto i{0U}; i < rectangles_in_row; ++i)
+        {
+            const auto left{i * width - space_size / 2.};
+            auto rectangle{Rectangle(bottom, bottom + height, left, left + width)};
+            rectangles.push_back(std::move(rectangle));
+        }
+        bottom += height;
+    }
+    fill_rectangles(rectangles, points);
+    return rectangles;
+}
+
 ConnectionList HypergraphModel::calc_connected_point_pairs(
     const Rectangle &vertex_rectangle,
     const Rectangle &interaction_rectangle) const
 {
-    std::mutex mutex{};
-    ConnectionList connections{};
     if (!connects(vertex_rectangle, interaction_rectangle))
     {
-        return connections;
+        return ConnectionList{};
     }
 
+    std::mutex mutex{};
+    ConnectionList connections{};
     std::for_each(
         execution_policy,
         vertex_rectangle.points().begin(),
@@ -136,22 +122,12 @@ ConnectionList HypergraphModel::calc_connected_point_pairs(
     return connections;
 }
 
-float HypergraphModel::determine_network_size(const PointList &points) const
-{
-    Position max_position{0.};
-    for (const auto &point : points)
-    {
-        max_position = std::max(max_position, Position(fabs(point.position())));
-    }
-    return 2. * max_position;
-}
-
 bool HypergraphModel::connects(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const
 {
     // assumption: no rectangles can wrap around the torus boundaries
     if (vertex_rectangle.left() <= interaction_rectangle.right() && interaction_rectangle.left() <= vertex_rectangle.right())
     {
-        // the distance is 0 if the intervals overlap if (distance < max_distance)
+        // the distance is 0 if the intervals overlap
         return true;
     }
 
@@ -172,8 +148,25 @@ bool HypergraphModel::connects(const Rectangle &vertex_rectangle, const Rectangl
 bool HypergraphModel::connects(const Point &vertex, const Point &interaction) const
 {
     const auto d{distance(vertex, interaction)};
-    const auto max_distance_of_connection{beta() * std::pow(vertex.mark(), gamma()) * std::pow(vertex.mark(), gamma_prime())};
+    const auto max_distance_of_connection{beta() * std::pow(vertex.mark(), -gamma()) * std::pow(interaction.mark(), -gamma_prime())};
     return d < max_distance_of_connection;
+}
+
+SimplexList HypergraphModel::create_simplices_from_connections(const ConnectionList &connections) const
+{
+    std::map<PointId, std::vector<PointId>> interactions;
+    for (const auto &pair : connections)
+    {
+        interactions[pair.second].push_back(pair.first);
+    }
+
+    SimplexList simplices{};
+    for (const auto &interaction : interactions)
+    {
+        simplices.push_back(Simplex{interaction.second});
+    }
+
+    return simplices;
 }
 
 Dimension HypergraphModel::max_dimension() const

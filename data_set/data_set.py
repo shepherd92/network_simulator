@@ -5,6 +5,8 @@ from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
 
+# pylint: disable-next=no-name-in-module
+from cpp_modules.build.cpp_plugin import FiniteNetwork as CppFiniteNetwork
 from network.finite_network import FiniteNetwork
 from network.property import DerivedNetworkProperty
 from tools.logging_helper import log_function_name
@@ -38,8 +40,9 @@ class DataSet(FiniteNetwork):
         self._read_data()
         vertices = self._get_vertices() if self._get_vertices() is not None else []
         interactions = self._get_interactions()
+        cpp_network = CppFiniteNetwork(data_set_properties.max_dimension, vertices, interactions)
 
-        super().__init__(data_set_properties.max_dimension, vertices, interactions)
+        super().__init__(cpp_network)
         self.reduce_to_component(self._data_set_properties.component_index_from_largest)
 
     @log_function_name

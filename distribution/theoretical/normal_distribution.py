@@ -62,7 +62,7 @@ class NormalDistribution(TheoreticalDistribution):
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         return {
-            'distribution_type': 'poisson',
+            'distribution_type': 'normal',
             'valid': self.valid,
             'domain': self.domain,
             'mean': self.parameters.mean,
@@ -80,16 +80,16 @@ class NormalDistribution(TheoreticalDistribution):
     def _fit_parameters(
         self,
         empirical_distribution: EmpiricalDistribution,
-        fitting_parameters: ParameterFitting,
+        parameter_fitting_parameters: ParameterFitting,
     ) -> None:
         """Estimate the parameters of the normal distribution."""
         Method = NormalDistribution.ParameterFitting.Method
-        if fitting_parameters.method == Method.MAXIMUM_LIKELIHOOD:
-            self._parameters = self._fit_maximum_likelihood(empirical_distribution, fitting_parameters)
-        elif fitting_parameters.method == Method.MATCH_QUANTILE:
-            self._parameters = self._fit_match_quantile(empirical_distribution, fitting_parameters)
+        if parameter_fitting_parameters.method == Method.MAXIMUM_LIKELIHOOD:
+            self._parameters = self._fit_maximum_likelihood(empirical_distribution, parameter_fitting_parameters)
+        elif parameter_fitting_parameters.method == Method.MATCH_QUANTILE:
+            self._parameters = self._fit_match_quantile(empirical_distribution, parameter_fitting_parameters)
         else:
-            assert False, f'Unknown fitting method: {fitting_parameters.method}.'
+            assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
         if np.isclose(self._parameters.std, 0.):
             warning('Normal distribution fitting is invalid as data has 0 standard deviation.')

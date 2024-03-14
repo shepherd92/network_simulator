@@ -24,11 +24,10 @@ from tools.logging_helper import log_function_name
 class FiniteNetwork(Network):
     """Base class representing a data set or a simulated finite network."""
 
-    def __init__(self, max_dimension: int, vertices: list[int], interactions: list[list[int]]) -> None:
+    def __init__(self, cpp_network: CppFiniteNetwork) -> None:
         """Construct an empty network."""
         super().__init__()
-        assert isinstance(max_dimension, int)
-        self._cpp_network = CppFiniteNetwork(max_dimension, vertices, interactions)
+        self._cpp_network = cpp_network
         self._components: list[FiniteNetwork] | None = None
 
     @log_function_name
@@ -38,7 +37,8 @@ class FiniteNetwork(Network):
             return self
         vertices_in_component = self._get_vertices_in_components()[component_index]
         interactions_in_component = filter_simplices(self.interactions, vertices_in_component)
-        return FiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
+        cpp_network = CppFiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
+        return FiniteNetwork(cpp_network)
 
     @log_function_name
     def reduce_to_component(self, component_index: int) -> None:
@@ -84,7 +84,7 @@ class FiniteNetwork(Network):
     def collapse(self) -> FiniteNetwork:
         """Collapse edges of the simplicial complex preserving its 1 homology."""
         debug(f'Collapsing network, containing currently: {self.num_simplices(0)} vertices.')
-        collapsed_network = FiniteNetwork(self.max_dimension, self.vertices, self.interactions)
+        collapsed_network = FiniteNetwork(self.cpp_network)
         collapsed_network.cpp_network.collapse()
         collapsed_network.expand()
         debug(f'Collapsed containing {collapsed_network.num_simplices(0)} vertices.')
@@ -153,7 +153,7 @@ class FiniteNetwork(Network):
 
         return property_value
 
-    def get_info_as_dict(self) -> dict[str, Any]:
+    def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         return {
             'num_of_vertices': self.num_simplices(0),
@@ -200,12 +200,7 @@ class FiniteNetwork(Network):
         neighbor_dimension = simplex_dimension + 1 if neighbor_dimension is None else neighbor_dimension
         assert neighbor_dimension > simplex_dimension
 
-        if simplex_dimension == 0 and neighbor_dimension == 1:
-            # ordinry degrees are faster to extract from the networkx package
-            simplex_degrees = self.graph.degree()
-            degree_sequence = sorted((degree for _, degree in simplex_degrees), reverse=True)
-        else:
-            degree_sequence = self._calc_degree_sequence(simplex_dimension, neighbor_dimension)
+        degree_sequence = self._calc_degree_sequence(simplex_dimension, neighbor_dimension)
 
         return EmpiricalDistribution(degree_sequence)
 
@@ -262,15 +257,18 @@ class FiniteNetwork(Network):
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
 
-        num_simplices = self.num_simplices(simplex_dimension)
         degree_sequence: list[int] = []
-        for part in self.get_partition(10000):
-            degree_sequence_of_part = \
-                part.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
-            degree_sequence.extend(degree_sequence_of_part)
-
-        remaining_simplices = num_simplices - len(degree_sequence)
-        degree_sequence.extend([0] * remaining_simplices)
+        calculate_partitionwise = False
+        if calculate_partitionwise:
+            num_simplices = self.num_simplices(simplex_dimension)
+            for part in self.get_partition(10000):
+                degree_sequence_of_part = \
+                    part.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+                degree_sequence.extend(degree_sequence_of_part)
+            remaining_simplices = num_simplices - len(degree_sequence)
+            degree_sequence.extend([0] * remaining_simplices)
+        else:
+            degree_sequence = self.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
 
         return sorted(degree_sequence)
 
@@ -289,7 +287,8 @@ class FiniteNetwork(Network):
             vertices_in_part.extend(vertices_in_component)
             if len(vertices_in_part) >= min_vertices_in_part:
                 interactions_in_partition = filter_simplices(interactions, vertices_in_part)
-                partitions.append(FiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition))
+                cpp_network = CppFiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition)
+                partitions.append(FiniteNetwork(cpp_network))
                 vertices_in_part = []
 
         # k_cliques = list(nx.community.k_clique_communities(self.graph, max_intersecting_simplex_dimension))
@@ -303,7 +302,8 @@ class FiniteNetwork(Network):
 
         if len(vertices_in_part) > 0:
             interactions_in_partition = filter_simplices(interactions, vertices_in_part)
-            partitions.append(FiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition))
+            cpp_network = CppFiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition)
+            partitions.append(FiniteNetwork(cpp_network))
 
         return partitions
 
@@ -315,17 +315,7 @@ class FiniteNetwork(Network):
         return self._components
 
     def _calc_components(self) -> None:
-        components: list[FiniteNetwork] = []
-        vertices_in_components = self._get_vertices_in_components()
-        interactions = self.interactions  # not to convert interactions any more
-        for vertices_in_component in vertices_in_components:
-            print(f'vertices: {len(vertices_in_component)}', end=' ')
-            interactions_in_component = filter_simplices(interactions, vertices_in_component)
-            component = FiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
-            component.graph = self.graph.subgraph(vertices_in_component)
-            components.append(component)
-            print('done')
-        self._components = components
+        self._components = self.get_partition(1)
 
     @log_function_name
     def _num_edges(self) -> int:

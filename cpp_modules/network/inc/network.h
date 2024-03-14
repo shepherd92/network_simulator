@@ -82,7 +82,7 @@ private:
 
     virtual SimplexHandleList get_simplices() = 0;
     virtual SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) = 0;
-    virtual SimplexList get_skeleton_interactions(const Dimension max_dimension) = 0;
+    virtual SimplexList get_faces_interactions(const Dimension max_dimension) = 0;
 
     template <typename Iterator>
     ISimplexList convert_to_raw_simplices(const Iterator &simplex_range);

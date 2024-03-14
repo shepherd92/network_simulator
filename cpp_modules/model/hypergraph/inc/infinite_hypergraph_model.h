@@ -2,21 +2,19 @@
 #define _INFINITE_HYPERGRAPH_MODEL_H_
 
 #include "hypergraph_model.h"
+#include "infinite_model.h"
 
 class InfiniteNetwork;
 
-class InfiniteHypergraphModel : public HypergraphModel
+class InfiniteHypergraphModel : public InfiniteModel, public HypergraphModel
 {
 public:
     InfiniteHypergraphModel(const py::array_t<double> &parameters_in, const uint32_t seed);
-    std::vector<InfiniteNetwork> generate_networks(const uint32_t num_of_networks) const;
-    InfiniteNetwork generate_network() const;
+
+protected:
+    InfiniteNetwork generate_network() const override;
 
 private:
-    NetworkInterface generate_finite_network_interface(
-        const py::array_t<double> &model_parameters_input,
-        const uint32_t seed);
-
     PointList create_interactions(const Mark u) const;
     PointList create_points(const size_t num_of_nodes, const float exponent) const;
     PointList create_vertices(const PointList &interactions) const;
@@ -32,8 +30,6 @@ private:
         const MarkList &marks,
         const float exponent_of_central_point,
         const float exponent_of_points_in_neighborhood) const;
-
-    float distance(const Point &first, const Point &second) const override;
 };
 
 #endif

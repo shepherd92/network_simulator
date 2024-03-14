@@ -22,7 +22,7 @@ public:
 
 private:
     SimplexHandleList get_simplices() override;
-    SimplexList get_skeleton_interactions(const Dimension max_dimension) override;
+    SimplexList get_faces_interactions(const Dimension max_dimension) override;
     SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) override;
     PointId typical_vertex_id_;
 };

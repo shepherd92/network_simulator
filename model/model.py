@@ -86,16 +86,16 @@ class Model:
         """Generate a set of "infinite" networks."""
         raise NotImplementedError
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the model properties."""
         return {
-            'num_of_nodes': self.parameters.network_size,
+            'network_size': self.parameters.network_size,
             'max_dimension': self.parameters.max_dimension,
         }
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        information = self.get_info_as_dict()
+        information = self.info()
         data_frame = pd.DataFrame(information, index=[0])
         data_frame.to_csv(save_path, index=False)
 
@@ -236,3 +236,10 @@ class Model:
     def parameters_type(self) -> type:
         """Return the model parameters type."""
         return self.Parameters
+
+    def __str__(self) -> str:
+        """Return a string representation based on the network properties."""
+        return '\n'.join([
+            f'{key}: {item}'
+            for key, item in self.info().items()
+        ])

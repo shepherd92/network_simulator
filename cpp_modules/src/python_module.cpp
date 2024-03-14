@@ -1,9 +1,11 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "finite_model.h"
+#include "finite_adrcm_model.h"
+#include "finite_hypergraph_model.h"
 #include "finite_network.h"
-#include "infinite_model.h"
+#include "infinite_adrcm_model.h"
+#include "infinite_hypergraph_model.h"
 #include "infinite_network.h"
 
 PYBIND11_MODULE(cpp_plugin, m)
@@ -13,6 +15,14 @@ PYBIND11_MODULE(cpp_plugin, m)
     m.def("filter_simplices",
           &filter_simplices_interface,
           "Filter simplices based on vertices to keep.");
+
+    py::class_<FiniteAdrcmModel>(m, "FiniteAdrcmModel")
+        .def(py::init<const py::array_t<double> &, const uint32_t>())
+        .def("generate_network", &FiniteAdrcmModel::generate_network);
+
+    py::class_<InfiniteAdrcmModel>(m, "InfiniteAdrcmModel")
+        .def(py::init<const py::array_t<double> &, const uint32_t>())
+        .def("generate_networks", &InfiniteAdrcmModel::generate_networks);
 
     py::class_<FiniteHypergraphModel>(m, "FiniteHypergraphModel")
         .def(py::init<const py::array_t<double> &, const uint32_t>())

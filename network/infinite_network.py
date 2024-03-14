@@ -69,11 +69,11 @@ class InfiniteNetworkSet:
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        information = self.get_info_as_dict()
+        information = self.info()
         data_frame = pd.DataFrame(information, index=[0])
         data_frame.to_csv(save_path, index=False)
 
-    def get_info_as_dict(self) -> dict[str, Any]:
+    def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         return {
             'num_of_networks': len(self._infinite_networks),
@@ -85,11 +85,10 @@ class InfiniteNetworkSet:
 class InfiniteNetwork(Network):
     """Represent an "infinite network" in which network size effects do not play a role."""
 
-    def __init__(self, max_dimension: int, vertices: list[int], interactions: list[list[int]]) -> None:
+    def __init__(self, cpp_network: CppInfiniteNetwork) -> None:
         """Construct an empty network."""
         super().__init__()
-        assert isinstance(max_dimension, int)
-        self._cpp_network = CppInfiniteNetwork(max_dimension, vertices, interactions, 0)
+        self._cpp_network = cpp_network
 
     def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
         """Return a base property of the network.
@@ -120,7 +119,7 @@ class InfiniteNetwork(Network):
         """Return the number of edges in the graph."""
         return self.graph.degree(0)
 
-    def get_info_as_dict(self) -> dict[str, Any]:
+    def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         raise NotImplementedError('This method is not implemented.')
 

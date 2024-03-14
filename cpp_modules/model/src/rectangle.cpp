@@ -3,7 +3,7 @@
 #include <iostream>
 #include <mutex>
 
-#include "hg_point.h"
+#include "point.h"
 #include "rectangle.h"
 #include "tools.h"
 #include "typedefs.h"
@@ -27,8 +27,6 @@ Rectangle::Rectangle(Rectangle &&other)
       top_mark_(other.top_mark_),
       left_position_(other.left_position_),
       right_position_(other.right_position_),
-      exponent_(other.exponent_),
-      bottom_to_minus_exponent_(other.bottom_to_minus_exponent_),
       points_(std::move(other.points_))
 {
 }
@@ -37,13 +35,6 @@ void Rectangle::add_point(const Point &point)
 {
     std::lock_guard<std::mutex> lock_guard(mutex);
     points_.push_back(point);
-}
-
-void Rectangle::set_exponent(const float exponent)
-{
-    std::lock_guard<std::mutex> lock_guard(mutex);
-    exponent_ = exponent;
-    bottom_to_minus_exponent_ = std::pow(bottom_mark_, exponent_);
 }
 
 bool Rectangle::contains(const Point &point) const
@@ -72,16 +63,6 @@ const Position &Rectangle::left() const
 const Position &Rectangle::right() const
 {
     return right_position_;
-}
-
-const float &Rectangle::exponent() const
-{
-    return exponent_;
-}
-
-const float &Rectangle::bottom_to_minus_exponent() const
-{
-    return bottom_to_minus_exponent_;
 }
 
 const PointList &Rectangle::points() const

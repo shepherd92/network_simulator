@@ -91,13 +91,13 @@ class Network:
 
         return self.graph.subgraph(components[component_index]).number_of_nodes()
 
-    def get_info_as_dict(self) -> dict[str, Any]:
+    def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         raise NotImplementedError
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        info = self.get_info_as_dict()
+        info = self.info()
         data_frame = pd.DataFrame(info, index=[0])
         data_frame.to_csv(save_path, index=False)
 
@@ -262,5 +262,5 @@ class Network:
         """Return a string representation based on the network properties."""
         return '\n'.join([
             f'{key}: {item}'
-            for key, item in self.get_info_as_dict().items()
+            for key, item in self.info().items()
         ])

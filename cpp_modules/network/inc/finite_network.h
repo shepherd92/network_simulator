@@ -29,7 +29,7 @@ private:
     void add_simplices(const SimplexList &simplices) override;
     SimplexHandleList get_simplices() override;
 
-    SimplexList get_skeleton_interactions(const Dimension max_dimension) override;
+    SimplexList get_faces_interactions(const Dimension max_dimension) override;
     SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) override;
 
     void reset_simplicial_complex() override;

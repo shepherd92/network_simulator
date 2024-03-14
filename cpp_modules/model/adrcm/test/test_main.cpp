@@ -4,14 +4,13 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include "connection_generator.h"
 #include "numpy_cpp_conversion.h"
 
 namespace py = pybind11;
 
 int main()
 {
-    const auto seed{0U};
+    // const auto seed{0U};
 
     const auto max_dimension{3U};
     const auto network_size{10000U};
@@ -33,6 +32,5 @@ int main()
         torus_size_in_1_dimension};
 
     const auto model_parameters{to_numpy(model_params_vector)};
-    const auto connections{generate_finite_network_connections_interface(model_parameters, seed)};
     return 0;
 }

@@ -140,9 +140,9 @@ uint32_t FiniteNetwork::num_simplices()
     return simplex_tree_->num_simplices();
 }
 
-SimplexList FiniteNetwork::get_skeleton_interactions(const Dimension max_dimension)
+SimplexList FiniteNetwork::get_faces_interactions(const Dimension max_dimension)
 {
-    return get_skeleton_simplices(interactions_, max_dimension);
+    return get_faces_simplices(interactions_, max_dimension);
 }
 
 SimplexList FiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_dimension)

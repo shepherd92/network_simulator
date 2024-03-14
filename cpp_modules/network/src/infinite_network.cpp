@@ -37,10 +37,10 @@ Network::SimplexHandleList InfiniteNetwork::get_simplices()
     return simplex_tree_->cofaces_simplex_range(typical_vertex_handle, 0U);
 }
 
-SimplexList InfiniteNetwork::get_skeleton_interactions(const Dimension max_dimension)
+SimplexList InfiniteNetwork::get_faces_interactions(const Dimension max_dimension)
 {
     SimplexList simplices_contatining_typical_vertex{};
-    const auto simplices{get_skeleton_simplices(interactions_, max_dimension)};
+    const auto simplices{get_faces_simplices(interactions_, max_dimension)};
     std::mutex mutex{};
     std::for_each(
         execution_policy,
@@ -48,8 +48,7 @@ SimplexList InfiniteNetwork::get_skeleton_interactions(const Dimension max_dimen
         simplices.end(),
         [&](const auto &simplex)
         {
-            const auto vertices{simplex.vertices()};
-            if (std::find(vertices.begin(), vertices.end(), typical_vertex_id_) != vertices.end())
+            if (Simplex{PointIdList{typical_vertex_id_}}.is_face(simplex))
             {
                 std::lock_guard<std::mutex> lock{mutex};
                 simplices_contatining_typical_vertex.push_back(simplex);
