@@ -523,6 +523,11 @@ def plot_value_counts(
     # markerline, _, _ = axes.stem(value_counts[:, 0], value_counts[:, 1])
     # plt.setp(markerline, markersize=5)
     axes.scatter(value_counts[:, 0], value_counts[:, 1])
+    _set_linear_scale_limits(
+        x_values=value_counts[:, 0],
+        y_values=value_counts[:, 1],
+        axes=axes
+    )
     axes.set_xlabel('Index')
     axes.set_ylabel('Value')
     return value_counts

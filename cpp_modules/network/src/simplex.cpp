@@ -22,6 +22,7 @@ std::size_t SimplexHash::operator()(const Simplex &simplex) const
 Simplex::Simplex(const PointIdList &vertices)
     : vertices_{vertices}
 {
+    assert(!vertices_.empty());
     std::sort(vertices_.begin(), vertices_.end());
     for (const auto &vertex_id : vertices_)
     {
@@ -63,20 +64,26 @@ Dimension Simplex::dimension() const
     return vertices_.size() - 1;
 }
 
-SimplexList Simplex::get_faces(const Dimension max_dimension) const
+SimplexList Simplex::skeleton(const Dimension max_dimension) const
 {
-    if (!is_valid())
+    SimplexList result{};
+    for (Dimension dimension{0}; dimension <= max_dimension; ++dimension)
+    {
+        const auto faces_{faces(dimension)};
+        std::copy(faces_.begin(), faces_.end(), std::back_inserter(result));
+    }
+    return result;
+}
+
+SimplexList Simplex::faces(const Dimension max_dimension) const
+{
+    if (dimension() <= max_dimension)
     {
         return SimplexList{};
     }
 
-    if (dimension() <= max_dimension)
-    {
-        return SimplexList{*this};
-    }
     PointIdList current_combination(max_dimension + 1U);
     SimplexList result{};
-
     combination_util(max_dimension, 0U, result, current_combination, 0U);
     return result;
 }
@@ -136,6 +143,19 @@ ISimplexList create_raw_simplices(const SimplexList &simplices_in)
     return simplices;
 }
 
+SimplexList get_skeleton_simplices(const SimplexList &simplices, const Dimension max_dimension)
+{
+    SimplexList skeleton_simplices{};
+    std::mutex mutex{};
+
+    for (Dimension dimension{0}; dimension <= max_dimension; ++dimension)
+    {
+        const auto faces{get_faces_simplices(simplices, dimension)};
+        std::copy(faces.begin(), faces.end(), std::back_inserter(skeleton_simplices));
+    }
+    return skeleton_simplices;
+}
+
 SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension dimension)
 {
     SimplexSet faces_set{};
@@ -147,12 +167,9 @@ SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension di
         simplices.end(),
         [&](const auto &simplex)
         {
-            if (simplex.is_valid())
-            {
-                const auto faces{simplex.get_faces(dimension)};
-                std::lock_guard<std::mutex> lock(mutex);
-                std::copy(faces.begin(), faces.end(), std::inserter(faces_set, faces_set.end()));
-            }
+            const auto faces{simplex.faces(dimension)};
+            std::lock_guard<std::mutex> lock(mutex);
+            std::copy(faces.begin(), faces.end(), std::inserter(faces_set, faces_set.end()));
         });
 
     SimplexList faces{};
@@ -164,6 +181,21 @@ SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension di
 
     sort_simplices(faces, true);
     return faces;
+}
+
+SimplexList get_cofaces_simplices(const SimplexList &simplices_in, const Simplex &simplex)
+{
+    SimplexList cofaces{};
+
+    std::copy_if(
+        execution_policy,
+        simplices_in.begin(),
+        simplices_in.end(),
+        std::back_inserter(cofaces),
+        [&](const auto &other_simplex)
+        { return simplex.is_face(other_simplex); });
+
+    return cofaces;
 }
 
 SimplexList select_simplices_by_dimension(const SimplexList &simplices, const Dimension dimension)
@@ -187,6 +219,7 @@ SimplexList select_higher_dimensional_simplices(const SimplexList &simplices, co
                  [min_dimension](const Simplex &simplex)
                  { return simplex.dimension() >= min_dimension; });
 
+    sort_simplices(selected_simplices, true);
     return selected_simplices;
 }
 
@@ -210,11 +243,6 @@ std::vector<Dimension> calc_dimension_distribution(const ISimplexList &simplices
 {
     const auto simplices{create_simplices(simplices_in)};
     return calc_dimension_distribution(simplices);
-}
-
-ISimplexList filter_simplices_interface(const ISimplexList &simplices, const PointIdList &vertices_to_keep)
-{
-    return create_raw_simplices(filter_simplices(create_simplices(simplices), vertices_to_keep));
 }
 
 SimplexList filter_simplices(const SimplexList &simplices, const PointIdList &vertices_to_keep)

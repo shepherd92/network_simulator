@@ -12,88 +12,48 @@ class Network
 public:
     Network(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions);
 
-    void assert_simplicial_complex_is_built();
-    void create_simplicial_complex();
     Dimension get_max_dimension() const;
     void set_max_dimension(const Dimension dimension);
-    virtual uint32_t num_simplices() = 0;
+    uint32_t num_simplices();
 
-    void keep_only_vertices(const PointIdList &vertices);
-    void reset();
+    virtual void reset();
 
     std::vector<Dimension> calc_simplex_dimension_distribution();
     std::vector<Dimension> calc_facet_dimension_distribution();
-    std::vector<Dimension> calc_interaction_dimension_distribution();
+    std::vector<Dimension> calc_interaction_dimension_distribution() const;
+    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const;
 
     std::vector<uint32_t> calc_degree_sequence(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension);
 
-    ISimplexList get_skeleton_interface(const Dimension max_dimension);
-    virtual void expand();
-
-    uint32_t num_vertices();
-    const PointIdList &get_vertices_interface() const;
-    void set_vertices(const PointIdList &vertices);
-
+    virtual PointIdList get_vertices() const = 0;
     ISimplexList get_interactions_interface() const;
-    void set_interactions(const ISimplexList &interactions);
-
     ISimplexList get_facets_interface();
     ISimplexList get_simplices_interface();
+    ISimplexList get_skeleton_interface(const Dimension max_dimension);
+
+    uint32_t num_vertices();
+    void set_vertices(const PointIdList &vertices);
+
+    void set_interactions(const ISimplexList &interactions);
 
 protected:
-    struct SimplexTreeOptions
-    {
-        typedef Gudhi::linear_indexing_tag Indexing_tag;
-        typedef int Vertex_handle;
-        typedef float Filtration_value;
-        typedef uint32_t Simplex_key;
-        static const bool store_key = true;
-        static const bool store_filtration = false;
-        static const bool contiguous_vertices = false;
-    };
-
-    using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
-    using SimplexHandle = SimplexTree::Simplex_handle;
-    using SimplexHandleList = std::vector<SimplexHandle>;
-
-    virtual void add_simplices(const SimplexList &simplices);
-    virtual void add_vertices(const PointIdList &vertices);
-    PointIdList get_vertices(const SimplexHandle &simplex_handle);
-    void calc_facets();
-
-    virtual void reset_simplicial_complex();
-
+    void keep_only_vertices(const PointIdList &vertices);
     SimplexList get_skeleton(const Dimension max_dimension);
 
     const SimplexList &get_interactions() const;
     const SimplexList &get_facets();
+    SimplexList get_simplices();
+    virtual SimplexList get_simplices(const Dimension dimension) = 0;
 
     Dimension max_dimension_;
     PointIdList vertices_;
     SimplexList interactions_;
     std::optional<SimplexList> facets_;
-    std::optional<SimplexTree> simplex_tree_;
 
 private:
-    bool is_valid() const;
-    void initialize_simplicial_complex_if_needed();
-
-    virtual SimplexHandleList get_simplices() = 0;
-    virtual SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) = 0;
-    virtual SimplexList get_faces_interactions(const Dimension max_dimension) = 0;
-
-    template <typename Iterator>
-    ISimplexList convert_to_raw_simplices(const Iterator &simplex_range);
-
-    std::vector<uint32_t> calc_degree_sequence_interactions(
-        const Dimension simplex_dimension,
-        const Dimension neighbor_dimension);
-    std::vector<uint32_t> calc_degree_sequence_simplicial_complex(
-        const Dimension simplex_dimension,
-        const Dimension neighbor_dimension);
-
+    SimplexList calc_facets() const;
     void filter_facets(const PointIdList &vertices);
 };
 

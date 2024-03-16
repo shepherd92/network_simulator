@@ -187,6 +187,8 @@ def main(mode: Mode, configuration: Configuration) -> None:
     else:
         raise NotImplementedError('Unknown mode.')
 
+    print('\nDone.')
+
 
 def data_set_required(mode: Mode, configuration: Configuration) -> bool:
     """Check if loading of a data set is required."""

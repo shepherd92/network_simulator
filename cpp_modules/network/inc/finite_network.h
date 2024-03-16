@@ -12,30 +12,49 @@ class FiniteNetwork : public Network
 public:
     FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions);
     FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions);
+    FiniteNetwork(const FiniteNetwork &other);
     ~FiniteNetwork();
-    FiniteNetwork get_filtered_network(const PointIdList &vertices) const;
+    void create_simplicial_complex();
 
-    void add_vertices(const PointIdList &vertices) override;
-    void expand() override;
+    FiniteNetwork filter(const PointIdList &vertices) const;
+    void expand();
+    void reset() override;
 
-    uint32_t num_simplices() override;
-    std::vector<ISimplexList> calc_persistence_pairs();
+    PointIdList get_vertices() const override;
     std::vector<int32_t> calc_betti_numbers();
+    std::vector<ISimplexList> calc_persistence_pairs();
 
 private:
+    struct SimplexTreeOptions
+    {
+        typedef Gudhi::linear_indexing_tag Indexing_tag;
+        typedef int Vertex_handle;
+        typedef float Filtration_value;
+        typedef uint32_t Simplex_key;
+        static const bool store_key = true;
+        static const bool store_filtration = false;
+        static const bool contiguous_vertices = false;
+    };
+    using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
+    using SimplexHandle = SimplexTree::Simplex_handle;
+    using SimplexHandleList = std::vector<SimplexHandle>;
     using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
     using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
-    void add_simplices(const SimplexList &simplices) override;
-    SimplexHandleList get_simplices() override;
+    SimplexList get_simplices(const Dimension dimension) override;
 
-    SimplexList get_faces_interactions(const Dimension max_dimension) override;
-    SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) override;
-
-    void reset_simplicial_complex() override;
+    void calc_persistent_cohomology();
+    bool is_valid() const;
+    void assert_simplicial_complex_is_initialized();
+    void assert_simplicial_complex_is_built();
+    void add_vertices(const PointIdList &vertices);
+    PointIdList get_simplex_vertices(const SimplexHandle &simplex_handle);
+    void add_simplices(const SimplexList &simplices);
+    void reset_simplicial_complex();
     void reset_persistence();
     const PersistentCohomology &get_persistence();
-    void calc_persistent_cohomology();
+
+    std::optional<SimplexTree> simplex_tree_;
 
     PersistentCohomology *persistent_cohomology_;
 };

@@ -21,8 +21,6 @@ InfiniteHypergraphModel::InfiniteHypergraphModel(const py::array_t<double> &para
 InfiniteNetwork InfiniteHypergraphModel::generate_network() const
 {
     std::uniform_real_distribution<Mark> mark_distribution(0., 1.);
-    NetworkListInterface result{};
-
     const auto u{mark_distribution(random_number_generator_)}; // mark of the typical node
 
     const auto interactions{create_interactions(u)};

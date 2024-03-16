@@ -9,7 +9,7 @@ from logging import info
 import numpy as np
 import numpy.typing as npt
 from scipy import integrate
-from scipy.optimize import least_squares
+from scipy.optimize import brute
 
 # pylint: disable-next=no-name-in-module
 from cpp_modules.build.cpp_plugin import (  # type: ignore
@@ -75,43 +75,43 @@ class HypergraphModel(Model):
 
         num_of_edges = average_vertex_interaction_degree * num_of_vertices
 
-        # x[0] = network_size
-        # x[1] = interaction_intensity
-        # x[2] = beta
-        def system_of_equations(x):
-            def vertex_correction_factor_helper(y: float) -> float:
-                """Function to integrate."""
-                return np.exp(- 2. * x[2] / (1 - gamma_prime) * (y ** (-gamma)))
+        def system_of_equations(x: npt.NDArray[np.float_]) -> float:
+            network_size = x[0]
+            interaction_intensity = x[1]
 
-            def interaction_correction_factor_helper(y: float) -> float:
-                """Function to integrate."""
-                return np.exp(- 2. * x[2] / (1 - gamma) * (y ** (-gamma_prime)))
+            print(f'Trying network_size = {network_size}, interaction_intensity = {interaction_intensity}')
 
-            vertex_correction_factor_integral = integrate.quad(vertex_correction_factor_helper, 0., 1.)[0]
-            interaction_correction_factor_integral = integrate.quad(interaction_correction_factor_helper, 0., 1.)[0]
+            beta = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (network_size * interaction_intensity)
 
-            equation_num_of_edges = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (x[1] * x[0]) - x[2]
-            equation_num_of_vertices = num_of_vertices - x[0] * (1. - vertex_correction_factor_integral)
-            equation_num_of_interactions = num_of_interactions - x[1] * (1. - interaction_correction_factor_integral)
+            def integrand(y: float, lambda_prime: float, g: float, g_prime: float) -> float:
+                return np.exp(-2. * beta * lambda_prime / (1. - g_prime) * y**(-g))
+            vertex_correction_integral = integrate.quad(
+                integrand, 0., 1., args=(interaction_intensity, gamma, gamma_prime))[0]
+            interaction_correction_integral = integrate.quad(
+                integrand, 0., 1., args=(network_size, gamma_prime, gamma))[0]
 
-            return [equation_num_of_edges, equation_num_of_vertices, equation_num_of_interactions,]
+            num_vertices_error = num_of_vertices - network_size * (1. - vertex_correction_integral)
+            num_interactions_error = num_of_interactions - interaction_intensity * (1. - interaction_correction_integral)
 
-        beta_initial_guess = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (num_of_interactions * num_of_vertices)
+            return num_vertices_error**2 + num_interactions_error**2
 
-        network_size, interaction_intensity, beta = least_squares(
+        network_size, interaction_intensity = brute(
             system_of_equations,
-            (num_of_vertices, num_of_interactions, beta_initial_guess),
-            bounds=(
-                (num_of_vertices / 2, num_of_interactions / 2, beta_initial_guess / 2),
-                (num_of_vertices * 2, num_of_interactions * 2, beta_initial_guess * 2),
-            )
+            ranges=(
+                (num_of_vertices / 2., num_of_vertices * 2.),
+                (num_of_interactions / 2., num_of_interactions * 2.),
+            ),
+            Ns=100,
+            workers=1,
         )
+        # network_size, interaction_intensity = num_of_vertices, num_of_interactions
+        beta_guess = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (interaction_intensity * network_size)
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension
         self._parameters.network_size = network_size
         self._parameters.interaction_intensity = interaction_intensity
-        self._parameters.beta = beta
+        self._parameters.beta = beta_guess
         self._parameters.gamma = gamma
         self._parameters.gamma_prime = gamma_prime
         # pylint: enable=attribute-defined-outside-init

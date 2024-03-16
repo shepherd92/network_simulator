@@ -122,6 +122,7 @@ class Network:
     @log_function_name
     def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each vertex."""
+        self.cpp_network.calc_vertex_interaction_degree_distribution()
         vertices_in_interactions = np.array(list(chain(*self.interactions)))
         degree_sequence = np.unique(vertices_in_interactions, return_counts=True)[1]
 

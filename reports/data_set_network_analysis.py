@@ -338,11 +338,12 @@ def _report_interaction_degree_distribution(
 
 @check_calculated
 def _report_betti_numbers(
-    betti_numbers: npt.NDArray[np.int_],
+    betti_numbers: list[int],
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
     axes.set_title('Betti Numbers')
+    betti_numbers = np.c_[np.arange(len(betti_numbers)), np.array(betti_numbers)]
     plot_value_counts(betti_numbers, axes)
     pd.DataFrame(
         betti_numbers,
@@ -353,19 +354,18 @@ def _report_betti_numbers(
 
 @check_calculated
 def _report_betti_number_1_by_component(
-    betti_numbers_by_component: npt.NDArray[np.int_],
+    betti_numbers_by_component: list[list[int]],
     axes: plt.Axes,
     save_directory: Path
 ) -> None:
     axes.set_title('Betti Number 1 by Component')
-    if betti_numbers_by_component.shape[1] < 2:
-        print_not_calculated(axes)
-        return
 
-    values_to_plot = np.c_[
-        np.arange(betti_numbers_by_component.shape[0]),
-        betti_numbers_by_component[:, 1],
-    ]
+    betti_numbers_1 = np.array([
+        betti_numbers_in_component[1]
+        for betti_numbers_in_component in betti_numbers_by_component
+    ])
+
+    values_to_plot = np.c_[np.arange(len(betti_numbers_1)), betti_numbers_1,]
     plot_value_counts_log(values_to_plot, axes)
     data_frame = pd.DataFrame(
         betti_numbers_by_component,

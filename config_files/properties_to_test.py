@@ -21,6 +21,7 @@ from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
 SCALAR_PROPERTY_NAMES_TO_TEST = [
     'vertex_degree_exponent',
+    'num_of_isolated_vertices_normal_mle',
     'edge_degree_exponent',
     # 'triangle_degree_exponent',
     'average_interaction_degree_normal_mle',
@@ -119,6 +120,13 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         fitting_parameters=create_fitting_parameters_normal(),
         calculator_default=_get_mean,
         calculator_data_set=_get_mean,
+    ),
+    DerivedNetworkProperty(
+        name='num_of_isolated_vertices_normal_mle',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=create_fitting_parameters_normal(),
+        calculator_default=lambda degree_distribution: degree_distribution.calc_value_counts()[0, 1],
     ),
     DerivedNetworkProperty(
         name='num_of_edges_normal_mle',

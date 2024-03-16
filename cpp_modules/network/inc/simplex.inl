@@ -1,11 +1,6 @@
 #ifndef _SIMPLEX_INL_
 #define _SIMPLEX_INL_
 
-inline bool Simplex::is_valid() const
-{
-    return !vertices_.empty();
-}
-
 inline bool Simplex::is_face(const Simplex &other) const
 {
     if ((bloom_filter_ & other.bloom_filter()) != bloom_filter_)

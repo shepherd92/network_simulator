@@ -27,22 +27,20 @@ class Simplex;
 class SimplexHash;
 
 using PointList = std::vector<Point>;
+using PointId = int32_t;
+using PointIdList = std::vector<PointId>;
 using Mark = float;
 using MarkList = std::vector<Mark>;
 using Position = float;
 using PositionList = std::vector<Position>;
-using PointId = int32_t;
-using PointIdList = std::vector<PointId>;
+using MarkPosition = std::pair<Mark, Position>;
+using MarkPositionList = std::vector<MarkPosition>;
+
 using ISimplexList = std::vector<PointIdList>;
 using SimplexList = std::vector<Simplex>;
 using SimplexSet = std::unordered_set<Simplex, SimplexHash>;
 using RectangleList = std::vector<Rectangle>;
 using Connection = std::pair<PointId, PointId>;
 using ConnectionList = std::vector<Connection>;
-using MarkPosition = std::pair<Mark, Position>;
-using MarkPositionList = std::vector<MarkPosition>;
-
-typedef std::tuple<py::array_t<PointId>, py::array_t<Mark>, py::array_t<Position>> NetworkInterface;
-typedef std::vector<NetworkInterface> NetworkListInterface;
 
 #endif

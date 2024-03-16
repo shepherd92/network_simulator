@@ -2,15 +2,21 @@
 
 FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions)
     : Network{max_dimension, vertices, create_simplices(interactions)},
+      simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
 }
 
-FiniteNetwork::FiniteNetwork(
-    const Dimension max_dimension,
-    const PointIdList &vertices,
-    const SimplexList &interactions)
+FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions)
     : Network{max_dimension, vertices, interactions},
+      simplex_tree_{std::nullopt},
+      persistent_cohomology_{nullptr}
+{
+}
+
+FiniteNetwork::FiniteNetwork(const FiniteNetwork &other)
+    : Network{other},
+      simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
 }
@@ -20,15 +26,32 @@ FiniteNetwork::~FiniteNetwork()
     reset_persistence();
 }
 
-void FiniteNetwork::add_vertices(const PointIdList &vertices)
+PointIdList FiniteNetwork::get_vertices() const
 {
-    Network::add_vertices(vertices);
-    reset_persistence();
+    return vertices_;
+}
+
+SimplexList FiniteNetwork::get_simplices(const Dimension dimension)
+{
+    return get_faces_simplices(get_facets(), dimension);
+}
+
+FiniteNetwork FiniteNetwork::filter(const PointIdList &vertices) const
+{
+    FiniteNetwork result{*this};
+    result.keep_only_vertices(vertices);
+    return result;
+}
+
+void FiniteNetwork::reset()
+{
+    Network::reset();
+    reset_simplicial_complex();
 }
 
 void FiniteNetwork::reset_simplicial_complex()
 {
-    Network::reset_simplicial_complex();
+    simplex_tree_ = std::nullopt;
     reset_persistence();
 }
 
@@ -40,7 +63,8 @@ void FiniteNetwork::reset_persistence()
 
 void FiniteNetwork::expand()
 {
-    Network::expand();
+    assert_simplicial_complex_is_built();
+    simplex_tree_->expansion(max_dimension_ + 1U);
     reset_persistence();
 }
 
@@ -51,18 +75,6 @@ void FiniteNetwork::calc_persistent_cohomology()
     persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
     persistent_cohomology_->init_coefficients(2);
     persistent_cohomology_->compute_persistent_cohomology();
-}
-
-void FiniteNetwork::add_simplices(const SimplexList &simplices)
-{
-    Network::add_simplices(simplices);
-    reset_persistence();
-}
-
-Network::SimplexHandleList FiniteNetwork::get_simplices()
-{
-    assert_simplicial_complex_is_built();
-    return simplex_tree_->filtration_simplex_range();
 }
 
 const FiniteNetwork::PersistentCohomology &FiniteNetwork::get_persistence()
@@ -91,8 +103,8 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
         persistent_pairs.end(),
         [&](const auto &persistent_interval)
         {
-            PointIdList birth_simplex{get_vertices(std::get<0>(persistent_interval))};
-            PointIdList death_simplex{get_vertices(std::get<1>(persistent_interval))};
+            PointIdList birth_simplex{get_simplex_vertices(std::get<0>(persistent_interval))};
+            PointIdList death_simplex{get_simplex_vertices(std::get<1>(persistent_interval))};
             std::lock_guard<std::mutex> lock{mutex};
             if (++counter % 1000 == 0 && total > 10000U)
             {
@@ -107,13 +119,6 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
     }
 
     return result;
-}
-
-FiniteNetwork FiniteNetwork::get_filtered_network(const PointIdList &vertices) const
-{
-    const auto interactions{filter_simplices(interactions_, vertices)};
-    FiniteNetwork filtered_network{max_dimension_, vertices, interactions};
-    return filtered_network;
 }
 
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
@@ -134,31 +139,86 @@ std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
     return result;
 }
 
-uint32_t FiniteNetwork::num_simplices()
+void FiniteNetwork::assert_simplicial_complex_is_built()
 {
-    assert_simplicial_complex_is_built();
-    return simplex_tree_->num_simplices();
+    if (!is_valid())
+    {
+        create_simplicial_complex();
+    }
 }
 
-SimplexList FiniteNetwork::get_faces_interactions(const Dimension max_dimension)
+void FiniteNetwork::assert_simplicial_complex_is_initialized()
 {
-    return get_faces_simplices(interactions_, max_dimension);
+    if (!is_valid())
+    {
+        simplex_tree_ = SimplexTree{};
+    }
 }
 
-SimplexList FiniteNetwork::get_skeleton_simplicial_complex(const Dimension max_dimension)
+bool FiniteNetwork::is_valid() const
 {
-    assert_simplicial_complex_is_built();
-    const auto &simplices{simplex_tree_->skeleton_simplex_range(max_dimension)};
-    SimplexList skeleton_simplices{};
-    std::transform(
-        simplices.begin(),
-        simplices.end(),
-        std::back_inserter(skeleton_simplices),
-        [this](const auto &simplex_handle)
+    return simplex_tree_.has_value();
+}
+
+void FiniteNetwork::create_simplicial_complex()
+{
+    reset_simplicial_complex();
+    add_vertices(vertices_);
+    add_simplices(interactions_);
+}
+
+void FiniteNetwork::add_simplices(const SimplexList &simplices)
+{
+    assert_simplicial_complex_is_initialized();
+    const auto representable_simplices{get_skeleton_simplices(simplices, max_dimension_)};
+    const auto total{representable_simplices.size()};
+    std::atomic<uint32_t> counter{0U};
+
+    std::for_each(
+        std::execution::seq,
+        representable_simplices.begin(),
+        representable_simplices.end(),
+        [&](const auto &simplex)
         {
-            return Simplex{get_vertices(simplex_handle)};
+            if (++counter % 1000 == 0 && total > 10000U)
+            {
+                std::cout << "\rInsert simplices ... " << counter << " / " << total;
+            }
+            simplex_tree_->insert_simplex_and_subfaces(simplex.vertices());
         });
+    reset_persistence();
 
-    sort_simplices(skeleton_simplices, true);
-    return skeleton_simplices;
+    if (total > 10000U)
+    {
+        std::cout << "\rInsert simplices ... " << total << " / " << total;
+    }
+}
+
+void FiniteNetwork::add_vertices(const PointIdList &vertices)
+{
+    SimplexList simplices{};
+    simplices.reserve(vertices.size());
+
+    std::transform(
+        vertices.begin(),
+        vertices.end(),
+        std::back_inserter(simplices),
+        [](const auto vertex)
+        { return Simplex{PointIdList{vertex}}; });
+
+    add_simplices(simplices);
+}
+
+PointIdList FiniteNetwork::get_simplex_vertices(const SimplexHandle &simplex_handle)
+{
+    assert_simplicial_complex_is_built();
+    PointIdList result{};
+    if (simplex_handle != simplex_tree_->null_simplex())
+    {
+        for (const auto &vertex : simplex_tree_->simplex_vertex_range(simplex_handle))
+        {
+            result.push_back(vertex);
+        }
+    }
+    return result;
 }

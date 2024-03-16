@@ -17,13 +17,11 @@ public:
         const PointIdList &vertices,
         const SimplexList &interactions,
         const PointId typical_vertex_id);
-    uint32_t num_simplices() override;
-    InfiniteNetwork get_filtered_network(const PointIdList &vertices) const;
+    PointIdList get_vertices() const override;
+    InfiniteNetwork filter(const PointIdList &vertices) const;
 
 private:
-    SimplexHandleList get_simplices() override;
-    SimplexList get_faces_interactions(const Dimension max_dimension) override;
-    SimplexList get_skeleton_simplicial_complex(const Dimension max_dimension) override;
+    SimplexList get_simplices(const Dimension dimension) override;
     PointId typical_vertex_id_;
 };
 

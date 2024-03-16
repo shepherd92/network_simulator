@@ -13,7 +13,6 @@ from tqdm import tqdm
 
 from distribution.empirical_distribution import EmpiricalDistribution
 # pylint: disable=no-name-in-module
-from cpp_modules.build.cpp_plugin import filter_simplices
 from cpp_modules.build.cpp_plugin import FiniteNetwork as CppFiniteNetwork
 # pylint: enable=no-name-in-module
 from network.network import Network
@@ -36,9 +35,7 @@ class FiniteNetwork(Network):
         if component_index == -1:
             return self
         vertices_in_component = self._get_vertices_in_components()[component_index]
-        interactions_in_component = filter_simplices(self.interactions, vertices_in_component)
-        cpp_network = CppFiniteNetwork(self.max_dimension, vertices_in_component, interactions_in_component)
-        return FiniteNetwork(cpp_network)
+        return FiniteNetwork(self.cpp_network.filter(vertices_in_component))
 
     @log_function_name
     def reduce_to_component(self, component_index: int) -> None:
@@ -205,17 +202,17 @@ class FiniteNetwork(Network):
         return EmpiricalDistribution(degree_sequence)
 
     @log_function_name
-    def _calculate_betti_numbers_in_components(self) -> npt.NDArray[np.int_]:
+    def _calculate_betti_numbers_in_components(self) -> list[list[int]]:
 
         betti_numbers_by_component: list[list[int]] = [
-            component.calc_base_property(BaseNetworkProperty.Type.BETTI_NUMBERS)[:, 1]
+            component.calc_base_property(BaseNetworkProperty.Type.BETTI_NUMBERS)
             for component in tqdm(
                 self.components,
                 desc='Calculating Betti numbers in components',
                 delay=10,
             )
         ]
-        return np.array(betti_numbers_by_component)
+        return betti_numbers_by_component
 
     @log_function_name
     def _calculate_vertices_in_components(self) -> npt.NDArray[np.int_]:
@@ -234,12 +231,7 @@ class FiniteNetwork(Network):
 
     def _calculate_betti_numbers(self) -> list[int]:
         """Calculate the Betti numbers for different dimensions."""
-        betti_numbers = self.cpp_network.calc_betti_numbers()
-        result = np.c_[
-            np.array(range(len(betti_numbers)), dtype=int),
-            betti_numbers
-        ]
-        return result
+        return self.cpp_network.calc_betti_numbers()
 
     @log_function_name
     def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:
@@ -280,30 +272,24 @@ class FiniteNetwork(Network):
         """Return a partition of the network based on the number of vertices."""
         vertices_in_components = self._get_vertices_in_components()
         partitions: list[FiniteNetwork] = []
-        interactions = self.interactions  # not to convert interactions any more
 
         vertices_in_part: list[int] = []
         for vertices_in_component in vertices_in_components:
             vertices_in_part.extend(vertices_in_component)
             if len(vertices_in_part) >= min_vertices_in_part:
-                interactions_in_partition = filter_simplices(interactions, vertices_in_part)
-                cpp_network = CppFiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition)
-                partitions.append(FiniteNetwork(cpp_network))
+                partitions.append(FiniteNetwork(self.cpp_network.filter(vertices_in_part)))
                 vertices_in_part = []
+
+        if len(vertices_in_part) > 0:
+            partitions.append(FiniteNetwork(self.cpp_network.filter(vertices_in_part)))
 
         # k_cliques = list(nx.community.k_clique_communities(self.graph, max_intersecting_simplex_dimension))
         # vertices_in_part: list[int] = []
         # for k_clique in k_cliques:
         #     vertices_in_part.extend(k_clique)
         #     if len(vertices_in_part) >= min_vertices_in_part:
-        #         interactions_in_partition = filter_simplices(interactions, vertices_in_part)
-        #         partitions.append(FiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition))
+        #         partitions.append(FiniteNetwork(cpp_network.filter(vertices_in_part))
         #         vertices_in_part = []
-
-        if len(vertices_in_part) > 0:
-            interactions_in_partition = filter_simplices(interactions, vertices_in_part)
-            cpp_network = CppFiniteNetwork(self.max_dimension, vertices_in_part, interactions_in_partition)
-            partitions.append(FiniteNetwork(cpp_network))
 
         return partitions
 
