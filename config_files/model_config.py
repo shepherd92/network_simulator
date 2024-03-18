@@ -79,8 +79,8 @@ class ModelConfig:
 # ==============================================================================
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=1000,  # vertex_intensity: expected number of vertices
-    interaction_intensity=1000,  # interaction_intensity: expected number of interactions
+    network_size=1000.,  # vertex_intensity: expected number of vertices
+    interaction_intensity=1000.,  # interaction_intensity: expected number of interactions
     beta=0.001,
     gamma=0.7,
     gamma_prime=0.2,

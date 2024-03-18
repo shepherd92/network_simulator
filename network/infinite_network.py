@@ -10,7 +10,7 @@ from typing import Any
 import pandas as pd
 
 # pylint: disable=no-name-in-module
-from cpp_modules.build.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
 # pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network

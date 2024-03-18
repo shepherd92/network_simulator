@@ -3,8 +3,8 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/cpp_modules/inc/**",
-                "${workspaceFolder}/cpp_modules/**",
+                "${workspaceFolder}/cpp_plugin/inc/**",
+                "${workspaceFolder}/cpp_plugin/**",
                 "${workspaceFolder}/**",
                 "/usr/include",
                 "/usr/include/python3.10"

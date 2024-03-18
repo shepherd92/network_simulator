@@ -12,8 +12,8 @@ import numpy as np
 import pandas as pd
 
 # pylint: disable=no-name-in-module
-from cpp_modules.build.cpp_plugin import FiniteNetwork as CppFiniteNetwork
-from cpp_modules.build.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import FiniteNetwork as CppFiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
 # pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
 from tools.logging_helper import log_function_name

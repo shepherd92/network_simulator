@@ -29,7 +29,7 @@ class ArxivDataSet(DataSet):
         self._authors: pd.DataFrame = pd.DataFrame()
         self._documents: pd.DataFrame = pd.DataFrame()
 
-    def get_info_as_dict(self) -> dict[str, Any]:
+    def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         date_interval = [
             self._data_set_properties.date_interval[0].strftime('%Y-%m-%d'),
@@ -46,7 +46,7 @@ class ArxivDataSet(DataSet):
         else:
             categories = [category.name for category in self._data_set_properties.primary_categories]
 
-        result: dict[str, Any] = super().get_info_as_dict()
+        result: dict[str, Any] = super().info()
         result.update({
             'name': 'arxiv',
             'fields': field_names,

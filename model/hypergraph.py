@@ -9,10 +9,10 @@ from logging import info
 import numpy as np
 import numpy.typing as npt
 from scipy import integrate
-from scipy.optimize import brute
+from scipy.optimize import fsolve
 
 # pylint: disable-next=no-name-in-module
-from cpp_modules.build.cpp_plugin import (  # type: ignore
+from cpp_plugin.build.release.cpp_plugin import (  # type: ignore
     FiniteHypergraphModel,
     InfiniteHypergraphModel,
 )
@@ -79,8 +79,6 @@ class HypergraphModel(Model):
             network_size = x[0]
             interaction_intensity = x[1]
 
-            print(f'Trying network_size = {network_size}, interaction_intensity = {interaction_intensity}')
-
             beta = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (network_size * interaction_intensity)
 
             def integrand(y: float, lambda_prime: float, g: float, g_prime: float) -> float:
@@ -93,16 +91,10 @@ class HypergraphModel(Model):
             num_vertices_error = num_of_vertices - network_size * (1. - vertex_correction_integral)
             num_interactions_error = num_of_interactions - interaction_intensity * (1. - interaction_correction_integral)
 
-            return num_vertices_error**2 + num_interactions_error**2
+            return [num_vertices_error, num_interactions_error]
 
-        network_size, interaction_intensity = brute(
-            system_of_equations,
-            ranges=(
-                (num_of_vertices / 2., num_of_vertices * 2.),
-                (num_of_interactions / 2., num_of_interactions * 2.),
-            ),
-            Ns=100,
-            workers=1,
+        network_size, interaction_intensity = fsolve(
+            system_of_equations, (num_of_vertices, num_of_interactions),
         )
         # network_size, interaction_intensity = num_of_vertices, num_of_interactions
         beta_guess = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (interaction_intensity * network_size)

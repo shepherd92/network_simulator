@@ -31,11 +31,11 @@ class DistributionApproximation:
 
         def save(self, save_dir: Path) -> None:
             """Save the main parameters to the given file as a pandas data frame."""
-            info = self.get_info_as_dict()
+            info = self.info()
             data_frame = pd.DataFrame(info, index=[0])
             data_frame.to_csv(save_dir / 'test_results.csv', index=False)
 
-        def get_info_as_dict(self) -> dict[str, int | float]:
+        def info(self) -> dict[str, int | float]:
             """Return a dict representation based on the distribution properties."""
             info_dict: dict[str, int | float] = {
                 'probability_plot_r_value': self.probability_plot_r_value,
@@ -226,11 +226,10 @@ class DistributionApproximation:
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
-        info = self.get_info_as_dict()
-        data_frame = pd.DataFrame(info, index=[0])
-        data_frame.to_csv(save_path, index=False)
+        info = self.info()
+        pd.DataFrame([info]).to_csv(save_path, index=False)
 
-    def get_info_as_dict(self) -> dict[str, int | float]:
+    def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
         empirical_info = self.empirical.info()
         theoretical_info = self.theoretical.info()

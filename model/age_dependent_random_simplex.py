@@ -9,7 +9,7 @@ from logging import info
 import numpy as np
 import numpy.typing as npt
 
-from cpp_modules.build.cpp_plugin import FiniteAdrcmModel, InfiniteAdrcmModel
+from cpp_plugin.build.release.cpp_plugin import FiniteAdrcmModel, InfiniteAdrcmModel
 from data_set.data_set import DataSet
 from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
@@ -66,7 +66,14 @@ class AgeDependentRandomSimplexModel(Model):
         print(self)
 
     def info(self) -> dict[str, int | float]:
-        return
+        """Return a dict representation based on the model properties."""
+        return {
+            'max_dimension': self.parameters.max_dimension,
+            'network_size': self.parameters.network_size,
+            'parameter_alpha': self.parameters.alpha,
+            'parameter_beta': self.parameters.beta,
+            'parameter_gamma': self.parameters.gamma,
+        }
 
     def generate_finite_network(self, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
@@ -95,16 +102,6 @@ class AgeDependentRandomSimplexModel(Model):
     def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
         """Convert a tuple to ModelParamters. Used for model optimization."""
         self.parameters = AgeDependentRandomSimplexModel.Parameters(*parameters_tuple)
-
-    def get_info_as_dict(self) -> dict[str, int | float]:
-        """Return a dict representation based on the model properties."""
-        return {
-            'max_dimension': self.parameters.max_dimension,
-            'network_size': self.parameters.network_size,
-            'parameter_alpha': self.parameters.alpha,
-            'parameter_beta': self.parameters.beta,
-            'parameter_gamma': self.parameters.gamma,
-        }
 
     @property
     def parameters(self) -> AgeDependentRandomSimplexModel.Parameters:

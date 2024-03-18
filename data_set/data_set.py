@@ -6,7 +6,7 @@ from enum import Enum, auto
 from pathlib import Path
 
 # pylint: disable-next=no-name-in-module
-from cpp_modules.build.cpp_plugin import FiniteNetwork as CppFiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import FiniteNetwork as CppFiniteNetwork
 from network.finite_network import FiniteNetwork
 from network.property import DerivedNetworkProperty
 from tools.logging_helper import log_function_name

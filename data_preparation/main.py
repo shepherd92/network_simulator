@@ -41,14 +41,24 @@ data_analysis_directories = {
     'statistics':       input_base_path / '20240311_161506',
 }
 
+# model_sample_for_data_directories = {
+#     'computer_science': input_base_path / '20230714_173606',
+#     'biology':          input_base_path / '20230714_185135',
+#     'economics':        input_base_path / '20230714_190142',
+#     'engineering':      input_base_path / '20230714_190208',
+#     'finance':          input_base_path / '20230714_190228',
+#     'mathematics':      input_base_path / '20230714_190308',
+#     'statistics':       input_base_path / '20230714_190334',
+# }
+
 model_sample_for_data_directories = {
-    'computer_science': input_base_path / '20230714_173606',
-    'biology':          input_base_path / '20230714_185135',
-    'economics':        input_base_path / '20230714_190142',
-    'engineering':      input_base_path / '20230714_190208',
-    'finance':          input_base_path / '20230714_190228',
-    'mathematics':      input_base_path / '20230714_190308',
-    'statistics':       input_base_path / '20230714_190334',
+    'computer_science': input_base_path / '20240317_095712',
+    'biology':          input_base_path / '20240316_210528',
+    'economics':        input_base_path / '20240316_210355',
+    'engineering':      input_base_path / '20240317_082953',
+    'finance':          input_base_path / '20240316_205705',
+    'mathematics':      input_base_path / '20240316_210724',
+    'statistics':       input_base_path / '20240316_210010',
 }
 
 degree_distribution_directories = {
@@ -123,10 +133,11 @@ betti_number_directories = {
 
 
 hypothesis_testing_directories = {
-    'computer_science': input_base_path / '20240224_175016_computer_science_hyp',
-    'engineering':      input_base_path / '20240225_102941_engineering_hyp',
-    'mathematics':      input_base_path / '20240224_132250_math_hyp',
-    'statistics':       input_base_path / '20240224_114632_stat_hyp',
+    'computer_science': input_base_path / '',
+    'engineering':      input_base_path / '',
+    'mathematics':      input_base_path / '',
+    'statistics':       input_base_path / '',
+    'finance':          input_base_path / '20240317_220927',
 }
 
 
