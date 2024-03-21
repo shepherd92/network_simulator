@@ -8,6 +8,7 @@
 #include "point.h"
 #include "rectangle.h"
 #include "simplex.h"
+#include "tools.h"
 #include "typedefs.h"
 
 HypergraphModel::Parameters::Parameters(const std::vector<double> &parameters)
@@ -40,7 +41,9 @@ ConnectionList HypergraphModel::generate_connections(
                      [&](Point &point)
                      { point.set_mark(std::pow(point.mark(), -gamma_prime())); });
 
+    std::mutex mutex{};
     ConnectionList connections{};
+    std::atomic_size_t progress{0};
     std::for_each(
         std::execution::seq,
         interaction_rectangles.begin(),
@@ -48,14 +51,16 @@ ConnectionList HypergraphModel::generate_connections(
         [&](auto &&interaction_rectangle)
         {
             std::for_each(
-                std::execution::seq,
+                execution_policy,
                 vertex_rectangles.begin(),
                 vertex_rectangles.end(),
                 [&](auto &&vertex_rectangle)
                 {
                     const auto new_connections{calc_connected_point_pairs(vertex_rectangle, interaction_rectangle)};
+                    std::lock_guard<std::mutex> lock{mutex};
                     connections.insert(connections.end(), new_connections.begin(), new_connections.end());
                 });
+            log_progress(++progress, interaction_rectangles.size(), 10, "Generating connections");
         });
     return connections;
 }
@@ -97,22 +102,24 @@ ConnectionList HypergraphModel::calc_connected_point_pairs(
         return ConnectionList{};
     }
 
-    std::mutex mutex{};
     ConnectionList connections{};
     std::for_each(
-        execution_policy,
+        std::execution::seq,
         vertex_rectangle.points().begin(),
         vertex_rectangle.points().end(),
         [&](auto &&vertex)
         {
-            for (const auto &interaction : interaction_rectangle.points())
-            {
-                if (connects(vertex, interaction))
+            std::for_each(
+                std::execution::seq,
+                interaction_rectangle.points().begin(),
+                interaction_rectangle.points().end(),
+                [&](auto &&interaction)
                 {
-                    std::lock_guard<std::mutex> lock_guard(mutex);
-                    connections.emplace_back(std::pair{vertex.id(), interaction.id()});
-                }
-            }
+                    if (connects(vertex, interaction))
+                    {
+                        connections.emplace_back(std::pair{vertex.id(), interaction.id()});
+                    }
+                });
         });
 
     return connections;
@@ -132,13 +139,6 @@ bool HypergraphModel::connects(const Rectangle &vertex_rectangle, const Rectangl
                     Point(0, std::pow(interaction_rectangle.bottom(), -gamma_prime()), interaction_rectangle.left())) ||
            connects(Point(0, beta() * std::pow(vertex_rectangle.bottom(), -gamma()), vertex_rectangle.right()),
                     Point(0, std::pow(interaction_rectangle.bottom(), -gamma_prime()), interaction_rectangle.left()));
-}
-
-bool HypergraphModel::connects(const Point &vertex, const Point &interaction) const
-{
-    const auto dist{distance(vertex, interaction)};
-    const auto max_distance_of_connection{vertex.mark() * interaction.mark()};
-    return dist < max_distance_of_connection;
 }
 
 SimplexList HypergraphModel::create_simplices_from_connections(const ConnectionList &connections) const

@@ -73,6 +73,7 @@ void FiniteNetwork::calc_persistent_cohomology()
 {
     reset_persistence();
     assert_simplicial_complex_is_built();
+    std::cout << "\rCompute persistent cohomology" << std::flush;
     persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
     persistent_cohomology_->init_coefficients(2);
     persistent_cohomology_->compute_persistent_cohomology();

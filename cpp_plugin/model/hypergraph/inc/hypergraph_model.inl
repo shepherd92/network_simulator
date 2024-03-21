@@ -1,7 +1,13 @@
 #ifndef _HYPERGRAPH_MODEL_INL_
 #define _HYPERGRAPH_MODEL_INL_
 
+#include "point.h"
 #include "typedefs.h"
+
+bool HypergraphModel::connects(const Point &vertex, const Point &interaction) const
+{
+    return distance(vertex, interaction) < vertex.mark() * interaction.mark();
+}
 
 Dimension HypergraphModel::max_dimension() const
 {

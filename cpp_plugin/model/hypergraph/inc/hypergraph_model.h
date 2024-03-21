@@ -31,7 +31,7 @@ protected:
     inline float lambda_prime() const;
 
     bool connects(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const;
-    bool connects(const Point &vertex, const Point &interaction) const;
+    inline bool connects(const Point &vertex, const Point &interaction) const;
 
 private:
     RectangleList create_rectangles(const PointList &points, const float exponent) const;
