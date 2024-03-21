@@ -30,7 +30,7 @@ PointIdList InfiniteNetwork::get_vertices() const
 SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
 {
     const auto all_simplices_of_dimension{get_faces_simplices(get_facets(), dimension)};
-    return get_cofaces_simplices(all_simplices_of_dimension, Simplex{PointIdList{typical_vertex_id_}});
+    return get_cofaces(all_simplices_of_dimension, Simplex{PointIdList{typical_vertex_id_}});
 }
 
 InfiniteNetwork InfiniteNetwork::filter(const PointIdList &vertices) const

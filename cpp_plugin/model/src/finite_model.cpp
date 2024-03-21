@@ -14,7 +14,7 @@ PointList FiniteModel::create_points(const size_t num_of_points) const
     points.reserve(num_of_points);
     for (auto index{0U}; index < num_of_points; ++index)
     {
-        points.push_back(Point(index, marks[index], positions[index]));
+        points.emplace_back(Point(index, marks[index], positions[index]));
     }
 
     return points;

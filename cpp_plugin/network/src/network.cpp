@@ -64,11 +64,6 @@ ISimplexList Network::get_facets_interface()
     return create_raw_simplices(get_facets());
 }
 
-ISimplexList Network::get_simplices_interface()
-{
-    return create_raw_simplices(get_simplices());
-}
-
 uint32_t Network::num_vertices()
 {
     return vertices_.size();
@@ -201,18 +196,6 @@ ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
     return create_raw_simplices(get_skeleton(max_dimension));
 }
 
-SimplexList Network::get_simplices()
-{
-    SimplexList result{};
-    for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
-    {
-        const auto &simplices_of_dimension{get_simplices(dimension)};
-        result.reserve(result.size() + simplices_of_dimension.size());
-        result.insert(result.end(), simplices_of_dimension.begin(), simplices_of_dimension.end());
-    }
-    return result;
-}
-
 void Network::keep_only_vertices(const PointIdList &vertices)
 {
     vertices_ = vertices;
@@ -234,8 +217,11 @@ SimplexList Network::get_skeleton(const Dimension max_dimension)
 
 std::vector<Dimension> Network::calc_simplex_dimension_distribution()
 {
-    const auto &simplices{get_simplices()};
-    const auto result{calc_dimension_distribution(simplices)};
+    std::vector<Dimension> result{max_dimension_ + 1, 0};
+    for (auto dimension{0}; dimension <= max_dimension_; ++dimension)
+    {
+        result[dimension] = get_simplices(dimension).size();
+    }
     return result;
 }
 
@@ -250,12 +236,12 @@ std::vector<uint32_t> Network::calc_vertex_interaction_degree_distribution() con
         vertices.end(),
         [&](const auto &vertex)
         {
-            result.emplace_back(get_cofaces_simplices(interactions_, Simplex{PointIdList{vertex}}).size());
+            result.emplace_back(get_cofaces(interactions_, Simplex{PointIdList{vertex}}).size());
         });
     return result;
 }
 
-uint32_t Network::num_simplices()
+uint32_t Network::num_simplices(const Dimension dimension)
 {
-    return get_simplices().size();
+    return get_simplices(dimension).size();
 }

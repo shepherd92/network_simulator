@@ -6,7 +6,7 @@ PYTHON_VERSION := 3.12
 # .SILENT :
 
 # set possibe targets
-TARGETS := __all release debug callgrind memcheck clean
+TARGETS := __all release debug test callgrind memcheck clean
 
 # do print when directory changes
 MAKEFLAGS += --no-print-directory
@@ -18,7 +18,26 @@ SUFFIXES += .d
 ROOT        := .
 BLDDIR      := $(ROOT)/build
 INCDIRNAME  := inc
+SRCDIRNAME  := src
 TESTDIR     := $(ROOT)/test
+
+# list include directories recursively
+# PATH_PARTS := $(subst /, ,$(dir $1))
+# PATH_PARTS_WITHOUT_LAST_TWO := $(wordlist 2,$(words $(PATH_PARTS)),x $(PATH_PARTS))
+# DIR_PATHS := $(foreach item,$(PATH_PARTS_WITHOUT_LAST_TWO),\
+ 	$(eval path := $(if $(path),$(path)/)$(item))\
+ 	$(path))
+# INCDIRS := $(addsuffix /inc, $(DIR_PATHS))
+define inc_dirs
+$(addsuffix /$(INCDIRNAME),\
+	$(foreach item,\
+		. $(wordlist 2,$(words $(subst /, ,$(dir $1))),x $(subst /, ,$(dir $1))),\
+ 		$(eval path := $(if $(path),$(path)/)$(item))\
+ 		$(path)\
+	)\
+)
+$(eval path :=)
+endef
 
 ###################################################################
 ###################################################################
@@ -45,18 +64,18 @@ CXX      := g++
 LD       := g++
 
 # number of threads
-MAKEFLAGS += -j4
+MAKEFLAGS += -j8
 
 # std=c++17
 # MP:  add phony target for each dependency other than the main file
 # MT:  
 # MD:  list user and system-defined include files
 # MMD: list user-defined include file dependencies
-# 
+#
 # PIC: position independent code = if the code is shared between multiple processes, it is not possible to load the code to the same memory address
 # ldl
 # ltbb: use parallel algorithms, i.e. parallel for_each
-CXXFLAGS := -std=c++17 -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC -DBOOST_ALLOW_DEPRECATED_HEADERS
+CXXFLAGS := -std=c++20 -MMD -MP -Wall -Werror -Wextra -Wno-unused-result -Wsign-compare -pedantic-errors -save-temps=obj -fstack-protector-strong -fPIC -DBOOST_ALLOW_DEPRECATED_HEADERS
 CXXFLAGS += $(shell python$(PYTHON_VERSION) -m pybind11 --includes)
 LDFLAGS  := -lstdc++ -shared -m64 -lutil -fPIC -ltbb
 LDFLAGS  += $(shell python$(PYTHON_VERSION)-config --ldflags)
@@ -101,6 +120,9 @@ __all : release
 release : $(TARGETDIR)/$(PROJECT)$(SHOBJEXT)
 debug   : $(TARGETDIR)/$(PROJECT)_test
 
+test : $(TARGETDIR)/$(PROJECT)_test
+	$(TARGETDIR)/$(PROJECT)_test
+
 # link the shared object library
 $(TARGETDIR)/$(PROJECT)$(SHOBJEXT) : $(SOOBJS)
 	@echo $(LDFLAGS)
@@ -113,6 +135,7 @@ callgrind: $(TARGETDIR)/$(PROJECT)_test
 	valgrind --tool=callgrind --callgrind-out-file=$(TARGETDIR)/callgrind.out $(TARGETDIR)/$(PROJECT)_test
 	callgrind_annotate --tree=both --inclusive=yes --auto=yes --show-percs=yes $(TARGETDIR)/callgrind.out > $(TARGETDIR)/callgrind.txt
 	gprof2dot --format=callgrind --output=$(TARGETDIR)/callgrind.dot $(TARGETDIR)/callgrind.out
+	callgrind_annotate --inclusive=yes --show-percs=yes $(TARGETDIR)/callgrind.out > $(TARGETDIR)/callgrind.txt
 	dot -Tpdf $(TARGETDIR)/callgrind.dot -o $(TARGETDIR)/callgrind.pdf
 
 memcheck: $(TARGETDIR)/$(PROJECT)_test
@@ -130,6 +153,7 @@ $(TARGETDIR)/$(PROJECT)_test : $(TESTOBJS)
 	$(CXX) $^ -o $@ -lstdc++ -m64 -ltbb
 
 # compile source files
+# to get include dirs only from parents: $(addprefix -I,$(call inc_dirs,$<))
 $(TARGETDIR)/%.$(OBJEXT) : %.$(SRCEXT)
 	@mkdir -p $(dir $@)  # make directory
 	$(CXX) -c $< -o $@ $(CXXFLAGS)

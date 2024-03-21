@@ -142,24 +142,7 @@ class Network:
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
 
-        degree_sequence: list[int] = self.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
-
-        # degree_sequence: list[int] = [
-        #     len(self.simplicial_complex.get_cofaces(simplex, neighbor_dimension - simplex_dimension))
-        #     for simplex in tqdm(self.simplices, desc='Calculating degree sequence', delay=10)
-        #     if len(simplex) == simplex_dimension + 1
-        # ]
-        # degree_sequence: list[int] = calc_degree_sequence(
-        #     self.facets,
-        #     simplex_dimension,
-        #     neighbor_dimension
-        # )
-        return degree_sequence
-
-    @property
-    def simplices(self) -> list[list[int]]:
-        """Get the simplices associated to the network."""
-        return self.cpp_network.get_simplices()
+        return self.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
 
     @property
     def cpp_network(self) -> CppFiniteNetwork | CppInfiniteNetwork | None:
@@ -172,23 +155,8 @@ class Network:
         self._cpp_network = value
 
     @log_function_name
-    def num_simplices(self, dimension: int = -1) -> int:
+    def num_simplices(self, dimension: int) -> int:
         """Return the number of simplices in the simplicial complex."""
-        if dimension == -1:
-            return self.cpp_network.num_simplices()
-        elif dimension == 0:
-            return self.cpp_network.num_vertices()
-        elif dimension == 1:
-            return self._num_edges()
-        else:
-            simplex_dimension_value_counts = self._calculate_simplex_dimension_distribution().calc_value_counts()
-            return 0 \
-                if len(simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == dimension]) == 0 \
-                else simplex_dimension_value_counts[simplex_dimension_value_counts[:, 0] == dimension][0, 1]
-
-    @log_function_name
-    def _num_edges(self) -> int:
-        """Return the number of edges in the graph."""
         raise NotImplementedError
 
     @property

@@ -29,3 +29,15 @@ PointIdList convert_to_id_list(const PointList &points)
         });
     return ids;
 }
+
+void transform_points(PointList &points, const std::function<void(Point &)> &lambda)
+{
+    std::for_each(
+        execution_policy,
+        points.begin(),
+        points.end(),
+        [&](auto &point)
+        {
+            lambda(point);
+        });
+}

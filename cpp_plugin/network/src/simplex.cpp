@@ -3,33 +3,35 @@
 #include <map>
 #include <mutex>
 
+#include "combinations.h"
 #include "simplex.h"
 #include "tools.h"
 
-std::size_t SimplexHash::operator()(const Simplex &simplex) const
+uint64_t SimplexHash::operator()(const Simplex &simplex) const
 {
-    const auto &vertices{simplex.vertices()};
-    std::size_t seed{vertices.size()};
-    std::for_each(
-        std::execution::seq,
-        vertices.begin(), vertices.end(),
-        [&seed](const auto &vertex)
-        {
-            seed ^= vertex + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        });
-
-    return seed;
+    return simplex.hash();
 }
 
 Simplex::Simplex(const PointIdList &vertices)
     : vertices_{vertices}
 {
     assert(!vertices_.empty());
+    vertices_.shrink_to_fit();
     std::sort(vertices_.begin(), vertices_.end());
-    for (const auto &vertex_id : vertices_)
+    hash_ = calc_hash();
+}
+
+uint64_t Simplex::calc_hash() const
+{
+    uint64_t seed{vertices_.size()};
+    for (auto vertex : vertices_)
     {
-        bloom_filter_.set(vertex_id & 63);
+        vertex = ((vertex >> 16) ^ vertex) * 0x45d9f3b;
+        vertex = ((vertex >> 16) ^ vertex) * 0x45d9f3b;
+        vertex = (vertex >> 16) ^ vertex;
+        seed ^= vertex + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
+    return seed;
 }
 
 const PointIdList &Simplex::vertices() const
@@ -50,6 +52,11 @@ Simplex Simplex::operator-(const Simplex &other) const
 bool Simplex::operator==(const Simplex &other) const
 {
     return vertices_ == other.vertices();
+}
+
+bool Simplex::operator<(const Simplex &other) const
+{
+    return vertices_ < other.vertices();
 }
 
 std::ostream &operator<<(std::ostream &os, const Simplex &simplex)
@@ -77,27 +84,54 @@ SimplexList Simplex::skeleton(const Dimension max_dimension) const
     return result;
 }
 
-SimplexList Simplex::faces(const Dimension max_dimension) const
+SimplexList Simplex::faces(const Dimension dimension_param) const
 {
-    if (dimension() <= max_dimension)
+    if (dimension_param > dimension())
     {
         return SimplexList{};
     }
 
-    PointIdList current_combination(max_dimension + 1U);
     SimplexList result{};
-    combination_util(max_dimension, 0U, result, current_combination, 0U);
+    result.reserve(binomial_coefficient(dimension() + 1, dimension_param + 1));
+    auto vertex_ids{vertices()};
+
+    for_each_combination(
+        vertex_ids.begin(),
+        vertex_ids.begin() + dimension_param + 1,
+        vertex_ids.end(),
+        [&result](PointIdList::iterator first, PointIdList::iterator last)
+        {
+            const PointIdList face_vertices{first, last};
+            result.emplace_back(Simplex{face_vertices});
+            return false;
+        });
+
     return result;
 }
 
+/*
+SimplexList Simplex::faces(const Dimension dimension_param) const
+{
+    if (dimension() <= dimension_param)
+    {
+        return SimplexList{};
+    }
+
+    PointIdList current_combination(dimension_param + 1U);
+    SimplexList result{};
+    result.reserve(binomial_coefficient(dimension() + 1, dimension_param + 1));
+    combination_util(dimension_param, 0U, result, current_combination, 0U);
+    return result;
+}*/
+
 void Simplex::combination_util(
-    const Dimension max_dimension,
+    const Dimension dimension_,
     const uint32_t combination_index,
     SimplexList &result,
     PointIdList &current_combination,
     const uint32_t array_index) const
 {
-    if (combination_index == max_dimension + 1U)
+    if (combination_index == dimension_ + 1U)
     {
         // combination ready
         result.emplace_back(Simplex{current_combination});
@@ -110,8 +144,8 @@ void Simplex::combination_util(
     }
 
     current_combination[combination_index] = vertices()[array_index];
-    combination_util(max_dimension, combination_index + 1U, result, current_combination, array_index + 1U);
-    combination_util(max_dimension, combination_index, result, current_combination, array_index + 1U);
+    combination_util(dimension_, combination_index + 1U, result, current_combination, array_index + 1U);
+    combination_util(dimension_, combination_index, result, current_combination, array_index + 1U);
 }
 
 SimplexList create_simplices(const ISimplexList &simplices_in)
@@ -185,7 +219,31 @@ SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension di
     return faces;
 }
 
-SimplexList get_cofaces_simplices(const SimplexList &simplices_in, const Simplex &simplex)
+/*
+SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension dimension)
+{
+    SimplexList all_faces{};
+    std::mutex mutex{};
+
+    std::for_each(
+        execution_policy,
+        simplices.begin(),
+        simplices.end(),
+        [&](const auto &simplex)
+        {
+            const auto faces{simplex.faces(dimension)};
+            std::lock_guard<std::mutex> lock(mutex);
+            std::copy(faces.begin(), faces.end(), std::back_inserter(all_faces));
+        });
+    std::sort(all_faces.begin(), all_faces.end());
+    auto last{std::unique(all_faces.begin(), all_faces.end())};
+    all_faces.erase(last, all_faces.end());
+
+    sort_simplices(all_faces, true);
+    return all_faces;
+}*/
+
+SimplexList get_cofaces(const SimplexList &simplices_in, const Simplex &simplex)
 {
     SimplexList cofaces{};
 

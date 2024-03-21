@@ -24,6 +24,7 @@ public:
     const Position &right() const;
 
     void add_point(const Point &points);
+    void transform_points(const std::function<void(Point &)> &lambda);
 
     const PointList &points() const;
 
@@ -40,5 +41,6 @@ private:
 };
 
 void fill_rectangles(RectangleList &rectangles, const PointList &points);
+void transform_points(RectangleList &rectangles, const std::function<void(Point &)> &lambda);
 
 #endif

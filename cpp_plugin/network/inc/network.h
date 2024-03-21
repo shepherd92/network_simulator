@@ -14,7 +14,7 @@ public:
 
     Dimension get_max_dimension() const;
     void set_max_dimension(const Dimension dimension);
-    uint32_t num_simplices();
+    uint32_t num_simplices(const Dimension dimension);
 
     virtual void reset();
 
@@ -30,7 +30,6 @@ public:
     virtual PointIdList get_vertices() const = 0;
     ISimplexList get_interactions_interface() const;
     ISimplexList get_facets_interface();
-    ISimplexList get_simplices_interface();
     ISimplexList get_skeleton_interface(const Dimension max_dimension);
 
     uint32_t num_vertices();
@@ -44,7 +43,6 @@ protected:
 
     const SimplexList &get_interactions() const;
     const SimplexList &get_facets();
-    SimplexList get_simplices();
     const SimplexList &get_simplices(const Dimension dimension);
 
     Dimension max_dimension_;

@@ -119,7 +119,7 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
 {
     std::vector<int32_t> result{max_dimension_, 0};
-    if (num_simplices() == 1U)
+    if (num_simplices(0) == 1U)
     {
         // handle an error in Gudhi
         result[0] = 1;
@@ -165,20 +165,21 @@ void FiniteNetwork::create_simplicial_complex()
 void FiniteNetwork::fill_simplicial_complex()
 {
     assert_simplicial_complex_is_initialized();
-    const auto simplices{get_simplices()};
-    const auto total{simplices.size()};
-    std::atomic<uint32_t> counter{0U};
 
-    std::for_each(
-        std::execution::seq,
-        simplices.begin(),
-        simplices.end(),
-        [&](const auto &simplex)
-        {
-            log_progress(++counter, total, 1000U, "Insert simplices");
-            simplex_tree_->insert_simplex_and_subfaces(simplex.vertices());
-        });
-    log_progress(counter, total, 1U, "Insert simplices");
+    std::cout << "\rInsert simplices" << std::flush;
+
+    for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
+    {
+        const auto &simplices{get_simplices(dimension)};
+        std::for_each(
+            std::execution::seq,
+            simplices.begin(),
+            simplices.end(),
+            [&](const auto &simplex)
+            {
+                simplex_tree_->insert_simplex_and_subfaces(simplex.vertices());
+            });
+    }
 
     reset_persistence();
 }

@@ -48,7 +48,7 @@ PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
     interactions.reserve(num_of_interactions);
     for (auto index{0U}; index < num_of_interactions; ++index)
     {
-        interactions.push_back(Point(index, interaction_marks[index], interaction_positions[index]));
+        interactions.emplace_back(Point(index, interaction_marks[index], interaction_positions[index]));
     }
 
     return interactions;
@@ -80,7 +80,7 @@ PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions
                 if (!should_be_discarded)
                 {
                     std::lock_guard<std::mutex> lock{mutex};
-                    vertices.push_back(Point(vertex_id, potential_vertex.mark(), potential_vertex.position()));
+                    vertices.emplace_back(Point(vertex_id, potential_vertex.mark(), potential_vertex.position()));
                     ++vertex_id;
                 }
             });
@@ -98,7 +98,7 @@ PointList InfiniteHypergraphModel::create_vertices_in_interaction_neighborhood(c
     vertices.reserve(num_of_vertices);
     for (auto index{0U}; index < num_of_vertices; ++index)
     {
-        vertices.push_back(Point(index, marks[index], positions[index]));
+        vertices.emplace_back(Point(index, marks[index], positions[index]));
     }
     return vertices;
 }
@@ -124,7 +124,7 @@ PositionList InfiniteHypergraphModel::generate_positions_in_neighborhood(
     const float exponent_of_points_in_neighborhood) const
 {
     std::uniform_real_distribution<Position> uniform_distribution(-1., 1.);
-    const auto &beta_x_mark_to_gamma{beta() * std::pow(point.mark(), -exponent_of_central_point)};
+    const auto beta_x_mark_to_gamma{beta() * std::pow(point.mark(), -exponent_of_central_point)};
 
     PositionList positions{};
     positions.reserve(marks.size());

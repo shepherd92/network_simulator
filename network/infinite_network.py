@@ -77,7 +77,6 @@ class InfiniteNetworkSet:
         """Return a dict representation based on the network properties."""
         return {
             'num_of_networks': len(self._infinite_networks),
-            'num_of_simplices': sum([network.num_simplices() for network in self._infinite_networks]),
             'max_dimension': self._infinite_networks[0].max_dimension,
         }
 
@@ -105,8 +104,6 @@ class InfiniteNetwork(Network):
             property_value_set = self._calc_degree_sequence(1, 2)
         elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2:
             property_value_set = self._calc_degree_sequence(2, 3)
-        elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3:
-            property_value_set = self._calc_degree_sequence(3, 4)
         else:
             raise NotImplementedError(
                 f'Requested property type {property_type} is not available.'
@@ -115,9 +112,14 @@ class InfiniteNetwork(Network):
         return property_value_set
 
     @log_function_name
-    def _num_edges(self) -> int:
-        """Return the number of edges in the graph."""
-        return self.graph.degree(0)
+    def num_simplices(self, dimension: int) -> int:
+        """Return the number of simplices in the simplicial complex."""
+        if dimension == 0:
+            return 1
+        elif dimension == 1:
+            return self.graph.degree(0)
+        else:
+            return self.cpp_network.num_simplices(dimension)
 
     def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""

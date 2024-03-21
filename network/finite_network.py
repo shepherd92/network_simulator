@@ -119,14 +119,10 @@ class FiniteNetwork(Network):
             property_value = self._calculate_higher_order_degree_distribution(1)
         elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2:
             property_value = self._calculate_higher_order_degree_distribution(2)
-        elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3:
-            property_value = self._calculate_higher_order_degree_distribution(3)
         elif property_type == BaseNetworkProperty.Type.AVG_CLUSTERING:
             property_value = nx.average_clustering(self.graph)
         elif property_type == BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS:
             property_value = nx.number_connected_components(self.graph)
-        elif property_type == BaseNetworkProperty.Type.NUM_OF_SIMPLICES:
-            property_value = self.num_simplices()
         elif property_type == BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION:
             property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION:
@@ -155,7 +151,6 @@ class FiniteNetwork(Network):
         return {
             'num_of_vertices': self.num_simplices(0),
             'num_of_interactions': len(self.interactions),
-            'num_of_simplices': self.num_simplices(),
             'max_dimension': self.max_dimension,
             'num_of_components': len(self._get_vertices_in_components()),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
@@ -190,14 +185,17 @@ class FiniteNetwork(Network):
         neighbor_dimension: int | None = None,
     ) -> EmpiricalDistribution:
 
-        if simplex_dimension >= self.max_dimension:
-            # simplex_dimension is at most max_dimension - 1 as higher dimensions make no sense
-            return EmpiricalDistribution([])
-
         neighbor_dimension = simplex_dimension + 1 if neighbor_dimension is None else neighbor_dimension
         assert neighbor_dimension > simplex_dimension
 
-        degree_sequence = self._calc_degree_sequence(simplex_dimension, neighbor_dimension)
+        if neighbor_dimension >= self.max_dimension:
+            # neighbor_dimension is at most max_dimension - 1 as higher dimensions make no sense
+            return EmpiricalDistribution([])
+
+        degree_sequence: list[int] = []
+        for part in self.get_partition(10000):
+            degree_sequence_of_part = part.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+            degree_sequence.extend(degree_sequence_of_part)
 
         return EmpiricalDistribution(degree_sequence)
 
@@ -304,9 +302,17 @@ class FiniteNetwork(Network):
         self._components = self.get_partition(1)
 
     @log_function_name
-    def _num_edges(self) -> int:
-        """Return the number of edges in the graph."""
-        return self.graph.number_of_edges()
+    def num_simplices(self, dimension: int) -> int:
+        """Return the number of simplices in the simplicial complex."""
+        if dimension == 0:
+            return self.cpp_network.num_vertices()
+        elif dimension == 1:
+            return self.graph.number_of_edges()
+        else:
+            return sum(
+                part.cpp_network.num_simplices(dimension)
+                for part in self.get_partition(10000)
+            )
 
     def __copy__(self):
         """Shallow copy of self."""

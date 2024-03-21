@@ -35,6 +35,9 @@ from reports.plotting_helper import (
 )
 
 
+PLOT_HYPERGRAPH_DETERMINED_POSITIONS = False
+
+
 def analyze_model_example_finite_network(
     network: FiniteNetwork,
     calculated_properties: list[BaseNetworkProperty.Type],
@@ -49,7 +52,8 @@ def analyze_model_example_finite_network(
     if plot:
         plot_giant_component(network.get_component(0), save_directory / 'network.png')
         plot_network_determined_positions(network, save_directory / 'network_fixed_vertex_positions.png')
-        # plot_hypergraph_determined_positions(network, save_directory / 'hypergraph_fixed_positions.png')
+        if PLOT_HYPERGRAPH_DETERMINED_POSITIONS:
+            plot_hypergraph_determined_positions(network, save_directory / 'hypergraph_fixed_positions.png')
 
     summary = network.calc_network_summary(calculated_properties)
 
@@ -202,11 +206,6 @@ def analyze_model_example_infinite_network_set(
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
-    _report_ho_3_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3),
-        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
-        save_directory
-    )
 
     subfigure_row_index += 1
 
@@ -310,25 +309,6 @@ def _report_ho_2_degree_distribution(
     approximation.save(save_directory / 'ho_degree_distribution_2')
     plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
     axes.set_title('Higher-Order Degree Distribution - Dimension 2')
-
-
-@check_calculated
-def _report_ho_3_degree_distribution(
-    empirical_distribution: EmpiricalDistribution,
-    axes: plt.Axes,
-    save_directory: Path
-) -> None:
-
-    approximation = DistributionApproximation(
-        empirical_distribution,
-        TheoreticalDistribution.Type.POWER_LAW
-    )
-    fitting_parameters = create_fitting_parameters_power_law_model()
-    approximation.fit(fitting_parameters)
-
-    approximation.save(save_directory / 'ho_degree_distribution_3')
-    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
-    axes.set_title('Higher-Order Degree Distribution - Dimension 3')
 
 
 @check_calculated

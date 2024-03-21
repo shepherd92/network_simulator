@@ -73,13 +73,11 @@ class HypergraphModel(Model):
         gamma_prime = 1. / (interaction_vertex_exponent - 1.)
         assert gamma_prime > 0. and gamma_prime < 1., f'gamma_prime_guess = {gamma_prime}'
 
-        num_of_edges = average_vertex_interaction_degree * num_of_vertices
-
         def system_of_equations(x: npt.NDArray[np.float_]) -> float:
             network_size = x[0]
             interaction_intensity = x[1]
 
-            beta = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (network_size * interaction_intensity)
+            beta = 0.5 * average_vertex_interaction_degree * (1. - gamma) * (1. - gamma_prime) / interaction_intensity
 
             def integrand(y: float, lambda_prime: float, g: float, g_prime: float) -> float:
                 return np.exp(-2. * beta * lambda_prime / (1. - g_prime) * y**(-g))
@@ -96,8 +94,7 @@ class HypergraphModel(Model):
         network_size, interaction_intensity = fsolve(
             system_of_equations, (num_of_vertices, num_of_interactions),
         )
-        # network_size, interaction_intensity = num_of_vertices, num_of_interactions
-        beta_guess = 0.5 * num_of_edges * (1. - gamma) * (1. - gamma_prime) / (interaction_intensity * network_size)
+        beta_guess = 0.5 * average_vertex_interaction_degree * (1. - gamma) * (1. - gamma_prime) / interaction_intensity
 
         # pylint: disable=attribute-defined-outside-init
         self._parameters.max_dimension = data_set.max_dimension

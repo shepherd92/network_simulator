@@ -45,6 +45,18 @@ bool Rectangle::contains(const Point &point) const
            point.mark() <= top();
 }
 
+void Rectangle::transform_points(const std::function<void(Point &)> &lambda)
+{
+    std::for_each(
+        execution_policy,
+        points_.begin(),
+        points_.end(),
+        [&](auto &point)
+        {
+            lambda(point);
+        });
+}
+
 const Mark &Rectangle::bottom() const
 {
     return bottom_mark_;
@@ -98,5 +110,17 @@ void fill_rectangles(RectangleList &rectangles, const PointList &points)
                     break;
                 }
             }
+        });
+}
+
+void transform_points(RectangleList &rectangles, const std::function<void(Point &)> &lambda)
+{
+    std::for_each(
+        std::execution::seq,
+        rectangles.begin(),
+        rectangles.end(),
+        [&](auto &rectangle)
+        {
+            rectangle.transform_points(lambda);
         });
 }

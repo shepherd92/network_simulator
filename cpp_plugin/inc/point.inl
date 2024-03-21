@@ -1,6 +1,8 @@
 #ifndef _POINT_INL_
 #define _POINT_INL_
 
+#include <cmath>
+
 Point::Point(const PointId id, const Mark mark, const Position position)
     : id_(id), mark_(mark), position_(position)
 {
@@ -19,6 +21,11 @@ const Mark &Point::mark() const
 const Position &Point::position() const
 {
     return position_;
+}
+
+void Point::set_mark(const Mark mark)
+{
+    mark_ = mark;
 }
 
 #endif

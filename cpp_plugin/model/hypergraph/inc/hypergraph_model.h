@@ -23,12 +23,12 @@ protected:
     ConnectionList generate_connections(const PointList &vertices, const PointList &interactions) const;
     SimplexList create_simplices_from_connections(const ConnectionList &connections) const;
 
-    Dimension max_dimension() const;
-    float beta() const;
-    float gamma() const;
-    float gamma_prime() const;
-    float lambda() const;
-    float lambda_prime() const;
+    inline Dimension max_dimension() const;
+    inline float beta() const;
+    inline float gamma() const;
+    inline float gamma_prime() const;
+    inline float lambda() const;
+    inline float lambda_prime() const;
 
     bool connects(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const;
     bool connects(const Point &vertex, const Point &interaction) const;
@@ -41,5 +41,7 @@ private:
 
     Parameters parameters_;
 };
+
+#include "hypergraph_model.inl"
 
 #endif

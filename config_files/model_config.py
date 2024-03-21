@@ -35,7 +35,6 @@ class ModelConfig:
             BaseNetworkProperty.Type.MAX_DEGREE,
             BaseNetworkProperty.Type.AVG_CLUSTERING,
             BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
-            BaseNetworkProperty.Type.NUM_OF_SIMPLICES,
             BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
             # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
             # BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
@@ -45,7 +44,6 @@ class ModelConfig:
             BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
             BaseNetworkProperty.Type.BETTI_NUMBERS,
             BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
             BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
@@ -57,7 +55,6 @@ class ModelConfig:
             # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_3,
         ]
 
     class Fitting(NamedTuple):
@@ -79,11 +76,11 @@ class ModelConfig:
 # ==============================================================================
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=1000.,  # vertex_intensity: expected number of vertices
-    interaction_intensity=1000.,  # interaction_intensity: expected number of interactions
-    beta=0.001,
-    gamma=0.7,
-    gamma_prime=0.2,
+    network_size=62992.53,  # vertex_intensity: expected number of vertices
+    interaction_intensity=42543.08,  # interaction_intensity: expected number of interactions
+    beta=8.2685088806e-6,
+    gamma=0.52793,
+    gamma_prime=0.20944,
 )
 # ==============================================================================
 
