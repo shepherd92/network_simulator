@@ -16,6 +16,7 @@ InfiniteHypergraphModel::InfiniteHypergraphModel(const std::vector<double> &para
 
 InfiniteNetwork InfiniteHypergraphModel::generate_network() const
 {
+    const PointId typical_vertex_id{0};
     std::uniform_real_distribution<Mark> mark_distribution(0., 1.);
     const auto u{mark_distribution(random_number_generator_)}; // mark of the typical node
 
@@ -23,32 +24,33 @@ InfiniteNetwork InfiniteHypergraphModel::generate_network() const
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
     auto vertices{create_vertices(interactions)};
-    vertices.push_back(Point(0, u, 0.)); // add the typical node
+    vertices.emplace_back(Point{0.F, u, typical_vertex_id}); // add the typical node
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
     const auto connections{generate_connections(vertices, interactions)};
     const auto simplices{create_simplices_from_connections(connections)};
 
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, 0};
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_id};
 
     return network;
 }
 
 PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
 {
+    const PointId typical_vertex_id{0};
     // expected number of connecting interactions: 2 * b * l' * u^(-g) / (1 - g')
-    std::poisson_distribution<uint32_t> poisson_distribution_interactions(
+    std::poisson_distribution<int32_t> poisson_distribution_interactions(
         2 * beta() * lambda_prime() * std::pow(u, -gamma()) / (1 - gamma_prime()));
     const auto num_of_interactions{poisson_distribution_interactions(random_number_generator_)};
     const auto interaction_marks{generate_marks(num_of_interactions, MIN_MARK)};
-    const auto interaction_positions{generate_positions_in_vertex_neighborhood(Point(0U, u, 0.), interaction_marks)};
+    const auto interaction_positions{generate_positions_in_vertex_neighborhood(Point{0.F, u, typical_vertex_id}, interaction_marks)};
 
     PointList interactions{};
     interactions.reserve(num_of_interactions);
-    for (auto index{0U}; index < num_of_interactions; ++index)
+    for (auto index{0}; index < num_of_interactions; ++index)
     {
-        interactions.emplace_back(Point(index, interaction_marks[index], interaction_positions[index]));
+        interactions.emplace_back(Point{interaction_marks[index], interaction_positions[index], index});
     }
 
     return interactions;
@@ -80,7 +82,7 @@ PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions
                 if (!should_be_discarded)
                 {
                     std::lock_guard<std::mutex> lock{mutex};
-                    vertices.emplace_back(Point(vertex_id, potential_vertex.mark(), potential_vertex.position()));
+                    vertices.emplace_back(Point(potential_vertex.mark(), potential_vertex.position(), vertex_id));
                     ++vertex_id;
                 }
             });
@@ -91,14 +93,14 @@ PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions
 PointList InfiniteHypergraphModel::create_vertices_in_interaction_neighborhood(const Point &interaction) const
 {
     const auto expected_num_of_vertices{2 * beta() * lambda() * std::pow(interaction.mark(), -gamma_prime()) / (1. - gamma())};
-    const auto num_of_vertices{std::poisson_distribution<uint32_t>(expected_num_of_vertices)(random_number_generator_)};
+    const auto num_of_vertices{std::poisson_distribution<int32_t>(expected_num_of_vertices)(random_number_generator_)};
     const auto marks{generate_marks(num_of_vertices, MIN_MARK)};
     const auto positions{generate_positions_in_interaction_neighborhood(interaction, marks)};
     PointList vertices{};
     vertices.reserve(num_of_vertices);
-    for (auto index{0U}; index < num_of_vertices; ++index)
+    for (auto index{0}; index < num_of_vertices; ++index)
     {
-        vertices.emplace_back(Point(index, marks[index], positions[index]));
+        vertices.emplace_back(Point{marks[index], positions[index], index});
     }
     return vertices;
 }

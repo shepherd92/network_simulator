@@ -82,6 +82,16 @@ const PointList &Rectangle::points() const
     return points_;
 }
 
+void Rectangle::set_top(const Mark mark)
+{
+    top_mark_ = mark;
+}
+
+void Rectangle::set_bottom(const Mark mark)
+{
+    bottom_mark_ = mark;
+}
+
 void fill_rectangles(RectangleList &rectangles, const PointList &points)
 {
     // assume points are sorted with respect to marks
@@ -123,4 +133,35 @@ void transform_points(RectangleList &rectangles, const std::function<void(Point 
         {
             rectangle.transform_points(lambda);
         });
+}
+
+void transform_rectangles(RectangleList &rectangles, const std::function<void(Rectangle &)> &lambda)
+{
+    std::for_each(
+        execution_policy,
+        rectangles.begin(),
+        rectangles.end(),
+        [&](auto &rectangle)
+        {
+            lambda(rectangle);
+        });
+}
+
+ConnectionList all_point_pairs(const Rectangle &left, const Rectangle &right)
+{
+    ConnectionList connections{};
+    for (const auto &left_point : left.points())
+    {
+        for (const auto &right_point : right.points())
+        {
+            connections.emplace_back(left_point.id(), right_point.id());
+        }
+    }
+    return connections;
+}
+
+std::ostream &operator<<(std::ostream &os, const Rectangle &rectangle)
+{
+    os << "Rectangle (b,t,l,r): " << rectangle.bottom() << " " << rectangle.top() << " " << rectangle.left() << " " << rectangle.right();
+    return os;
 }

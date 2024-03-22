@@ -30,11 +30,21 @@ protected:
     inline float lambda() const;
     inline float lambda_prime() const;
 
-    bool connects(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const;
+    bool rectangle_points_may_connect(
+        const Rectangle &vertex_rectangle,
+        const Rectangle &interaction_rectangle) const;
+    bool rectangle_points_surely_connect(
+        const Rectangle &vertex_rectangle,
+        const Rectangle &interaction_rectangle) const;
     inline bool connects(const Point &vertex, const Point &interaction) const;
 
 private:
-    RectangleList create_rectangles(const PointList &points, const float exponent) const;
+    RectangleList create_transformed_filled_rectangles(
+        const PointList &points,
+        const float exponent) const;
+    RectangleList create_rectangles(
+        const PointList &points_in,
+        const float exponent) const;
     ConnectionList calc_connected_point_pairs(
         const Rectangle &vertex_rectangle,
         const Rectangle &interaction_rectangle) const;

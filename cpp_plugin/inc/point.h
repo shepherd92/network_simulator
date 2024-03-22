@@ -6,7 +6,7 @@
 class Point
 {
 public:
-    inline Point(const PointId id, const Mark mark, const Position position);
+    inline Point(const Mark mark, const Position position, const PointId id = -1);
 
     inline void raise_mark_to_power(const float exponent);
 
@@ -17,9 +17,9 @@ public:
     inline void set_mark(const Mark mark);
 
 private:
-    const PointId id_;
     Mark mark_;
     const Position position_;
+    const PointId id_;
 };
 
 #include "point.inl"

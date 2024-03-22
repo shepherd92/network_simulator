@@ -10,12 +10,12 @@ int main()
     const auto seed{0U};
 
     const std::vector<double> model_params{
-        2U,     // max_dimension
-        10000., // network_size
-        10000., // interaction_intensity
-        0.0001, // beta
-        0.7,    // gamma
-        0.2};   // gamma_prime
+        2U,   // max_dimension
+        100., // network_size
+        100., // interaction_intensity
+        0.01, // beta
+        0.7,  // gamma
+        0.2}; // gamma_prime
 
     std::cout << "\rCreating finite hypergraph model" << std::endl;
     const FiniteHypergraphModel model{model_params, seed};

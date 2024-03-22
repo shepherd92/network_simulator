@@ -3,8 +3,8 @@
 
 #include <cmath>
 
-Point::Point(const PointId id, const Mark mark, const Position position)
-    : id_(id), mark_(mark), position_(position)
+Point::Point(const Mark mark, const Position position, const PointId id)
+    : mark_(mark), position_(position), id_(id)
 {
 }
 

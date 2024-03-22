@@ -27,8 +27,8 @@ PointList InfiniteAdrcmModel::create_vertices() const
     const auto u{uniform_distribution(random_number_generator_)}; // birth time of the typical node
 
     // generate nodes
-    PointList vertices{Point{0, u, 0.}};
-    PointId id{1U};
+    PointList vertices{Point{0., u, 0}};
+    PointId id{1};
 
     // generate older nodes which (u, 0) connects to
     // w is a random variable that is later transformed to be the birth time
@@ -46,7 +46,7 @@ PointList InfiniteAdrcmModel::create_vertices() const
         Position position{radius * uniform_distribution(random_number_generator_)};
 
         // create point and save it
-        vertices.push_back(Point{id, v, position});
+        vertices.push_back(Point{v, position, id});
         // increment w to arrive to the next birth time (before transformation)
         w_older += w_interarrival_time_distribution_older_nodes(random_number_generator_);
         ++id;
@@ -67,7 +67,7 @@ PointList InfiniteAdrcmModel::create_vertices() const
         Position position(radius * uniform_distribution(random_number_generator_));
 
         // create point and save it
-        vertices.push_back(Point{id, v, position});
+        vertices.push_back(Point{v, position, id});
         // increment w to arrive to the next birth time (before transformation)
         w_younger += w_interarrival_time_distribution_younger_nodes(random_number_generator_);
         ++id;

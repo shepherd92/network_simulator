@@ -22,6 +22,8 @@ public:
     const Mark &bottom() const;
     const Position &left() const;
     const Position &right() const;
+    void set_top(const Mark mark);
+    void set_bottom(const Mark mark);
 
     void add_point(const Point &points);
     void transform_points(const std::function<void(Point &)> &lambda);
@@ -30,9 +32,10 @@ public:
 
 private:
     bool contains(const Point &point) const;
+    friend std::ostream &operator<<(std::ostream &os, const Rectangle &rectangle);
 
-    const Mark bottom_mark_;
-    const Mark top_mark_;
+    Mark bottom_mark_;
+    Mark top_mark_;
     const Position left_position_;
     const Position right_position_;
 
@@ -42,5 +45,7 @@ private:
 
 void fill_rectangles(RectangleList &rectangles, const PointList &points);
 void transform_points(RectangleList &rectangles, const std::function<void(Point &)> &lambda);
+void transform_rectangles(RectangleList &rectangles, const std::function<void(Rectangle &)> &lambda);
+ConnectionList all_point_pairs(const Rectangle &left, const Rectangle &right);
 
 #endif
