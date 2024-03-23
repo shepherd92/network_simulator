@@ -2,6 +2,7 @@
 #define _NETWORK_H_
 
 #include <gudhi/Simplex_tree.h>
+#include <map>
 #include <optional>
 
 #include "simplex.h"
@@ -54,6 +55,7 @@ protected:
 private:
     SimplexList calc_facets() const;
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
+    std::map<PointId, std::vector<int32_t>> create_vertex_simplex_map(const SimplexList &simplices) const;
     void filter_facets(const PointIdList &vertices);
 };
 

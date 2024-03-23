@@ -30,6 +30,8 @@ private:
         const MarkList &marks,
         const float exponent_of_central_point,
         const float exponent_of_points_in_neighborhood) const;
+
+    bool rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const override;
 };
 
 #endif

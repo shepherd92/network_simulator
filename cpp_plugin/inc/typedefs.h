@@ -22,6 +22,8 @@ class SimplexHash;
 using PointList = std::vector<Point>;
 using PointId = int32_t;
 using PointIdList = std::vector<PointId>;
+using InteractionId = int32_t;
+using InteractionIdList = std::vector<InteractionId>;
 using Mark = float;
 using MarkList = std::vector<Mark>;
 using Position = float;

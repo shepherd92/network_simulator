@@ -140,3 +140,21 @@ PositionList InfiniteHypergraphModel::generate_positions_in_neighborhood(
         });
     return positions;
 }
+
+bool InfiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const
+{
+    const Point vtl{vertex_rectangle.top(), vertex_rectangle.left()};
+    const Point vtr{vertex_rectangle.top(), vertex_rectangle.right()};
+    const Point itl{interaction_rectangle.top(), interaction_rectangle.left()};
+    const Point itr{interaction_rectangle.top(), interaction_rectangle.right()};
+
+    if (fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
+        fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
+        fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
+        fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
+    {
+        return true;
+    }
+
+    return false;
+}

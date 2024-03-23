@@ -34,6 +34,25 @@ Network::Network(const Dimension max_dimension, const PointIdList &vertices, con
     std::sort(vertices_.begin(), vertices_.end());
 }
 
+std::map<PointId, std::vector<int32_t>> Network::create_vertex_simplex_map(const SimplexList &simplices) const
+{
+    std::map<PointId, std::vector<int32_t>> vertex_simplex_map{};
+    for (const auto &vertex : vertices_)
+    {
+        vertex_simplex_map[vertex] = std::vector<int32_t>{};
+    }
+
+    for (auto index{0U}; index < simplices.size(); ++index)
+    {
+        for (const auto &vertex : simplices[index].vertices())
+        {
+            vertex_simplex_map[vertex].push_back(index);
+        }
+    }
+    // note: assume that the vertex_simplex_map is sorted
+    return vertex_simplex_map;
+}
+
 void Network::reset()
 {
     facets_ = std::nullopt;
@@ -107,7 +126,9 @@ std::vector<uint32_t> Network::calc_degree_sequence(
 {
     assert(neighbor_dimension > simplex_dimension);
     const auto &simplices{get_simplices(simplex_dimension)};
-    const auto &possible_cofaces{get_simplices(neighbor_dimension)};
+    const auto &facets{select_higher_dimensional_simplices(get_facets(), neighbor_dimension)};
+    auto vertex_simplex_map{create_vertex_simplex_map(facets)};
+
     std::vector<uint32_t> degree_sequence{};
     degree_sequence.reserve(simplices.size());
 
@@ -116,25 +137,35 @@ std::vector<uint32_t> Network::calc_degree_sequence(
     std::atomic<uint32_t> counter{0U};
 
     std::for_each(
-        std::execution::seq,
+        execution_policy,
         simplices.begin(),
         simplices.end(),
         [&](auto &&simplex)
         {
-            std::atomic<uint32_t> degree{0U};
-
-            std::for_each(
-                execution_policy,
-                possible_cofaces.begin(),
-                possible_cofaces.end(),
-                [&](const auto &neighbor)
+            // find all facet indices containing the simplex
+            auto neighbor_facet_indices{vertex_simplex_map[simplex.vertices()[0]]};
+            if (simplex_dimension != 0)
+            {
+                for (auto vertex_id{simplex.vertices().begin() + 1}; vertex_id != simplex.vertices().end(); ++vertex_id)
                 {
-                    if (simplex.is_face(neighbor))
-                    {
-                        ++degree;
-                    }
-                });
+                    std::vector<int32_t> intersection{};
+                    std::set_intersection(
+                        neighbor_facet_indices.begin(), neighbor_facet_indices.end(),
+                        vertex_simplex_map[*vertex_id].begin(), vertex_simplex_map[*vertex_id].end(),
+                        std::back_inserter(intersection));
+                    neighbor_facet_indices = intersection;
+                };
+            }
 
+            // create all coface facets
+            SimplexList neighbor_facets{};
+            neighbor_facets.reserve(neighbor_facet_indices.size());
+            for (const auto index : neighbor_facet_indices)
+            {
+                neighbor_facets.push_back(facets[index]);
+            }
+
+            const auto degree{get_cofaces(get_faces_simplices(neighbor_facets, neighbor_dimension), simplex).size()};
             std::lock_guard<std::mutex> lock_guard(mutex);
             degree_sequence.push_back(degree);
             log_progress(++counter, total, 1000U, "Calc degree sequence");
@@ -227,18 +258,37 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
 
 std::vector<uint32_t> Network::calc_vertex_interaction_degree_distribution() const
 {
-    const auto vertices{get_vertices()};
-    std::vector<uint32_t> result{};
-    result.reserve(vertices.size());
+    // initialize result with zeros
+    std::map<PointId, uint32_t> result{};
+    for (const auto vertex_id : get_vertices())
+    {
+        result.emplace(vertex_id, 0U);
+    }
+
     std::for_each(
         std::execution::seq,
-        vertices.begin(),
-        vertices.end(),
-        [&](const auto &vertex)
+        interactions_.begin(),
+        interactions_.end(),
+        [&](const auto &interaction)
         {
-            result.emplace_back(get_cofaces(interactions_, Simplex{PointIdList{vertex}}).size());
+            std::for_each(
+                execution_policy, // can execute parallel, different vertices in an interaction
+                interaction.vertices().begin(),
+                interaction.vertices().end(),
+                [&](const auto vertex_id)
+                {
+                    ++result[vertex_id];
+                });
         });
-    return result;
+
+    std::vector<uint32_t> counts{};
+    counts.reserve(result.size());
+    for (std::map<PointId, uint32_t>::iterator it = result.begin(); it != result.end(); ++it)
+    {
+        counts.push_back(it->second);
+    }
+
+    return counts;
 }
 
 uint32_t Network::num_simplices(const Dimension dimension)

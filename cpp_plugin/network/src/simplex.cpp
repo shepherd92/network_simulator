@@ -219,30 +219,6 @@ SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension di
     return faces;
 }
 
-/*
-SimplexList get_faces_simplices(const SimplexList &simplices, const Dimension dimension)
-{
-    SimplexList all_faces{};
-    std::mutex mutex{};
-
-    std::for_each(
-        execution_policy,
-        simplices.begin(),
-        simplices.end(),
-        [&](const auto &simplex)
-        {
-            const auto faces{simplex.faces(dimension)};
-            std::lock_guard<std::mutex> lock(mutex);
-            std::copy(faces.begin(), faces.end(), std::back_inserter(all_faces));
-        });
-    std::sort(all_faces.begin(), all_faces.end());
-    auto last{std::unique(all_faces.begin(), all_faces.end())};
-    all_faces.erase(last, all_faces.end());
-
-    sort_simplices(all_faces, true);
-    return all_faces;
-}*/
-
 SimplexList get_cofaces(const SimplexList &simplices_in, const Simplex &simplex)
 {
     SimplexList cofaces{};

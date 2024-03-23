@@ -143,8 +143,8 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
 
         axes.add_collection(polygon_collection)
 
-    nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.01)
-    nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.001)
+    # nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.01)
+    # nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.001)
 
     axes.set_axis_off()
 

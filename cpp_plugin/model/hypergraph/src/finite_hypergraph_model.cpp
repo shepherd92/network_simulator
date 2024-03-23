@@ -27,3 +27,32 @@ std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphMo
 
     return std::make_tuple<>(network, vertex_mark_position_pairs, interaction_mark_position_pairs);
 }
+
+bool FiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const
+{
+    const Point vtl{vertex_rectangle.top(), vertex_rectangle.left()};
+    const Point vtr{vertex_rectangle.top(), vertex_rectangle.right()};
+    const Point itl{interaction_rectangle.top(), interaction_rectangle.left()};
+    const Point itr{interaction_rectangle.top(), interaction_rectangle.right()};
+
+    // all points connect within the torus (no wrapping around the torus boundaries)
+    if (fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
+        fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
+        fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
+        fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
+    {
+        return true;
+    }
+
+    // all points connect wrapping around the torus
+    if (torus_size() - fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
+        torus_size() - fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
+        torus_size() - fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
+        torus_size() - fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
+    {
+        return true;
+    }
+
+    // assumption: no rectangles wrap around the torus boundaries
+    return false;
+}

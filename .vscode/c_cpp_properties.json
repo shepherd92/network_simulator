@@ -13,6 +13,10 @@
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c23",
             "cppStandard": "c++20",
+            "excludeDirs": [
+                "${workspaceFolder}/cpp_plugin/build",
+                "${workspaceFolder}/bin"
+            ],
             "intelliSenseMode": "linux-gcc-x64"
         }
     ],

@@ -30,12 +30,6 @@ protected:
     inline float lambda() const;
     inline float lambda_prime() const;
 
-    bool rectangle_points_may_connect(
-        const Rectangle &vertex_rectangle,
-        const Rectangle &interaction_rectangle) const;
-    bool rectangle_points_surely_connect(
-        const Rectangle &vertex_rectangle,
-        const Rectangle &interaction_rectangle) const;
     inline bool connects(const Point &vertex, const Point &interaction) const;
 
 private:
@@ -48,6 +42,13 @@ private:
     ConnectionList calc_connected_point_pairs(
         const Rectangle &vertex_rectangle,
         const Rectangle &interaction_rectangle) const;
+
+    bool rectangle_points_may_connect(
+        const Rectangle &vertex_rectangle,
+        const Rectangle &interaction_rectangle) const;
+    virtual bool rectangle_points_surely_connect(
+        const Rectangle &vertex_rectangle,
+        const Rectangle &interaction_rectangle) const = 0;
 
     Parameters parameters_;
 };
