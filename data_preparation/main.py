@@ -73,6 +73,7 @@ degree_distribution_directories = {
     '1000':     input_base_path / '20240312_095344',
     '10000':    input_base_path / '20240312_073803',
     '100000':   input_base_path / '20240311_205605',
+    '1000000':  input_base_path / '20240323_185549',
 }
 
 # simplex_count_directories = {

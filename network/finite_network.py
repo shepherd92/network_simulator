@@ -188,7 +188,7 @@ class FiniteNetwork(Network):
         neighbor_dimension = simplex_dimension + 1 if neighbor_dimension is None else neighbor_dimension
         assert neighbor_dimension > simplex_dimension
 
-        if neighbor_dimension >= self.max_dimension:
+        if neighbor_dimension > self.max_dimension:
             # neighbor_dimension is at most max_dimension - 1 as higher dimensions make no sense
             return EmpiricalDistribution([])
 

@@ -9,22 +9,8 @@
 
 uint64_t SimplexHash::operator()(const Simplex &simplex) const
 {
-    return simplex.hash();
-}
-
-Simplex::Simplex(const PointIdList &vertices)
-    : vertices_{vertices}
-{
-    assert(!vertices_.empty());
-    vertices_.shrink_to_fit();
-    std::sort(vertices_.begin(), vertices_.end());
-    hash_ = calc_hash();
-}
-
-uint64_t Simplex::calc_hash() const
-{
-    uint64_t seed{vertices_.size()};
-    for (auto vertex : vertices_)
+    uint64_t seed{simplex.vertices().size()};
+    for (auto vertex : simplex.vertices())
     {
         vertex = ((vertex >> 16) ^ vertex) * 0x45d9f3b;
         vertex = ((vertex >> 16) ^ vertex) * 0x45d9f3b;
@@ -32,6 +18,19 @@ uint64_t Simplex::calc_hash() const
         seed ^= vertex + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
     return seed;
+}
+
+Simplex::Simplex(const PointIdList &vertices)
+    : vertices_{vertices}, bloom_filter_{}
+{
+    assert(!vertices_.empty());
+    vertices_.shrink_to_fit();
+    std::sort(vertices_.begin(), vertices_.end());
+
+    for (const auto vertex : vertices_)
+    {
+        bloom_filter_.set(vertex % BLOOM_FILTER_SIZE);
+    }
 }
 
 const PointIdList &Simplex::vertices() const

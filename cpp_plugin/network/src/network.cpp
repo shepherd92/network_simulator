@@ -126,9 +126,7 @@ std::vector<uint32_t> Network::calc_degree_sequence(
 {
     assert(neighbor_dimension > simplex_dimension);
     const auto &simplices{get_simplices(simplex_dimension)};
-    const auto &facets{select_higher_dimensional_simplices(get_facets(), neighbor_dimension)};
-    auto vertex_simplex_map{create_vertex_simplex_map(facets)};
-
+    const auto &possible_cofaces{get_simplices(neighbor_dimension)};
     std::vector<uint32_t> degree_sequence{};
     degree_sequence.reserve(simplices.size());
 
@@ -137,35 +135,25 @@ std::vector<uint32_t> Network::calc_degree_sequence(
     std::atomic<uint32_t> counter{0U};
 
     std::for_each(
-        execution_policy,
+        std::execution::seq,
         simplices.begin(),
         simplices.end(),
         [&](auto &&simplex)
         {
-            // find all facet indices containing the simplex
-            auto neighbor_facet_indices{vertex_simplex_map[simplex.vertices()[0]]};
-            if (simplex_dimension != 0)
-            {
-                for (auto vertex_id{simplex.vertices().begin() + 1}; vertex_id != simplex.vertices().end(); ++vertex_id)
+            std::atomic<uint32_t> degree{0U};
+
+            std::for_each(
+                execution_policy,
+                possible_cofaces.begin(),
+                possible_cofaces.end(),
+                [&](const auto &neighbor)
                 {
-                    std::vector<int32_t> intersection{};
-                    std::set_intersection(
-                        neighbor_facet_indices.begin(), neighbor_facet_indices.end(),
-                        vertex_simplex_map[*vertex_id].begin(), vertex_simplex_map[*vertex_id].end(),
-                        std::back_inserter(intersection));
-                    neighbor_facet_indices = intersection;
-                };
-            }
+                    if (simplex.is_face(neighbor))
+                    {
+                        ++degree;
+                    }
+                });
 
-            // create all coface facets
-            SimplexList neighbor_facets{};
-            neighbor_facets.reserve(neighbor_facet_indices.size());
-            for (const auto index : neighbor_facet_indices)
-            {
-                neighbor_facets.push_back(facets[index]);
-            }
-
-            const auto degree{get_cofaces(get_faces_simplices(neighbor_facets, neighbor_dimension), simplex).size()};
             std::lock_guard<std::mutex> lock_guard(mutex);
             degree_sequence.push_back(degree);
             log_progress(++counter, total, 1000U, "Calc degree sequence");
