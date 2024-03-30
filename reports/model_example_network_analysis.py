@@ -50,7 +50,7 @@ def analyze_model_example_finite_network(
     plt.rcParams["text.usetex"] = False
 
     if plot:
-        plot_giant_component(network.get_component(0), save_directory / 'network.png')
+        plot_giant_component(network, save_directory / 'network.png')
         plot_network_determined_positions(network, save_directory / 'network_fixed_vertex_positions.png')
         if PLOT_HYPERGRAPH_DETERMINED_POSITIONS:
             plot_hypergraph_determined_positions(network, save_directory / 'hypergraph_fixed_positions.png')

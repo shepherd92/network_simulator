@@ -81,8 +81,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         name='vertex_degree_exponent',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.CalculationMethod.NETWORK,
-            # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+            # BaseNetworkProperty.CalculationMethod.NETWORK,
+            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
@@ -93,8 +93,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         name='edge_degree_exponent',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-            BaseNetworkProperty.CalculationMethod.NETWORK,
-            # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+            # BaseNetworkProperty.CalculationMethod.NETWORK,
+            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),

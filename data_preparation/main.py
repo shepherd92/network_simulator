@@ -52,13 +52,13 @@ data_analysis_directories = {
 # }
 
 model_sample_for_data_directories = {
-    'computer_science': input_base_path / '20240317_095712',
-    'biology':          input_base_path / '20240316_210528',
-    'economics':        input_base_path / '20240316_210355',
-    'engineering':      input_base_path / '20240317_082953',
-    'finance':          input_base_path / '20240316_205705',
-    'mathematics':      input_base_path / '20240316_210724',
-    'statistics':       input_base_path / '20240316_210010',
+    'computer_science': input_base_path / '20240330_120256',
+    'biology':          input_base_path / '20240330_115643',
+    'economics':        input_base_path / '20240330_115023',
+    'engineering':      input_base_path / '20240330_113433',
+    'finance':          input_base_path / '20240330_113104',
+    'mathematics':      input_base_path / '20240330_110429',  # '20240316_210724',
+    'statistics':       input_base_path / '20240330_094048',
 }
 
 degree_distribution_directories = {
@@ -69,9 +69,9 @@ degree_distribution_directories = {
     # '100000':   input_base_path / '20230614_185624',
     # 'infinite': input_base_path / '20230615_074249',
     '10':       input_base_path / '20240312_095450',
-    '100':      input_base_path / '20240312_095423',
-    '1000':     input_base_path / '20240312_095344',
-    '10000':    input_base_path / '20240312_073803',
+    '100':      input_base_path / '20240330_204249',
+    '1000':     input_base_path / '20240330_204339',
+    '10000':    input_base_path / '20240330_204417',
     '100000':   input_base_path / '20240311_205605',
     '1000000':  input_base_path / '20240323_185549',
 }
@@ -150,7 +150,7 @@ def main() -> None:
     # prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
     # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path)
     # prepare_model_analysis_data(model_sample_directory, output_path)
-    # prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path)
+    prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path_root)
     prepare_simulation_betti_number_data(betti_number_directories, output_path_root)
     prepare_simulation_simplex_count_data(simplex_count_directories, output_path_root)
     prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path_root)

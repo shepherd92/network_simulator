@@ -45,7 +45,7 @@ def analyze_data_set_network(
     plt.rcParams["text.usetex"] = False
 
     if plot:
-        plot_giant_component(network.get_component(0), save_directory / 'network.png')
+        plot_giant_component(network, save_directory / 'network.png')
 
     summary = network.calc_network_summary(calculated_properties)
 

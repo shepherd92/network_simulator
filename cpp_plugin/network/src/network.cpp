@@ -56,6 +56,7 @@ std::map<PointId, std::vector<int32_t>> Network::create_vertex_simplex_map(const
 void Network::reset()
 {
     facets_ = std::nullopt;
+    simplices_ = std::vector<std::optional<SimplexList>>{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt};
 }
 
 Dimension Network::get_max_dimension() const

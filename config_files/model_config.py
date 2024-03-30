@@ -24,7 +24,7 @@ class ModelConfig:
 
         component_index_from_largest: int = -1
         plot: bool = True
-        num_of_infinite_networks: int = 0
+        num_of_infinite_networks: int = 100
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
             BaseNetworkProperty.Type.NUM_OF_VERTICES,
             BaseNetworkProperty.Type.NUM_OF_EDGES,
@@ -36,21 +36,21 @@ class ModelConfig:
             BaseNetworkProperty.Type.AVG_CLUSTERING,
             BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
             BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
-            # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
-            # BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
+            BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
+            BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
-            BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
             BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION,
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-            BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
+            # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
             BaseNetworkProperty.Type.BETTI_NUMBERS,
-            BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
+            # BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT,
             BaseNetworkProperty.Type.VERTICES_BY_COMPONENT,
             # BaseNetworkProperty.Type.PERSISTENCE_PAIRS,
         ]
         properties_to_calculate_infinite: list[BaseNetworkProperty.Type] = [
-            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
+            # BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
@@ -74,11 +74,15 @@ class ModelConfig:
 
 
 # ==============================================================================
+NETWORK_MAGNITUDE = 4
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=1e6,  # vertex_intensity: expected number of vertices
-    interaction_intensity=1e6,  # interaction_intensity: expected number of interactions
-    beta=1e-6,
+    network_size=10**(NETWORK_MAGNITUDE),  # vertex_intensity: expected number of vertices
+    interaction_intensity=10**(NETWORK_MAGNITUDE),  # interaction_intensity: expected number of interactions
+    beta=10**(-NETWORK_MAGNITUDE),
+    # network_size=16267,
+    # interaction_intensity=13357,
+    # beta=3.2186e-05,
     gamma=0.7,
     gamma_prime=0.2,
 )

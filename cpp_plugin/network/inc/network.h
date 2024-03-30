@@ -17,6 +17,7 @@ public:
     void set_max_dimension(const Dimension dimension);
     uint32_t num_simplices(const Dimension dimension);
 
+    void keep_only_vertices(const PointIdList &vertices);
     virtual void reset();
 
     std::vector<Dimension> calc_simplex_dimension_distribution();
@@ -39,7 +40,6 @@ public:
     void set_interactions(const ISimplexList &interactions);
 
 protected:
-    void keep_only_vertices(const PointIdList &vertices);
     SimplexList get_skeleton(const Dimension max_dimension);
 
     const SimplexList &get_interactions() const;

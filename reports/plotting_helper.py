@@ -94,25 +94,23 @@ def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: pl
 @log_function_name
 def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: bool, axes: plt.Axes) -> None:
     """Plot a simplicial complex on the given axis."""
-    color_map_name = 'viridis_r'  # viridis, plasma, inferno, magma, cividis
+    color_map_name = 'plasma_r'  # viridis, plasma, inferno, magma, cividis
     if determined_vertex_positions:
         assert network.vertex_positions is not None
         vertex_positions = network.vertex_positions
     else:
         vertex_positions = _determine_node_positions(network.graph)
     interactions_to_plot = _determine_interactions_to_plot(network.interactions)
-    debug(f'Number of facets to plot: {len(interactions_to_plot)}')
+    debug(f'Number of interactions to plot: {len(interactions_to_plot)}')
 
     interaction_vertex_positions: list[list[tuple[float]]] = []
-    all_vertex_coordintes = [coordinate for coordinates in vertex_positions.values() for coordinate in coordinates]
-    estimated_torus_size = max(all_vertex_coordintes) - min(all_vertex_coordintes)
     for interaction in interactions_to_plot:
         this_interaction_vertex_positions = list(itemgetter(*interaction)(vertex_positions))
-        size_of_this_interaction = \
-            max([coordinates[0] for coordinates in this_interaction_vertex_positions]) - \
-            min([coordinates[0] for coordinates in this_interaction_vertex_positions])
         if determined_vertex_positions:
-            if size_of_this_interaction < 0.5 * estimated_torus_size:
+            size_of_this_interaction = \
+                max([coordinates[0] for coordinates in this_interaction_vertex_positions]) - \
+                min([coordinates[0] for coordinates in this_interaction_vertex_positions])
+            if size_of_this_interaction < 0.5:
                 # exclude polygons which were created by wrap around torus effect
                 interaction_vertex_positions.append(this_interaction_vertex_positions)
         else:
@@ -138,13 +136,22 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
             polygon_coordinates,
             facecolors=face_colors,
             edgecolors=('black',),
-            linewidths=(0.01,)
+            linewidths=(0.0000001,)
         )
 
         axes.add_collection(polygon_collection)
 
-    # nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.01)
-    # nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.001)
+    axes.set_xlim([
+        min([coordinates[0] for coordinates in vertex_positions.values()]),
+        max([coordinates[0] for coordinates in vertex_positions.values()]),
+    ])
+    axes.set_ylim([
+        min([coordinates[1] for coordinates in vertex_positions.values()]),
+        max([coordinates[1] for coordinates in vertex_positions.values()]),
+    ])
+
+    nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.000001)
+    nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.0001, alpha=0.000001)
 
     axes.set_axis_off()
 
@@ -739,8 +746,9 @@ def plot_giant_component(network: FiniteNetwork, save_path: Path):
     plt.rcParams["text.usetex"] = False
 
     debug('Plotting simplicial complex of giant component started.')
-    figure, axes = plt.subplots(1, 1, figsize=(50, 50))
-    plot_finite_network(network, False, axes)
+    figure, axes = plt.subplots(1, 1)
+    network_to_plot = network.get_component(0)
+    plot_finite_network(network_to_plot, False, axes)
     figure.savefig(save_path)
     figure.clf()
     debug('Plotting simplicial complex of giant component finished.')
