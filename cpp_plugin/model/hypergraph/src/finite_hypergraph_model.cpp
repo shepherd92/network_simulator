@@ -25,7 +25,7 @@ std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphMo
     const auto simplices{create_simplices_from_connections(connections)};
     FiniteNetwork network{max_dimension(), vertex_ids, simplices};
 
-    return std::make_tuple<>(network, vertex_mark_position_pairs, interaction_mark_position_pairs);
+    return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
 }
 
 bool FiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const

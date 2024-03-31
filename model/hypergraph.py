@@ -126,7 +126,13 @@ class HypergraphModel(Model):
 
         cpp_model = InfiniteHypergraphModel(self._parameters.to_numpy(), seed)
         cpp_networks = cpp_model.generate_networks(num_of_networks)
-        infinite_networks = [InfiniteNetwork(cpp_network) for cpp_network in cpp_networks]
+
+        infinite_networks: list[InfiniteNetwork] = []
+        for cpp_network, vertex_positions, interaction_positions in cpp_networks:
+            infinite_network = InfiniteNetwork(cpp_network)
+            infinite_network.vertex_positions = self._create_point_positions_dict(vertex_positions)
+            infinite_network.interaction_positions = self._create_point_positions_dict(interaction_positions)
+            infinite_networks.append(InfiniteNetwork(cpp_network))
         return InfiniteNetworkSet(infinite_networks)
 
     def _create_point_positions_dict(self, vertex_positions: list[tuple[float, float]]) -> dict[int, tuple[float, ...]]:

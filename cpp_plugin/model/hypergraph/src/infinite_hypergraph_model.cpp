@@ -7,14 +7,31 @@
 #include "infinite_network.h"
 #include "point.h"
 #include "rectangle.h"
+#include "tools.h"
 #include "typedefs.h"
 
 InfiniteHypergraphModel::InfiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed)
-    : Model{seed}, HypergraphModel{parameters_in}
+    : Model{seed}, InfiniteModel{seed}, HypergraphModel{parameters_in}
 {
 }
 
-InfiniteNetwork InfiniteHypergraphModel::generate_network() const
+std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
+InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networks) const
+{
+    std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>> result{};
+    result.reserve(num_of_infinite_networks);
+
+    for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
+    {
+        const auto network_interface{generate_network()};
+        result.push_back(network_interface);
+        log_progress(network_index, num_of_infinite_networks, 1U, "Generating infinite networks");
+    }
+    return result;
+}
+
+std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
+InfiniteHypergraphModel::generate_network() const
 {
     const PointId typical_vertex_id{0};
     std::uniform_real_distribution<Mark> mark_distribution(0., 1.);
@@ -24,7 +41,7 @@ InfiniteNetwork InfiniteHypergraphModel::generate_network() const
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
     auto vertices{create_vertices(interactions)};
-    vertices.emplace_back(Point{0.F, u, typical_vertex_id}); // add the typical node
+    vertices.emplace_back(Point{u, 0.F, typical_vertex_id}); // add the typical node
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
@@ -33,7 +50,7 @@ InfiniteNetwork InfiniteHypergraphModel::generate_network() const
 
     const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_id};
 
-    return network;
+    return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
 }
 
 PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
@@ -44,7 +61,7 @@ PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
         2 * beta() * lambda_prime() * std::pow(u, -gamma()) / (1 - gamma_prime()));
     const auto num_of_interactions{poisson_distribution_interactions(random_number_generator_)};
     const auto interaction_marks{generate_marks(num_of_interactions, MIN_MARK)};
-    const auto interaction_positions{generate_positions_in_vertex_neighborhood(Point{0.F, u, typical_vertex_id}, interaction_marks)};
+    const auto interaction_positions{generate_positions_in_vertex_neighborhood(Point{u, 0.F, typical_vertex_id}, interaction_marks)};
 
     PointList interactions{};
     interactions.reserve(num_of_interactions);

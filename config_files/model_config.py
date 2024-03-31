@@ -64,7 +64,7 @@ class ModelConfig:
         """Model testing configuration for networks."""
 
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 0
+        num_of_infinite_networks: int = 10000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
     set_params_from_data_set: bool = False
@@ -74,7 +74,7 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 4
+NETWORK_MAGNITUDE = 6
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
     network_size=10**(NETWORK_MAGNITUDE),  # vertex_intensity: expected number of vertices

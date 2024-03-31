@@ -84,7 +84,7 @@ RectangleList HypergraphModel::create_rectangles(
     const auto n_points{points_in.size()};
     RectangleList rectangles{};
     const auto points_per_rectangle{std::max(100., std::pow(n_points, 0.5))};
-    const auto space_size{determine_space_size(points_in)};
+    const auto space_size{std::max(determine_space_size(points_in), 1e-9F)};
     const auto area{points_per_rectangle / n_points * space_size};
     const auto sqrt_beta{std::pow(beta(), 0.5)};
 

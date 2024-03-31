@@ -11,10 +11,11 @@ class InfiniteHypergraphModel : public InfiniteModel, public HypergraphModel
 public:
     InfiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed);
 
-protected:
-    InfiniteNetwork generate_network() const override;
+    std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
+    generate_networks(const uint32_t num_of_infinite_networks) const;
 
 private:
+    std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList> generate_network() const;
     PointList create_interactions(const Mark u) const;
     PointList create_points(const size_t num_of_nodes, const float exponent) const;
     PointList create_vertices(const PointList &interactions) const;

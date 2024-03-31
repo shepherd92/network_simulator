@@ -9,9 +9,10 @@ class InfiniteAdrcmModel : public InfiniteModel, public AdrcmModel
 {
 public:
     InfiniteAdrcmModel(const std::vector<double> &parameters_in, const uint32_t seed);
+    std::vector<InfiniteNetwork> generate_networks(const uint32_t num_of_infinite_networks) const;
 
 protected:
-    InfiniteNetwork generate_network() const override;
+    InfiniteNetwork generate_network() const;
 
 private:
     PointList create_vertices() const;

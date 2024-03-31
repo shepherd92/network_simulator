@@ -4,8 +4,19 @@
 #include "typedefs.h"
 
 InfiniteAdrcmModel::InfiniteAdrcmModel(const std::vector<double> &parameters_in, const uint32_t seed)
-    : Model{seed}, InfiniteModel{}, AdrcmModel{parameters_in}
+    : Model{seed}, InfiniteModel{seed}, AdrcmModel{parameters_in}
 {
+}
+
+std::vector<InfiniteNetwork> InfiniteAdrcmModel::generate_networks(const uint32_t num_of_infinite_networks) const
+{
+    std::vector<InfiniteNetwork> networks;
+    networks.reserve(num_of_infinite_networks);
+    for (uint32_t i = 0; i < num_of_infinite_networks; ++i)
+    {
+        networks.emplace_back(generate_network());
+    }
+    return networks;
 }
 
 InfiniteNetwork InfiniteAdrcmModel::generate_network() const
@@ -27,7 +38,7 @@ PointList InfiniteAdrcmModel::create_vertices() const
     const auto u{uniform_distribution(random_number_generator_)}; // birth time of the typical node
 
     // generate nodes
-    PointList vertices{Point{0., u, 0}};
+    PointList vertices{Point{u, 0.F, 0}};
     PointId id{1};
 
     // generate older nodes which (u, 0) connects to
