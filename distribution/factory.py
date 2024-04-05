@@ -48,29 +48,17 @@ def create_fitting_parameters_poisson() -> PoissonDistribution.FittingParameters
     )
 
 
-def create_fitting_parameters_power_law_data_set() -> PowerLawDistribution.FittingParameters:
+def create_power_law_fitting_parameters(minimum_value: float) -> PowerLawDistribution.FittingParameters:
     """Create fitting parameters for normal distribution."""
     return PowerLawDistribution.FittingParameters(
         PowerLawDistribution.DeterministicDomain(
             PowerLawDistribution.DomainCalculation.Method.DETERMINISTIC,
-            min_=10.,
+            min_=minimum_value,
             max_=np.inf,
         ),
-        PowerLawDistribution.ParameterFitting(
-            PowerLawDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
-            PowerLawDistribution.DistributionParameters(),
-        )
-    )
-
-
-def create_fitting_parameters_power_law_model() -> PowerLawDistribution.FittingParameters:
-    """Create fitting parameters for normal distribution."""
-    return PowerLawDistribution.FittingParameters(
-        PowerLawDistribution.DeterministicDomain(
-            PowerLawDistribution.DomainCalculation.Method.DETERMINISTIC,
-            min_=10.,
-            max_=np.inf,
-        ),
+        # PowerLawDistribution.MaximumLikelihoodDomain(
+        #     PowerLawDistribution.DomainCalculation.Method.MAXIMUM_LIKELIHOOD,
+        # ),
         PowerLawDistribution.ParameterFitting(
             PowerLawDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
             PowerLawDistribution.DistributionParameters(),

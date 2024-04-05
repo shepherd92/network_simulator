@@ -146,10 +146,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         Method = PowerLawDistribution.ParameterFitting.Method
 
         if parameter_fitting_parameters.method == Method.MAXIMUM_LIKELIHOOD:
-            self._parameters.exponent = self._estimate_exponent_mle(
-                empirical_distribution,
-                parameter_fitting_parameters
-            )
+            self._parameters.exponent = self._estimate_exponent_mle(empirical_distribution)
         elif parameter_fitting_parameters.method == Method.LINEAR_REGRESSION:
             self._parameters.exponent = self._estimate_exponent_linear_regression(
                 empirical_distribution,
@@ -216,11 +213,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         self._domain.min_ = np.quantile(empirical_distribution.value_sequence, min_quantile)
         self._domain.max_ = np.quantile(empirical_distribution.value_sequence, max_quantile)
 
-    def _estimate_exponent_mle(
-        self,
-        empirical_distribution: EmpiricalDistribution,
-        _: ParameterFitting,
-    ) -> DistributionParameters:
+    def _estimate_exponent_mle(self, empirical_distribution: EmpiricalDistribution) -> DistributionParameters:
         """Estimate the power law  with maximum likelihood estimation.
 
         Notations are consistent with the methods described in

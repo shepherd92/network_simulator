@@ -9,7 +9,11 @@ from logging import info
 import numpy as np
 import numpy.typing as npt
 
-from cpp_plugin.build.release.cpp_plugin import FiniteAdrcmModel, InfiniteAdrcmModel
+# pylint: disable-next=no-name-in-module
+from cpp_plugin.build.release.cpp_plugin import (
+    FiniteAdrcmModel,
+    InfiniteAdrcmModel,
+)
 from data_set.data_set import DataSet
 from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution

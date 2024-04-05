@@ -11,7 +11,7 @@ from reports.plotting_helper import plot_distribution_approximation, plot_probab
 def create_model_test_report(scalar_property_reports: list[ScalarNetworkPropertyReport]) -> Figure:
     """Create a figure with plots of the given scalar property report."""
     axes_grid_height = len(scalar_property_reports)
-    axes_grid_width = 3
+    axes_grid_width = 2
 
     figure = plt.figure('Model test report', figsize=(axes_grid_width * 10, axes_grid_height * 10))
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
@@ -19,7 +19,7 @@ def create_model_test_report(scalar_property_reports: list[ScalarNetworkProperty
     for index, property_report in enumerate(scalar_property_reports):
         _plot_property_report(property_report, figure.add_subplot(axes_grid[index, 0]))
         _plot_qq_plot(property_report, figure.add_subplot(axes_grid[index, 1]))
-        _plot_probability_plot(property_report, figure.add_subplot(axes_grid[index, 2]))
+        # _plot_probability_plot(property_report, figure.add_subplot(axes_grid[index, 2]))
 
     figure.tight_layout()
 

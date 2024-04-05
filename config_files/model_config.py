@@ -24,20 +24,20 @@ class ModelConfig:
 
         component_index_from_largest: int = -1
         plot: bool = True
-        num_of_infinite_networks: int = 100
+        num_of_infinite_networks: int = 0
         properties_to_calculate_finite: list[BaseNetworkProperty.Type] = [
             BaseNetworkProperty.Type.NUM_OF_VERTICES,
             BaseNetworkProperty.Type.NUM_OF_EDGES,
             BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
             BaseNetworkProperty.Type.NUM_OF_INTERACTIONS,
             # BaseNetworkProperty.Type.EDGES,
-            BaseNetworkProperty.Type.AVERAGE_DEGREE,
-            BaseNetworkProperty.Type.MAX_DEGREE,
-            BaseNetworkProperty.Type.AVG_CLUSTERING,
-            BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
+            # BaseNetworkProperty.Type.AVERAGE_DEGREE,
+            # BaseNetworkProperty.Type.MAX_DEGREE,
+            # BaseNetworkProperty.Type.AVG_CLUSTERING,
+            # BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS,
             BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION,
-            BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
-            BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
+            # BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION,
+            # BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION,
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION,
             # BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION,
@@ -64,7 +64,7 @@ class ModelConfig:
         """Model testing configuration for networks."""
 
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 10000
+        num_of_infinite_networks: int = 0
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
     set_params_from_data_set: bool = False
@@ -74,17 +74,21 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 6
+NETWORK_MAGNITUDE = 5
+GAMMA = 0.7
+GAMMA_PRIME = 0.2
+EXPECTED_VERTEX_INTERACTION_DEGREE = 3
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=10**(NETWORK_MAGNITUDE),  # vertex_intensity: expected number of vertices
-    interaction_intensity=10**(NETWORK_MAGNITUDE),  # interaction_intensity: expected number of interactions
-    beta=10**(-NETWORK_MAGNITUDE),
-    # network_size=16267,
-    # interaction_intensity=13357,
-    # beta=3.2186e-05,
-    gamma=0.7,
-    gamma_prime=0.2,
+    network_size=10**NETWORK_MAGNITUDE,  # vertex_intensity: expected number of vertices
+    interaction_intensity=10**NETWORK_MAGNITUDE,  # interaction_intensity: expected number of interactions
+    # beta=10**(-NETWORK_MAGNITUDE),
+    beta=EXPECTED_VERTEX_INTERACTION_DEGREE * 0.5 * (1. - GAMMA) * (1. - GAMMA_PRIME) * 10**(-NETWORK_MAGNITUDE),
+    # network_size=,
+    # interaction_intensity=,
+    # beta=,
+    gamma=GAMMA,
+    gamma_prime=GAMMA_PRIME,
 )
 # ==============================================================================
 

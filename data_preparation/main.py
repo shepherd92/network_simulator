@@ -68,12 +68,12 @@ degree_distribution_directories = {
     # '10000':    input_base_path / '20230614_170118',
     # '100000':   input_base_path / '20230614_185624',
     # 'infinite': input_base_path / '20230615_074249',
-    '10':       input_base_path / '20240312_095450',
-    '100':      input_base_path / '20240330_204249',
-    '1000':     input_base_path / '20240330_204339',
-    '10000':    input_base_path / '20240330_204417',
-    '100000':   input_base_path / '20240311_205605',
-    '1000000':  input_base_path / '20240323_185549',
+    # '10':       input_base_path / '20240405_132454',
+    '100':      input_base_path / '20240405_132519',
+    '1000':     input_base_path / '20240405_132526',
+    '10000':    input_base_path / '20240405_132536',
+    '100000':   input_base_path / '20240405_132544',
+    # '1000000':  input_base_path / '20240323_185549',
 }
 
 # simplex_count_directories = {
@@ -87,13 +87,25 @@ degree_distribution_directories = {
 # }
 
 simplex_count_directories = {
-    # the key is the value of gamma * 100
-    '10_25': input_base_path / '20240127_192842_01_025_10000',
-    '10_50': input_base_path / '20240127_200537_01_050_10000',
-    '10_75': input_base_path / '20240127_205236_01_075_10000',
-    '30_25': input_base_path / '20240127_213800_03_025_10000',
-    '30_50': input_base_path / '20240127_213948_03_050_10000',
-    '30_75': input_base_path / '20240127_214024_03_075_10000',
+    # the key is <gamma_prime*100>_<gamma*100>
+    '05_25': input_base_path / '20240404_120532',
+    '05_50': input_base_path / '20240404_131443',
+    '05_75': input_base_path / '20240404_120519',
+    '10_25': input_base_path / '20240404_120510',
+    '10_50': input_base_path / '20240404_120505',
+    '10_75': input_base_path / '20240404_120459',
+    '15_25': input_base_path / '20240404_112232',
+    '15_50': input_base_path / '20240404_112223',
+    '15_75': input_base_path / '20240404_112216',
+    '20_25': input_base_path / '20240404_112203',
+    '20_50': input_base_path / '20240404_112159',
+    '20_75': input_base_path / '20240404_112153',
+    '25_25': input_base_path / '20240404_102317',
+    '25_50': input_base_path / '20240404_102313',
+    '25_75': input_base_path / '20240404_102305',
+    '30_25': input_base_path / '20240404_102255',
+    '30_50': input_base_path / '20240404_102249',
+    '30_75': input_base_path / '20240404_092900',
 }
 
 # betti_number_directories = {
@@ -114,12 +126,24 @@ simplex_count_directories = {
 
 betti_number_directories = {
     # the key is <gamma_prime*100>_<gamma*100>
-    '10_25': input_base_path / '20240127_192842_01_025_10000',
-    '10_50': input_base_path / '20240127_200537_01_050_10000',
-    '10_75': input_base_path / '20240127_205236_01_075_10000',
-    '30_25': input_base_path / '20240127_213800_03_025_10000',
-    '30_50': input_base_path / '20240127_213948_03_050_10000',
-    '30_75': input_base_path / '20240127_214024_03_075_10000',
+    '05_25': input_base_path / '20240404_120532',
+    '05_50': input_base_path / '20240404_131443',
+    '05_75': input_base_path / '20240404_120519',
+    '10_25': input_base_path / '20240404_120510',
+    '10_50': input_base_path / '20240404_120505',
+    '10_75': input_base_path / '20240404_120459',
+    '15_25': input_base_path / '20240404_112232',
+    '15_50': input_base_path / '20240404_112223',
+    '15_75': input_base_path / '20240404_112216',
+    '20_25': input_base_path / '20240404_112203',
+    '20_50': input_base_path / '20240404_112159',
+    '20_75': input_base_path / '20240404_112153',
+    '25_25': input_base_path / '20240404_102317',
+    '25_50': input_base_path / '20240404_102313',
+    '25_75': input_base_path / '20240404_102305',
+    '30_25': input_base_path / '20240404_102255',
+    '30_50': input_base_path / '20240404_102249',
+    '30_75': input_base_path / '20240404_092900',
 }
 
 # hypothesis_testing_directories = {
@@ -138,7 +162,7 @@ hypothesis_testing_directories = {
     'engineering':      input_base_path / '20240322_092931',
     'mathematics':      input_base_path / '20240321_221229',
     'statistics':       input_base_path / '20240322_085600',
-    'finance':          input_base_path / '20240322_090205',
+    # 'finance':          input_base_path / '20240322_090205',
 }
 
 
@@ -146,10 +170,10 @@ def main() -> None:
     """Prepare all data for publication."""
     output_path_root.mkdir(parents=True, exist_ok=True)
 
-    # prepare_data_analysis_data(data_analysis_directories, output_path)
-    # prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path)
-    # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path)
-    # prepare_model_analysis_data(model_sample_directory, output_path)
+    prepare_data_analysis_data(data_analysis_directories, output_path_root)
+    prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path_root)
+    # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path_root)
+    # prepare_model_analysis_data(model_sample_directory, output_path_root)
     prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path_root)
     prepare_simulation_betti_number_data(betti_number_directories, output_path_root)
     prepare_simulation_simplex_count_data(simplex_count_directories, output_path_root)
@@ -190,6 +214,7 @@ def prepare_model_analysis_data(directory: Path, output_dir: Path) -> None:
 def prepare_simulation_degree_distribution_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare all information related to the higher-order degree distributions."""
     _merge_degree_exponents(directories, output_dir)
+    _create_boxplots_degree_distributions(directories, output_dir)
 
 
 def prepare_simulation_simplex_count_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -201,6 +226,7 @@ def prepare_simulation_simplex_count_data(directories: dict[str, Path], output_d
         'num_of_triangles_stable',
     ]:
         _merge_property_tables(directories, 'model_test', property_name, output_dir / 'model_test')
+        _create_histograms_normal_plots(directories, 'model_test', property_name, output_dir / 'model_test')
 
 
 def prepare_simulation_betti_number_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -214,6 +240,7 @@ def prepare_simulation_betti_number_data(directories: dict[str, Path], output_di
         'betti_number_2_stable',
     ]:
         _merge_property_tables(directories, 'model_test', property_name, output_dir / 'model_test')
+        _create_histograms_normal_plots(directories, 'model_test', property_name, output_dir / 'model_test')
 
 
 def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -244,8 +271,112 @@ def _merge_degree_exponents(directories: dict[str, Path], output_dir: Path):
         'vertex_degree_exponent',
         'edge_degree_exponent',
         'triangle_degree_exponent',
+        'interaction_vertex_degree_exponent',
+        'vertex_interaction_degree_exponent',
     ]:
         _merge_property_tables(directories, 'model_test', property_name, output_dir / 'model_test')
+
+
+def _create_boxplots_degree_distributions(directories: dict[str, Path], output_dir: Path):
+
+    GAMMA = 0.7
+    GAMMA_PRIME = 0.2
+
+    for property_name in [
+        'vertex_degree_exponent',
+        'edge_degree_exponent',
+        # 'triangle_degree_exponent',
+        'interaction_vertex_degree_exponent',
+        'vertex_interaction_degree_exponent',
+    ]:
+        caption = ''
+        theoretical_value = 0.
+        if property_name == 'vertex_degree_exponent':
+            caption = 'Vertex--edge degree exponent distribution'
+            theoretical_value = 1. + 1. / GAMMA
+        elif property_name == 'edge_degree_exponent':
+            caption = 'Edge--triangle degree exponent distribution'
+            theoretical_value = 2. / GAMMA
+        elif property_name == 'triangle_degree_exponent':
+            caption = 'Triangle--tetrahedron degree exponent distribution'
+            theoretical_value = 3. / GAMMA - 1.
+        elif property_name == 'interaction_vertex_degree_exponent':
+            caption = 'Interaction--vertex degree exponent distribution'
+            theoretical_value = 1. + 1. / GAMMA_PRIME
+        elif property_name == 'vertex_interaction_degree_exponent':
+            caption = 'Vertex--interaction degree exponent distribution'
+            theoretical_value = 1. + 1. / GAMMA
+
+        _create_boxplots(directories, 'model_test', property_name, output_dir / 'model_test', caption, theoretical_value)
+
+
+def _create_boxplots(
+    directories: dict[str, Path],
+    input_subdir: str,
+    property_name: str,
+    output_dir: Path,
+    caption: str,
+    theoretical_value: float
+) -> None:
+    """Create boxplots."""
+    # read quantiles
+    quantiles = pd.concat([
+        pd.read_csv(directory / input_subdir / property_name / 'quantiles.csv', index_col=0)['empirical']
+        for directory in directories.values()
+    ], axis=1)
+    quantiles.columns = directories.keys()
+    quantiles.index.name = 'quantile'
+
+    out_file_name = output_dir / property_name / 'boxplot_latex_figure.tex'
+    out_file_name.parent.mkdir(parents=True, exist_ok=True)
+
+    y_range = quantiles.to_numpy().max() - quantiles.to_numpy().min()
+    y_min = min(quantiles.to_numpy().min(), theoretical_value) - 0.05 * y_range
+    y_max = min(max(quantiles.to_numpy().max(), theoretical_value) + 0.05 * y_range, 2 * theoretical_value)
+
+    with open(out_file_name, 'w') as out_file:
+        print(r'\begin{subfigure}[t]{0.22\textwidth} \resizebox{\textwidth}{!}{', file=out_file)
+        print(r'    \begin{tikzpicture}', file=out_file)
+        print(r'        \begin{axis}[', file=out_file)
+        print(f'                xmin=0, xmax={len(directories) + 1}, ymin={y_min:.4f}, ymax={y_max:.4f},', file=out_file)
+        print(r'                xlabel=network size,', file=out_file)
+        print(r'                axis x line=middle, axis y line=middle,', file=out_file)
+        print(r'                xtick={', end='', file=out_file)
+        for i in range(len(directories) - 1):
+            print(f'{i + 1}, ', end='', file=out_file)
+        print(f'{len(directories)}', end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                ytick={', end='', file=out_file)
+        for i in range(int(y_min) + 1, int(y_max)):
+            print(f'{i}, ', end='', file=out_file)
+        print(f'{int(y_max)}', end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                xticklabels={', end='', file=out_file)
+        for dataset_name in list(directories.keys())[:-1]:
+            print(f'{dataset_name}, ', end='', file=out_file)
+        print(f'{list(directories.keys())[-1]}', end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'        ]', file=out_file)
+        for i, dataset_name in enumerate(directories.keys()):
+            print(r'            \addplot+[boxplot, boxplot/draw direction=y, black, solid, boxplot prepared={', end='', file=out_file)
+            print(f'draw position={i + 1}, ', end='', file=out_file)
+            print(f'lower whisker={quantiles[dataset_name][0]}, ', end='', file=out_file)
+            print(f'lower quartile={quantiles[dataset_name][25]}, ', end='', file=out_file)
+            print(f'median={quantiles[dataset_name][50]}, ', end='', file=out_file)
+            print(f'upper quartile={quantiles[dataset_name][75]}, ', end='', file=out_file)
+            print(f'upper whisker={quantiles[dataset_name][100]}, ', end='', file=out_file)
+            print(f'sample size={100}', end='', file=out_file)
+            print(r'}] coordinates {};', file=out_file)
+        print(r'            \addplot', end='', file=out_file)
+        print(f'[red, thick, domain=0:{len(directories) + 1}] ', end='', file=out_file)
+        print(r'{', end='', file=out_file)
+        print(f'{theoretical_value:.4f}', end='', file=out_file)
+        print(r'};', file=out_file)
+        print(r'      \end{axis}', file=out_file)
+        print(r'  \end{tikzpicture}} \caption{', end='', file=out_file)
+        print(caption, end='', file=out_file)
+        print(r'}', file=out_file)
+        print(r'\end{subfigure}', file=out_file)
 
 
 def create_degree_distributions(directories: dict[str, Path], output_dir: Path) -> None:
@@ -360,6 +491,144 @@ def _merge_property_tables(
     _merge_quantiles(directories, input_subdir, property_name, output_dir)
     _merge_theoretical_pdfs(directories, input_subdir, property_name, output_dir)
     _merge_test_results(directories, input_subdir, property_name, output_dir)
+
+
+def _create_value_counts_log_plots(
+    directories: dict[str, Path],
+    input_subdir: str,
+    property_name: str,
+    output_dir: Path,
+) -> None:
+    for dataset_name, directory in directories.items():
+        histogram_file_name = directory / input_subdir / property_name / 'histogram_linear.csv'
+        if not histogram_file_name.is_file():
+            continue
+
+        current_distribution = pd.read_csv(histogram_file_name)
+        if current_distribution['bin_left_limit'].isna().iloc[0]:
+            continue
+
+        info = pd.read_csv(directory / input_subdir / property_name / 'distribution_info.csv')
+        mean = info['empirical_mean'].iloc[0]
+        std = info['empirical_std_dev'].iloc[0]
+
+        histogram_x_values = current_distribution['bin_left_limit']
+        histogram_y_values = current_distribution['value']
+        histogram_bin_size = histogram_x_values[1] - histogram_x_values[0]
+
+        histogram_x_range = [
+            histogram_x_values.min(),
+            histogram_x_values.max() + histogram_bin_size,
+        ]
+
+        histogram_x_limits = [
+            histogram_x_range[0] - (histogram_x_range[1] - histogram_x_range[0]) * 0.05,
+            histogram_x_range[1] + (histogram_x_range[1] - histogram_x_range[0]) * 0.05,
+        ]
+        histogram_y_limits = [0, histogram_y_values.max() * 1.1,]
+
+        out_file_name = output_dir / property_name / 'distribution_latex_figures' / f'figure_{dataset_name}.tex'
+        out_file_name.parent.mkdir(parents=True, exist_ok=True)
+    '''
+  \begin{subfigure}[b]{0.24\textwidth} \resizebox{\textwidth}{!}{
+    \begin{tikzpicture}
+      \begin{axis} [
+          xmin=1, xmax=220, ymin=10^(-0.2), ymax=10^(4.5),
+          clip mode=individual,
+          smooth, xmode=log, ymode=log,
+          xlabel=vertex degree,
+          ylabel style={
+            yshift=-0.6cm
+          },
+          legend style={at={(0,0)}, anchor=south west, at={(axis description cs:0.025,0.025)}}, legend cell align={left},
+        ]
+        \addplot[only marks, mark options={scale=0.4}] table [x=value, y=statistics, col sep=comma] {data_total_degree_distribution_value_counts.csv};
+        \addplot[red, ultra thick, no marks, domain={10:3000}] {10^(5.85)*x^(-2.9635)};
+      \end{axis}
+    \end{tikzpicture}}
+  \end{subfigure}
+  '''
+    pass
+
+
+def _create_histograms_normal_plots(
+    directories: dict[str, Path],
+    input_subdir: str,
+    property_name: str,
+    output_dir: Path,
+) -> None:
+    for dataset_name, directory in directories.items():
+        histogram_file_name = directory / input_subdir / property_name / 'histogram_linear.csv'
+        if not histogram_file_name.is_file():
+            continue
+
+        current_distribution = pd.read_csv(histogram_file_name)
+        if current_distribution['bin_left_limit'].isna().iloc[0]:
+            continue
+
+        info = pd.read_csv(directory / input_subdir / property_name / 'distribution_info.csv')
+        mean = info['empirical_mean'].iloc[0]
+        std = info['empirical_std_dev'].iloc[0]
+
+        histogram_x_values = current_distribution['bin_left_limit']
+        histogram_y_values = current_distribution['value']
+        histogram_bin_size = histogram_x_values[1] - histogram_x_values[0]
+
+        histogram_x_range = [
+            histogram_x_values.min(),
+            histogram_x_values.max() + histogram_bin_size,
+        ]
+
+        histogram_x_limits = [
+            histogram_x_range[0] - (histogram_x_range[1] - histogram_x_range[0]) * 0.05,
+            histogram_x_range[1] + (histogram_x_range[1] - histogram_x_range[0]) * 0.05,
+        ]
+        histogram_y_limits = [0, histogram_y_values.max() * 1.1,]
+
+        out_file_name = output_dir / property_name / 'distribution_latex_figures' / f'figure_{dataset_name}.tex'
+        out_file_name.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_file_name, 'w') as out_file:
+            print(r'\begin{subfigure}[b]{0.28\textwidth}', file=out_file)
+            print(r'    \resizebox{0.48\textwidth}{!}{', file=out_file)
+            print(r'        \begin{tikzpicture}', file=out_file)
+            print(r'            \begin{axis} [', file=out_file)
+            print(r'                    grid=none, ticks=none, smooth,', file=out_file)
+            print(f'                    xmin={histogram_x_limits[0]:.4f}, xmax={histogram_x_limits[1]:.4f}, ymin={histogram_y_limits[0]:.10f}, ymax={histogram_y_limits[1]:.10f},', file=out_file)
+            print(r'                ]', file=out_file)
+            print(r'                \addplot[ybar interval, mark=no, fill=gray!50!white, ', file=out_file, end='')
+            print(f'restrict x to domain={histogram_x_limits[0]:.4f}:{histogram_x_limits[1]:.4f}]', file=out_file)
+            print(f'                table[x={dataset_name}_bin_left_limit, y={dataset_name}_value, col sep=comma]', file=out_file)
+            print(r'                    {', file=out_file, end='')
+            print(f'data/{input_subdir}/{property_name}/linear_histograms.csv', file=out_file, end='')
+            print(r'};', file=out_file)
+            print(rf'               \addplot[ultra thick, red, samples=100, domain={histogram_x_limits[0]:.4f}:{histogram_x_limits[1]:.4f}]', file=out_file, end='')
+            print(r' {', file=out_file, end='')
+            print(f'normalpdf(x, {mean:.4f}, {std:.4f})', file=out_file, end='')
+            print(r'};', file=out_file)
+            print(r'            \end{axis}', file=out_file)
+            print(r'        \end{tikzpicture}', file=out_file)
+            print(r'    }', file=out_file)
+            print(r'    \hfill', file=out_file)
+            print(r'    \resizebox{0.48\textwidth}{!}{', file=out_file)
+            print(r'        \begin{tikzpicture}', file=out_file)
+            print(r'            \begin{axis} [', file=out_file)
+            print(r'                    grid=none, ticks=none, smooth,', file=out_file)
+            print(r'                    xmin=-3, xmax=3, ymin=-3, ymax=3,', file=out_file)
+            print(r'                    clip mode=individual,', file=out_file)
+            print(r'                    scaled y ticks=false, % remove axis multiplier', file=out_file)
+            print(r'                    yticklabel style={text width=2em,align=right},', file=out_file)
+            print(r'                    y tick label style={/pgf/number format/fixed} % suppress scientific notation', file=out_file)
+            print(r'                ]', file=out_file)
+            print(r'                \addplot[black, only marks, mark=*, mark size=1.5]', file=out_file)
+            print(f'                table [x={dataset_name}_theoretical, y={dataset_name}_empirical, col sep=comma]', file=out_file)
+            print(r'                    {', file=out_file, end='')
+            print(f'data/{input_subdir}/{property_name}/qq_plot.csv', file=out_file, end='')
+            print(r'};', file=out_file)
+            print(r'                \addplot[ultra thick, red, samples=100, domain=-3:3]{x};', file=out_file)
+            print(r'            \end{axis}', file=out_file)
+            print(r'        \end{tikzpicture}', file=out_file)
+            print(r'    }', file=out_file)
+            print(r'\end{subfigure}', file=out_file)
 
 
 def _merge_model_info(

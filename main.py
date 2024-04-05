@@ -18,7 +18,7 @@ import tracemalloc
 import numpy as np
 from tqdm import tqdm
 
-from configuration.configuration import Configuration
+from configuration import Configuration
 from config_files.model_fitting import SCALAR_PROPERTY_PARAMS_TO_FIT
 from config_files.properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
 from data_set.factory import load_data

@@ -4,12 +4,15 @@
 import numpy as np
 
 from config_files.model_config import HYPERGRAPH_MODEL_PARAMETERS
+from config_files.distribution_fitting_params import (
+    POWER_LAW_FITTING_MINIMUM_VALUE_DATA,
+    POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
+)
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
     create_fitting_parameters_normal,
-    create_fitting_parameters_power_law_model,
-    create_fitting_parameters_power_law_data_set,
+    create_power_law_fitting_parameters,
 )
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.normal_distribution import NormalDistribution
@@ -24,7 +27,9 @@ SCALAR_PROPERTY_NAMES_TO_TEST = [
     # 'num_of_isolated_vertices_normal_mle',
     'edge_degree_exponent',
     # 'triangle_degree_exponent',
-    # 'average_interaction_degree_normal_mle',
+    'average_interaction_degree_normal_mle',
+    'vertex_interaction_degree_exponent',
+    'interaction_vertex_degree_exponent',
     # 'num_of_edges_normal_mle',
     # 'num_of_edges_normal_match_quantile',
     # 'num_of_edges_stable',
@@ -47,7 +52,7 @@ def _get_power_law_exponent_model(empirical_distribution: EmpiricalDistribution)
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_params = create_fitting_parameters_power_law_model()
+    fitting_params = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_MODEL)
     approximation.fit(fitting_params)
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
@@ -58,7 +63,7 @@ def _get_power_law_exponent_data_set(empirical_distribution: EmpiricalDistributi
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_params = create_fitting_parameters_power_law_data_set()
+    fitting_params = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_params)
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
@@ -81,8 +86,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         name='vertex_degree_exponent',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.DEGREE_DISTRIBUTION,
-            # BaseNetworkProperty.CalculationMethod.NETWORK,
-            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+            BaseNetworkProperty.CalculationMethod.NETWORK,
+            # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
@@ -93,8 +98,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         name='edge_degree_exponent',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1,
-            # BaseNetworkProperty.CalculationMethod.NETWORK,
-            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+            BaseNetworkProperty.CalculationMethod.NETWORK,
+            # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
@@ -105,8 +110,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         name='triangle_degree_exponent',
         source_base_property=BaseNetworkProperty(
             BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2,
-            # BaseNetworkProperty.CalculationMethod.NETWORK,
-            BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
+            BaseNetworkProperty.CalculationMethod.NETWORK,
+            # BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT,
         ),
         theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
         fitting_parameters=create_fitting_parameters_normal(),
@@ -120,6 +125,22 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
         fitting_parameters=create_fitting_parameters_normal(),
         calculator_default=_get_mean,
         calculator_data_set=_get_mean,
+    ),
+    DerivedNetworkProperty(
+        name='vertex_interaction_degree_exponent',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=create_fitting_parameters_normal(),
+        calculator_default=_get_power_law_exponent_model,
+        calculator_data_set=_get_power_law_exponent_data_set,
+    ),
+    DerivedNetworkProperty(
+        name='interaction_vertex_degree_exponent',
+        source_base_property=BaseNetworkProperty(BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION),
+        theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+        fitting_parameters=create_fitting_parameters_normal(),
+        calculator_default=_get_power_law_exponent_model,
+        calculator_data_set=_get_power_law_exponent_data_set,
     ),
     DerivedNetworkProperty(
         name='num_of_isolated_vertices_normal_mle',
@@ -218,8 +239,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
                 StableDistribution.DistributionParameters(
-                    alpha=min(1 / GAMMA, 2.),
-                    # alpha=np.nan,
+                    # alpha=min(1 / GAMMA, 2.),
+                    alpha=np.nan,
                     beta=-1.,
                     location=np.nan,
                     scale=np.nan
@@ -244,8 +265,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
                 StableDistribution.DistributionParameters(
-                    alpha=min(1 / GAMMA, 2.),
-                    # alpha=np.nan,
+                    # alpha=min(1 / GAMMA, 2.),
+                    alpha=np.nan,
                     beta=-1.,
                     location=np.nan,
                     scale=np.nan

@@ -10,11 +10,10 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 
+from config_files.distribution_fitting_params import POWER_LAW_FITTING_MINIMUM_VALUE_DATA
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
-from distribution.factory import (
-    create_fitting_parameters_power_law_data_set,
-)
+from distribution.factory import create_power_law_fitting_parameters
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from network.finite_network import FiniteNetwork
 from network.property import BaseNetworkProperty
@@ -157,7 +156,7 @@ def _report_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'total_degree_distribution')
@@ -176,7 +175,7 @@ def _report_in_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'in_degree_distribution')
@@ -195,7 +194,7 @@ def _report_out_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'out_degree_distribution')
@@ -214,7 +213,7 @@ def _report_ho_1_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_1')
@@ -233,7 +232,7 @@ def _report_ho_2_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_2')
@@ -252,7 +251,7 @@ def _report_ho_3_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'ho_degree_distribution_3')
@@ -271,7 +270,7 @@ def _report_simplex_dimension_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'simplex_dimension_distribution')
@@ -290,7 +289,7 @@ def _report_facet_dimension_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'facet_dimension_distribution')
@@ -309,7 +308,7 @@ def _report_interaction_dimension_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'interaction_dimension_distribution')
@@ -328,7 +327,7 @@ def _report_interaction_degree_distribution(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'interaction_degree_distribution')

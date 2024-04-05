@@ -8,10 +8,11 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 
+from config_files.distribution_fitting_params import POWER_LAW_FITTING_MINIMUM_VALUE_DATA
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
-    create_fitting_parameters_power_law_data_set,
-    create_theoretical_distribution
+    create_power_law_fitting_parameters,
+    create_theoretical_distribution,
 )
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
@@ -292,7 +293,8 @@ def guess_power_law_exponent(distribution: EmpiricalDistribution, minimum_value:
         distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters: PowerLawDistribution.FittingParameters = create_fitting_parameters_power_law_data_set()
+    fitting_parameters: PowerLawDistribution.FittingParameters = \
+        create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
     if minimum_value is not None:
         fitting_parameters.minimum_value = minimum_value
     approximation.fit(fitting_parameters)

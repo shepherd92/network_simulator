@@ -150,8 +150,8 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
         max([coordinates[1] for coordinates in vertex_positions.values()]),
     ])
 
-    nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=0.000001)
-    nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.0001, alpha=0.000001)
+    nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=1e-6)
+    nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.0001, alpha=1e-6)
 
     axes.set_axis_off()
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Configuration class."""
 
-from datetime import datetime
+from datetime import datetime, UTC
 import os
 
 from config_files.general_config import GeneralConfig
@@ -20,7 +20,7 @@ class Configuration:
 
         self.general.num_of_processes = self._determine_num_of_processes()
 
-        now = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        now = datetime.now(UTC).strftime('%Y%m%d_%H%M%S')
         self.general.output_dir = self.general.output_dir / now
 
     def _determine_num_of_processes(self) -> int:

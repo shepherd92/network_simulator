@@ -87,7 +87,8 @@ class HypergraphModel(Model):
                 integrand, 0., 1., args=(network_size, gamma_prime, gamma))[0]
 
             num_vertices_error = num_of_vertices - network_size * (1. - vertex_correction_integral)
-            num_interactions_error = num_of_interactions - interaction_intensity * (1. - interaction_correction_integral)
+            num_interactions_error = \
+                num_of_interactions - interaction_intensity * (1. - interaction_correction_integral)
 
             return [num_vertices_error, num_interactions_error]
 

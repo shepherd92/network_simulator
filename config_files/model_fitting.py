@@ -8,7 +8,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
     create_fitting_parameters_normal,
-    create_fitting_parameters_power_law_model,
+    create_power_law_fitting_parameters,
 )
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 from distribution.theoretical.power_law_distribution import PowerLawDistribution
@@ -42,7 +42,7 @@ class AgeDependentRandomSimplexParameterOptions(ModelParameterOptions):
             TheoreticalDistribution.Type.POWER_LAW
         )
         assert isinstance(approximation.theoretical, PowerLawDistribution)
-        approximation.fit(create_fitting_parameters_power_law_model())
+        approximation.fit(create_power_law_fitting_parameters(10.))
         gamma_guess = 1. / (approximation.theoretical.parameters.exponent - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 
