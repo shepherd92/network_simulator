@@ -5,7 +5,7 @@ from enum import Enum, auto
 from logging import warning, debug
 from operator import itemgetter
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from gudhi.persistence_graphical_tools import (
     plot_persistence_barcode,
@@ -27,6 +27,10 @@ from network.finite_network import FiniteNetwork
 from tools.logging_helper import log_function_name
 
 
+PLOT_SIZE = (3, 3)  # inches
+PLOT_DPI = 600
+
+
 class PaddingSide(Enum):
     """Define which direction theoretical values should be padded."""
 
@@ -42,53 +46,6 @@ def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
     figure = plt.figure()
     figure.axes.append(axes)
     figure.savefig(file_path)
-
-
-@log_function_name
-def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: plt.Axes) -> None:
-    """Plot a hypergraph complex on the given axis."""
-    if determined_positions:
-        assert network.vertex_positions is not None
-        assert network.interaction_positions is not None
-        vertex_positions = network.vertex_positions
-        interaction_positions = network.interaction_positions
-    else:
-        raise NotImplementedError('Determining positions is not implemented yet.')
-
-    axes.scatter(
-        [position[0] for position in vertex_positions.values()],
-        [position[1] for position in vertex_positions.values()],
-        c='blue', s=100
-    )
-    axes.scatter(
-        [position[0] for position in interaction_positions.values()],
-        [position[1] for position in interaction_positions.values()],
-        c='red', s=100
-    )
-
-    # create the hypergraph network
-    interactions = network.interactions
-    num_of_interactions = len(interactions)
-    hypergraph_edges = []
-    for interaction_id, interaction in enumerate(network.interactions):
-        hypergraph_edges.extend(list(zip(
-            [interaction_id] * len(interaction),
-            [vertex_id + num_of_interactions for vertex_id in interaction]
-        )))
-
-    # increment the vertex id-s by the number of interactions
-    vertex_positions_shifted_id = {key + len(interactions): value for key, value in vertex_positions.items()}
-    hypergraph_vertex_positions = interaction_positions | vertex_positions_shifted_id
-    hypergraph = nx.Graph()
-    hypergraph.add_nodes_from(hypergraph_vertex_positions.keys())
-    hypergraph.add_edges_from(hypergraph_edges)
-
-    nx.draw_networkx_edges(hypergraph, hypergraph_vertex_positions, ax=axes,
-                           edge_color='black', width=1, alpha=1)
-    axes.axhline(y=0., color='black', linestyle='-')
-    axes.axhline(y=1., color='black', linestyle='-')
-    axes.axvline(x=0., color='black', linestyle='-')
-    axes.set_ylim(0., 1.)
 
 
 @log_function_name
@@ -598,20 +555,23 @@ def print_info(objects_to_print: list[Any], axes: plt.Axes) -> None:
     axes.add_artist(text_box)
 
 
-def check_calculated(plotter_function):
+def check_calculated(title: str):
     """Check if the data to be plotted is calculated.
 
     Use as a decorator.
     """
-    def wrapper(data_to_plot: Any, axes: plt.Axes, save_directory: Path):
-        if data_to_plot is None:
-            print_not_calculated(axes)
-        else:
-            plotter_function(data_to_plot, axes, save_directory)
-    return wrapper
+    def wrapper_outer(plotter_function: Callable):
+        def wrapper_inner(data_to_plot: Any, axes: plt.Axes, save_directory: Path, **kwargs):
+            axes.set_title(title)
+            if data_to_plot is None:
+                _print_not_calculated(axes)
+            else:
+                plotter_function(data_to_plot, axes, save_directory, kwargs)
+        return wrapper_inner
+    return wrapper_outer
 
 
-def print_not_calculated(axes: plt.Axes) -> None:
+def _print_not_calculated(axes: plt.Axes) -> None:
     """Print the text not calculated to the given axes."""
     properties = dict(fontweight='bold', fontsize=20)
     text_box = AnchoredText('NOT CALCULATED', frameon=True, loc='center', pad=0.5, prop=properties)
@@ -746,10 +706,11 @@ def plot_giant_component(network: FiniteNetwork, save_path: Path):
     plt.rcParams["text.usetex"] = False
 
     debug('Plotting simplicial complex of giant component started.')
-    figure, axes = plt.subplots(1, 1)
+    print('\rPlot giant component...', end='')
+    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
     network_to_plot = network.get_component(0)
     plot_finite_network(network_to_plot, False, axes)
-    figure.savefig(save_path)
+    figure.savefig(save_path, dpi=PLOT_DPI)
     figure.clf()
     debug('Plotting simplicial complex of giant component finished.')
 
@@ -759,9 +720,10 @@ def plot_network_determined_positions(network: FiniteNetwork, save_path: Path):
     plt.rcParams["text.usetex"] = False
 
     debug('Plotting simplicial complex with fixed positions started.')
-    figure, axes = plt.subplots(1, 1, figsize=(50, 50))
+    print('\rPlot network fixed positions...', end='')
+    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
     plot_finite_network(network, True, axes)
-    figure.savefig(save_path)
+    figure.savefig(save_path, dpi=PLOT_DPI)
     figure.clf()
     debug('Plotting simplicial complex with fixed positions finished.')
 
@@ -771,8 +733,56 @@ def plot_hypergraph_determined_positions(network: FiniteNetwork, save_path: Path
     plt.rcParams["text.usetex"] = False
 
     debug('Plotting hypergraph fixed positions started.')
-    figure, axes = plt.subplots(1, 1, figsize=(50, 50))
+    print('\rPlot hypergraph fixed positions...', end='')
+    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
     plot_hypergraph(network, True, axes)
-    figure.savefig(save_path)
+    figure.savefig(save_path, dpi=PLOT_DPI)
     figure.clf()
     debug('Plotting hypergraph fixed positions finished.')
+
+
+@log_function_name
+def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: plt.Axes) -> None:
+    """Plot a hypergraph complex on the given axis."""
+    if determined_positions:
+        assert network.vertex_positions is not None
+        assert network.interaction_positions is not None
+        vertex_positions = network.vertex_positions
+        interaction_positions = network.interaction_positions
+    else:
+        raise NotImplementedError('Determining positions is not implemented yet.')
+
+    axes.scatter(
+        [position[0] for position in vertex_positions.values()],
+        [position[1] for position in vertex_positions.values()],
+        c='blue', s=100
+    )
+    axes.scatter(
+        [position[0] for position in interaction_positions.values()],
+        [position[1] for position in interaction_positions.values()],
+        c='red', s=100
+    )
+
+    # create the hypergraph network
+    interactions = network.interactions
+    num_of_interactions = len(interactions)
+    hypergraph_edges = []
+    for interaction_id, interaction in enumerate(network.interactions):
+        hypergraph_edges.extend(list(zip(
+            [interaction_id] * len(interaction),
+            [vertex_id + num_of_interactions for vertex_id in interaction]
+        )))
+
+    # increment the vertex id-s by the number of interactions
+    vertex_positions_shifted_id = {key + len(interactions): value for key, value in vertex_positions.items()}
+    hypergraph_vertex_positions = interaction_positions | vertex_positions_shifted_id
+    hypergraph = nx.Graph()
+    hypergraph.add_nodes_from(hypergraph_vertex_positions.keys())
+    hypergraph.add_edges_from(hypergraph_edges)
+
+    nx.draw_networkx_edges(hypergraph, hypergraph_vertex_positions, ax=axes,
+                           edge_color='black', width=1, alpha=1)
+    axes.axhline(y=0., color='black', linestyle='-')
+    axes.axhline(y=1., color='black', linestyle='-')
+    axes.axvline(x=0., color='black', linestyle='-')
+    axes.set_ylim(0., 1.)

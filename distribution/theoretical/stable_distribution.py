@@ -62,16 +62,15 @@ class StableDistribution(TheoreticalDistribution):
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-
-        return {
+        result = super().info()
+        result.update({
             'distribution_type': 'stable',
-            'valid': self.valid,
-            'domain': [self.domain.min_, self.domain.max_],
             'alpha': self._parameters.alpha,
             'beta': self._parameters.beta,
             'location': self._parameters.location,
             'scale': self._parameters.scale,
-        }
+        })
+        return result
 
     def _fit_domain(
         self,

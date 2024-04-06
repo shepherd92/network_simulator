@@ -48,12 +48,9 @@ class Mode(Enum):
 
 def main(mode: Mode, configuration: Configuration) -> None:
     """Run program - main function."""
-    num_of_processes = 1 \
-        if debugger_is_active() or configuration.general.runtime_profiling or configuration.general.memory_profiling \
-        else configuration.general.num_of_processes
-
     data_set_type = configuration.data_set_analysis.type_
     model_type = configuration.model.type_
+    seed = configuration.general.seed if configuration.general.seed else random.randint(0, 2**31 - 1)
 
     if mode == Mode.ANALYSIS:
         data_set = load_data(data_set_type)
@@ -84,7 +81,6 @@ def main(mode: Mode, configuration: Configuration) -> None:
             parameter_options=parameter_options,
             target_property_params=list(SCALAR_PROPERTY_PARAMS_TO_FIT),
             target_values=target_values,
-            num_of_processes=num_of_processes,
             options={
                 'maxiter': 10
             }
@@ -103,7 +99,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
             scalar_property_params_to_calculate=list(SCALAR_PROPERTY_PARAMS_TO_TEST),
             num_of_simulations=configuration.model.network_testing.num_of_simulations,
             num_of_infinite_networks=configuration.model.network_testing.num_of_infinite_networks,
-            num_of_processes=num_of_processes,
+            seed=seed,
         )
 
         scalar_property_reports: list[ScalarNetworkPropertyReport] = []
@@ -161,7 +157,6 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_finite'
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
-        seed = 0 if debugger_is_active() else random.randint(0, 2**31 - 1)
         typical_finite_network = model.generate_finite_network(seed)
         analyze_model_example_finite_network(
             typical_finite_network,
@@ -175,7 +170,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
             model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
             typical_infinite_network_set = model.generate_infinite_network_set(
                 configuration.model.analysis.num_of_infinite_networks,
-                seed=0,
+                seed=seed,
             )
             analyze_model_example_infinite_network_set(
                 typical_infinite_network_set,

@@ -5,8 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum, auto
-from logging import info
-from multiprocessing import Pool, Value
+from multiprocessing import Value
 from pathlib import Path
 from typing import Any
 
@@ -57,7 +56,7 @@ class Model:
         scalar_property_params_to_calculate: list[DerivedNetworkProperty],
         num_of_simulations: int,
         num_of_infinite_networks: int,
-        num_of_processes: int,
+        seed: int,
     ) -> list[EmpiricalDistribution]:
         """Calculate the summaries for the given network model."""
         base_network_properties = [
@@ -69,7 +68,7 @@ class Model:
             base_network_properties,
             num_of_simulations,
             num_of_infinite_networks,
-            num_of_processes,
+            seed,
         )
 
         scalar_property_distributions = self._extract_derived_properties(
@@ -104,7 +103,7 @@ class Model:
         base_network_properties: list[BaseNetworkProperty],
         num_of_simulations: int,
         num_of_infinite_networks: int,
-        num_of_processes: int
+        initial_seed: int,
     ) -> list[list[Any]]:
 
         global NUM_OF_SIMULATIONS  # pylint: disable=global-statement
@@ -113,19 +112,10 @@ class Model:
         global PROGRESS_BAR  # pylint: disable=global-statement
         PROGRESS_BAR = tqdm(total=NUM_OF_SIMULATIONS, desc='Simulation')
 
-        if num_of_processes > 1:
-            base_network_property_values: list[list[Any]] = self._simulate_multiple_processes(
-                base_network_properties,
-                num_of_simulations,
-                num_of_infinite_networks,
-                num_of_processes,
-            )
-        else:
-            base_network_property_values = self._simulate_single_process(
-                base_network_properties,
-                num_of_simulations,
-                num_of_infinite_networks,
-            )
+        base_network_property_values = [
+            self._generate_properties(base_network_properties, num_of_infinite_networks, seed)
+            for seed in range(initial_seed, initial_seed + num_of_simulations)
+        ]
 
         return base_network_property_values
 
@@ -144,47 +134,6 @@ class Model:
             scalar_property_distributions.append(empirical_distribution)
 
         return scalar_property_distributions
-
-    def _simulate_multiple_processes(
-        self,
-        base_network_properties: list[BaseNetworkProperty],
-        num_of_simulations: int,
-        num_of_infinite_networks: int,
-        num_of_processes: int,
-    ) -> list[list[Any]]:
-        """Simulate networks using multiple processes calculating a list of base properties."""
-        info(f'Starting a pool of {num_of_processes} processes.')
-
-        with Pool(num_of_processes) as pool:
-            args = list(zip(
-                [base_network_properties] * num_of_simulations,
-                [num_of_infinite_networks] * num_of_simulations,
-                range(num_of_simulations),
-            ))
-            # pylint: disable-next=no-member
-            # all_networks_base_network_properties: list[list[Any]] = [
-            #     results for results in
-            #     tqdm(pool.istarmap(self._generate_properties, args), desc='Simulation:', total=num_of_simulations)
-            # ]
-
-            all_networks_base_network_properties: list[list[Any]] = pool.starmap(  # type: ignore
-                self._generate_properties,
-                args
-            )
-        info(f'Multiprocessing with {num_of_processes} processes finished.')
-        return all_networks_base_network_properties
-
-    def _simulate_single_process(
-        self,
-        base_network_properties: list[BaseNetworkProperty],
-        num_of_simulations: int,
-        num_of_infinite_networks: int,
-    ) -> list[list[Any]]:
-        all_networks_base_network_properties = [
-            self._generate_properties(base_network_properties, num_of_infinite_networks, seed)
-            for seed in range(num_of_simulations)
-        ]
-        return all_networks_base_network_properties
 
     def _generate_properties(
         self,

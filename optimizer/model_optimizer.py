@@ -31,7 +31,6 @@ class ModelOptimizer:
         parameter_options: ModelParameterOptions,
         target_property_params: list[DerivedNetworkProperty],
         target_values: list[float | int],
-        num_of_processes: int,
         options: dict[str, Any]
     ) -> Model.Parameters:
         """Fit model parameters to data.
@@ -44,7 +43,6 @@ class ModelOptimizer:
                 parameters to be optimized
             target_property_params: (list[ScalarNetworkProperty]): targets with calculators
             target_values (list[float | int, ...]): target values to fit the model to
-            num_of_processes (int): number of processes to use for simulations,
             options: (dict[str, Any]): options for the optimization algorithm
         Returns:
             optimized model parameters
@@ -76,7 +74,6 @@ class ModelOptimizer:
                 target_property_params,
                 target_values,
                 parameter_options,
-                num_of_processes,
             ),
             method=self.method,
             bounds=bounds,
@@ -101,7 +98,6 @@ class ModelOptimizer:
         target_property_params: list[DerivedNetworkProperty],
         target_values: list[float | int],
         parameter_options: ModelParameterOptions,
-        num_of_processes: int
     ) -> float:
         """Target function to be used for optimization."""
         model.parameters = parameter_options.create_model_parameters_from_guess(
@@ -113,7 +109,6 @@ class ModelOptimizer:
             ModelOptimizer._estimate_required_number_of_simulations(
                 model,
                 target_property_params,
-                num_of_processes
             )
         num_of_additional_simulations = \
             max(num_of_simulations - len(network_properties_for_estimation), 0)
@@ -122,7 +117,6 @@ class ModelOptimizer:
             additional_network_properties = model.simulate(
                 target_property_params,
                 num_of_additional_simulations,
-                num_of_processes
             )
             network_properties = \
                 pd.concat([network_properties_for_estimation, additional_network_properties])
@@ -145,7 +139,6 @@ class ModelOptimizer:
     def _estimate_required_number_of_simulations(
         model: Model,
         target_property_params: list[DerivedNetworkProperty],
-        num_of_processes: int
     ) -> tuple[int, pd.DataFrame]:
         """Estmate how many simulations need to be executed.
 
@@ -158,7 +151,6 @@ class ModelOptimizer:
         network_properties_to_estimate_mean_and_std = model.simulate(
             target_property_params,
             num_of_simulations_to_estimate_mean_and_std,
-            num_of_processes
         )
         means_estimate = network_properties_to_estimate_mean_and_std.mean().to_numpy()
         vars_estimate = network_properties_to_estimate_mean_and_std.var().to_numpy()

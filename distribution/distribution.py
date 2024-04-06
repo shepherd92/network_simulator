@@ -129,7 +129,11 @@ class Distribution:
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        raise NotImplementedError
+        return {
+            'valid': self.valid,
+            'domain_min': self.domain.min_,
+            'domain_max': self.domain.max_,
+        }
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""

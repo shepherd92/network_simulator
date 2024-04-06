@@ -52,12 +52,12 @@ class PoissonDistribution(TheoreticalDistribution):
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        return {
+        result = super().info()
+        result.update({
             'distribution_type': 'poisson',
-            'valid': self.valid,
-            'domain': self.domain,
             'lambda': self.parameters.lambda_,
-        }
+        })
+        return result
 
     def _fit_domain(
         self,

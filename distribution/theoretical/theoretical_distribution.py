@@ -68,6 +68,14 @@ class TheoreticalDistribution(Distribution):
             for x in astuple(self._parameters)
         ) and self.domain.valid
 
+    def info(self) -> dict[str, int | float]:
+        """Return a dict representation based on the distribution properties."""
+        return {
+            'valid': self.valid,
+            'domain_min': self.domain.min_,
+            'domain_max': self.domain.max_,
+        }
+
     def _fit_domain(
         self,
         empirical_distribution: EmpiricalDistribution,

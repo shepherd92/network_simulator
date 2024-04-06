@@ -97,15 +97,14 @@ class EmpiricalDistribution(Distribution):
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        return {
+        result = super().info()
+        result.update({
             'distribution_type': 'empirical',
-            'valid': self.valid,
             'num_of_values': len(self.value_sequence),
-            'domain_min': self.domain.min_,
-            'domain_max': self.domain.max_,
             'mean': self.value_sequence.mean(),
             'std_dev': self.value_sequence.std(),
-        }
+        })
+        return result
 
     def save_histogram(self, histogram_type: HistogramType, file_name: Path) -> None:
         """Save histogram values."""

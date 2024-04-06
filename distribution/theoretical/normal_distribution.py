@@ -61,13 +61,13 @@ class NormalDistribution(TheoreticalDistribution):
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        return {
+        result = super().info()
+        result.update({
             'distribution_type': 'normal',
-            'valid': self.valid,
-            'domain': self.domain,
             'mean': self.parameters.mean,
             'std': self.parameters.std,
-        }
+        })
+        return result
 
     def _fit_domain(
         self,

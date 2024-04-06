@@ -92,12 +92,14 @@ class PowerLawDistribution(TheoreticalDistribution):
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        return {
+        result = super().info()
+        result.update({
             'distribution_type': 'power_law',
             'valid': self.valid,
             'domain': self.domain,
             'exponent': self._parameters.exponent,
-        }
+        })
+        return result
 
     def _fit_domain(
         self,

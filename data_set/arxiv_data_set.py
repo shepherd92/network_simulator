@@ -51,7 +51,8 @@ class ArxivDataSet(DataSet):
             'name': 'arxiv',
             'fields': field_names,
             'categories': categories,
-            'date_interval': date_interval,
+            'from_date': date_interval[0],
+            'to_date': date_interval[1],
             'component': self._data_set_properties.component_index_from_largest,
         })
         return result

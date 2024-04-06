@@ -50,11 +50,10 @@ class UniformDistribution(TheoreticalDistribution):
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the distribution properties."""
-        return {
+        result = super().info()
+        result.update({
             'distribution_type': 'uniform',
-            'valid': self.valid,
-            'domain': self.domain,
-        }
+        })
 
     def _fit_domain(
         self,
