@@ -152,7 +152,7 @@ class FiniteNetwork(Network):
             'num_of_vertices': self.num_simplices(0),
             'num_of_interactions': len(self.interactions),
             'max_dimension': self.max_dimension,
-            'num_of_components': len(self._components) if self._components is not None else -1,
+            'num_of_components': self.calc_base_property(BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
 

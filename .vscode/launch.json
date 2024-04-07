@@ -110,6 +110,17 @@
             }
         },
         {
+            "name": "Clean Data",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/data_preparation/clean.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
+            }
+        },
+        {
             "name": "Experiment",
             "type": "debugpy",
             "request": "launch",

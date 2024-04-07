@@ -74,7 +74,7 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 5
+NETWORK_MAGNITUDE = 2
 GAMMA = 0.7
 GAMMA_PRIME = 0.2
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3

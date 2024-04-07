@@ -566,7 +566,7 @@ def check_calculated(title: str):
             if data_to_plot is None:
                 _print_not_calculated(axes)
             else:
-                plotter_function(data_to_plot, axes, save_directory, kwargs)
+                plotter_function(data_to_plot, axes, save_directory, **kwargs)
         return wrapper_inner
     return wrapper_outer
 

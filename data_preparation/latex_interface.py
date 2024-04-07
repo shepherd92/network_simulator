@@ -227,3 +227,104 @@ def create_value_counts_log_plot(
         print(caption, end='', file=out_file)
         print(r'}', file=out_file)
         print(r'\end{subfigure}', file=out_file)
+
+
+def create_dataset_properties_table(
+    info_table: pd.DataFrame,
+    out_file_name: Path,
+) -> None:
+    """Create info table."""
+    out_file_name.parent.mkdir(parents=True, exist_ok=True)
+    dataset_name_translation = {
+        'computer_science': 'cs',
+        'engineering': 'eess',
+        'mathematics': 'math',
+        'statistics': 'stat',
+    }
+    with open(out_file_name, 'w') as out_file:
+        print(r'\begin{table} [h] \centering \caption{Main properties of the datasets} \label{tab:dataset_properties}', file=out_file)
+        print(r'    \begin{tabular}{|l|r|r|r|r|} \hline', file=out_file)
+        print(r'        dataset &  authors & documents & components & size of largest component \\', file=out_file)
+        print(r'        \hline', file=out_file)
+        for name_in_table, name_to_print in dataset_name_translation.items():
+            info_row = info_table.loc[name_in_table]
+            print(f'        {name_to_print: <7} & ', end='', file=out_file)
+            print(f'${info_row['num_of_vertices']:,}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info_row['num_of_interactions']:,}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info_row['num_of_components']:,}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info_row['num_of_vertices_in_component_0']:,}$ '.replace(',', r'\,'), end='', file=out_file)
+            print(r'\\', file=out_file)
+        print(r'        \hline', file=out_file)
+        print(r'    \end{tabular}', file=out_file)
+        print(r'\end{table}', file=out_file)
+
+# \begin{table} [h] \centering \caption{Fitted exponents of the degree distributions and the inferred $\g$ model parameters} \label{dataset_exponents}
+#   \begin{tabular}{|l|r|r|r|r|} \hline
+#     % exponent = m - (m+1) / gamma - 1
+#     % inferred gamma = (m+1) / (m-1 - exponent)
+#     \multirow{2}{*}{dataset } & \multicolumn{2}{|c|}{vertex degree} & \multicolumn{2}{|c|}{edge degree} \\ %\cline{2-5}
+#                      &  exponent & inferred $\g$ &  exponent & inferred $\g$ \\ \hline
+#     cs & -2.39 &      0.72 & -3.76 &      0.53 \\
+#     eess      & -2.98 &      0.50 & -4.14 &      0.48 \\
+#     math      & -2.79 &      0.56 & -4.47 &      0.45 \\
+#     stat       & -2.96 &      0.51 & -4.86 &      0.41 \\ \hline
+#   \end{tabular}
+# \end{table}
+
+# \begin{table} [h] \centering \caption{Mean vertex degree \& $\hat\b$} \label{dataset_betas}
+#   \begin{tabular}{|l|r|r|} \hline
+#     dataset & mean vertex degree & $\hat \b$ \\ \hline
+#     cs      &               9.57 &      2.69 \\
+#     eess    &               7.13 &      3.54 \\
+#     math    &               4.58 &      2.02 \\
+#     stat    &               5.14 &      2.52 \\ \hline
+#   \end{tabular}
+# \end{table}
+
+# \begin{table}[!htb]
+#   \begin{minipage}{.5\linewidth} \centering
+#     \centering \caption{Number of simplices of different dimensions in the datasets} \label{simplex_counts_table}
+#   \begin{tabular}{|l|r|r|r|} \hline
+#     dataset & vertices &       edges &   triangles \\ \hline
+#     cs      & 433\,244 & 2\,073\,235 & 4\,055\,220 \\
+#     eess    &  77\,686 &    276\,947 &    562\,382 \\
+#     math    & 198\,601 &    455\,130 &    321\,406 \\
+#     stat    &  44\,380 &    114\,003 &    135\,800 \\ \hline
+#   \end{tabular}
+#   \end{minipage}
+#   \qquad \qquad
+#   \begin{minipage}{.5\linewidth} \centering
+#     \caption{Estimated parameters of the stable distributions for triangle counts} \label{triangle_count_stable_distribution_parameters}
+#     \begin{tabular}{|l|r|r|r|r|r|r|} \hline
+#       dataset & $\hat\alpha$ & $\hat\b$ &     location &    scale \\ \hline
+#       cs      &         1.39 &      1.0 & 18\,785\,263 & 504\,582 \\
+#       eess    &         1.98 &      1.0 &  1\,911\,396 &  38\,527 \\
+#       math    &         1.79 &      1.0 &  2\,027\,542 &  28\,774 \\
+#       stat    &         1.96 &      1.0 &     566\,665 &  15\,352 \\ \hline
+#     \end{tabular}
+#   \end{minipage}
+# \end{table}
+
+# \begin{table}[!htb]
+#   \begin{minipage}[t]{.5\linewidth}
+#     \centering \caption{Betti numbers of the datasets} \label{betti_numbers_table}
+#       \begin{tabular}{|l|r|r|} \hline
+#         dataset & Betti-0 &  Betti-1 \\ \hline
+#         cs      & 22\,576 & 168\,770 \\
+#         eess    &  5\,533 &   7\,419 \\
+#         math    & 26\,197 &  78\,009 \\
+#         stat    &  4\,049 &   7\,275 \\ \hline
+#       \end{tabular}
+#     \end{minipage}
+# \qquad \qquad
+#   \begin{minipage}[t]{.5\linewidth}
+#     \centering \caption{Parameter estimates of the stable distributions for Betti-1} \label{betti_number_stable_distribution_parameters}
+#     \begin{tabular}{|l|r|r|r|r|} \hline
+#       dataset & $\hat\a$ & $\hat\b$ & location & scale \\ \hline
+#       cs      &     1.39 &     -1.0 &       37 & 12.83 \\
+#       eess    &     1.98 &     -1.0 &      105 &  9.66 \\
+#       math    &     1.79 &     -1.0 &      490 & 19.16 \\
+#       stat    &     1.96 &     -1.0 &      126 &  8.99 \\ \hline
+#     \end{tabular}
+#   \end{minipage}
+# \end{table}

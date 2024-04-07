@@ -18,6 +18,7 @@ from data_preparation.data_dirs.hypergraph import (
 )
 from data_preparation.latex_interface import (
     create_boxplots,
+    create_dataset_properties_table,
     create_histograms_normal_plots,
     create_value_counts_log_plot,
 )
@@ -42,7 +43,8 @@ def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -
     create_data_degree_distributions(directories, output_dir)
     create_betti_numbers(directories, output_dir)
     _copy_data_network_plots(directories, output_dir)
-    _merge_network_info(directories, 'data', output_dir)
+    network_info = _merge_network_info(directories, 'data', output_dir)
+    create_dataset_properties_table(network_info, output_dir / 'data' / 'latex_tables' / 'network_info.tex')
 
 
 def prepare_model_sample_for_data_sets_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -237,7 +239,7 @@ def create_betti_numbers(directories: dict[str, Path], output_dir: Path) -> None
         merged_data_frame.astype(int).to_csv(out_file_name)
 
 
-def _merge_network_info(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> None:
+def _merge_network_info(directories: dict[str, Path], subdirectory_name: str, output_path: Path) -> pd.DataFrame:
     """Create and merge info."""
     (output_path / 'data').mkdir(parents=True, exist_ok=True)
 
@@ -254,15 +256,17 @@ def _merge_network_info(directories: dict[str, Path], subdirectory_name: str, ou
         merged_data_frame = pd.concat(data_frames, axis=0)
         merged_data_frame.to_csv(output_path / 'data' / 'network_info.csv')
 
+    return merged_data_frame
+
 
 def _copy_data_network_plots(directories: dict[str, Path], output_path: Path) -> None:
     """Copy network plots to the output path."""
     (output_path / 'data').mkdir(parents=True, exist_ok=True)
     for dataset_name, directory in directories.items():
+
         file_name = directory / 'data' / 'network.png'
-        if not file_name.is_file():
-            continue
-        copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.png')
+        if file_name.is_file():
+            copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.png')
 
 
 def _copy_model_samples_for_data_sets_network_plots(
@@ -271,10 +275,13 @@ def _copy_model_samples_for_data_sets_network_plots(
 ) -> None:
     (output_path / 'data').mkdir(parents=True, exist_ok=True)
     for dataset_name, directory in directories.items():
-        file_name = directory / 'model_analysis_finite' / 'network.png'
-        if not file_name.is_file():
-            continue
-        copyfile(file_name, output_path / 'data' / f'{dataset_name}_model_sample_network.png')
+        file_name_original = directory / 'model_analysis_finite' / 'network.png'
+        if file_name_original.is_file():
+            copyfile(file_name_original, output_path / 'data' / f'{dataset_name}_model_sample_network.png')
+
+        file_name_fixed = directory / 'model_analysis_finite' / 'network_fixed_vertex_positions.png'
+        if file_name_fixed.is_file():
+            copyfile(file_name_fixed, output_path / 'data' / f'{dataset_name}_network_fixed_vertex_positions.png')
 
 
 def _merge_property_tables(

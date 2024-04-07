@@ -9,13 +9,13 @@ output_path_root = Path('../output/_prepared_data')
 model_sample_directory = input_base_path / '20240406_094950'
 
 data_analysis_directories = {
-    'computer_science': input_base_path / '20240312_193303',
-    'biology':          input_base_path / '20240311_161350',
-    'economics':        input_base_path / '20240311_161414',
-    'engineering':      input_base_path / '20240312_191910',
-    'finance':          input_base_path / '20240311_160315',
-    'mathematics':      input_base_path / '20240312_190315',
-    'statistics':       input_base_path / '20240311_161506',
+    'computer_science': input_base_path / '20240407_073645',
+    'biology':          input_base_path / '20240407_053735',
+    'economics':        input_base_path / '20240407_053830',
+    'engineering':      input_base_path / '20240407_054143',
+    'finance':          input_base_path / '20240407_053843',
+    'mathematics':      input_base_path / '20240407_054707',
+    'statistics':       input_base_path / '20240407_054022',
 }
 
 model_sample_for_data_directories = {

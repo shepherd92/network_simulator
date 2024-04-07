@@ -29,14 +29,14 @@ def report_vertex_edge_degree_distribution(
     empirical_distribution: EmpiricalDistribution,
     axes: plt.Axes,
     save_directory: Path,
-    power_law_fitting_minimum_value: float,
+    **kwargs,
 ) -> None:
 
     approximation = DistributionApproximation(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_parameters = create_power_law_fitting_parameters(power_law_fitting_minimum_value)
+    fitting_parameters = create_power_law_fitting_parameters(kwargs['power_law_fitting_minimum_value'])
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'total_degree_distribution')
@@ -87,7 +87,7 @@ def report_edge_triangle_degree_distribution(
     save_directory: Path,
     power_law_fitting_minimum_value: float,
 ) -> None:
-    
+
     approximation = DistributionApproximation(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
