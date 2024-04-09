@@ -8,12 +8,13 @@ import numpy as np
 
 
 def create_boxplots(
-    directories: dict[str, Path],
+    directories: dict[tuple[int, int], Path],
     input_subdir: str,
     property_name: str,
     output_dir: Path,
     caption: str,
-    theoretical_value: float
+    theoretical_value: float,
+    suffix: str = '',
 ) -> None:
     """Create boxplots."""
     # read quantiles
@@ -21,10 +22,14 @@ def create_boxplots(
         pd.read_csv(directory / input_subdir / property_name / 'quantiles.csv', index_col=0)['empirical']
         for directory in directories.values()
     ], axis=1)
-    quantiles.columns = directories.keys()
+
+    quantiles.columns = [
+        f'{gamma_prime}_{gamma}'
+        for gamma_prime, gamma in directories.keys()
+    ]
     quantiles.index.name = 'quantile'
 
-    out_file_name = output_dir / property_name / 'boxplot_latex_figure.tex'
+    out_file_name = output_dir / property_name / f'boxplot_{suffix}_latex_figure.tex'
     out_file_name.parent.mkdir(parents=True, exist_ok=True)
 
     y_range = quantiles.to_numpy().max() - quantiles.to_numpy().min()
@@ -32,12 +37,12 @@ def create_boxplots(
     y_max = min(max(quantiles.to_numpy().max(), theoretical_value) + 0.05 * y_range, 2 * theoretical_value)
 
     with open(out_file_name, 'w') as out_file:
-        print(r'\begin{subfigure}[t]{0.22\textwidth} \resizebox{\textwidth}{!}{', file=out_file)
+        print(r'\begin{subfigure}[t]{0.2\textwidth} \resizebox{\textwidth}{!}{', file=out_file)
         print(r'    \begin{tikzpicture}', file=out_file)
         print(r'        \begin{axis}[', file=out_file)
-        print(f'                xmin=0, xmax={len(directories) + 1}, ymin={y_min:.4f}, ymax={y_max:.4f},', file=out_file)
-        print(r'                xlabel=network size,', file=out_file)
-        print(r'                axis x line=middle, axis y line=middle,', file=out_file)
+        print(f'                xmin=0, xmax={len(directories) + 1}, ymin={y_min}, ymax={y_max},', file=out_file)
+        # print(r'                xlabel=network size,', file=out_file)
+        # print(r'                axis x line=middle, axis y line=middle,', file=out_file)
         print(r'                xtick={', end='', file=out_file)
         for i in range(len(directories) - 1):
             print(f'{i + 1}, ', end='', file=out_file)
@@ -49,19 +54,20 @@ def create_boxplots(
         print(f'{int(y_max)}', end='', file=out_file)
         print(r'},', file=out_file)
         print(r'                xticklabels={', end='', file=out_file)
-        for dataset_name in list(directories.keys())[:-1]:
-            print(f'{dataset_name}, ', end='', file=out_file)
-        print(f'{list(directories.keys())[-1]}', end='', file=out_file)
+        for network_size, _ in list(directories.keys())[:-1]:
+            print(f'{network_size}, ', end='', file=out_file)
+        print(f'{list(directories.keys())[-1][0]}', end='', file=out_file)
         print(r'},', file=out_file)
         print(r'        ]', file=out_file)
-        for i, dataset_name in enumerate(directories.keys()):
+        for i, key in enumerate(directories.keys()):
+            column_name = f'{key[0]}_{key[1]}'
             print(r'            \addplot+[boxplot, boxplot/draw direction=y, black, solid, boxplot prepared={', end='', file=out_file)
             print(f'draw position={i + 1}, ', end='', file=out_file)
-            print(f'lower whisker={quantiles[dataset_name][0]}, ', end='', file=out_file)
-            print(f'lower quartile={quantiles[dataset_name][25]}, ', end='', file=out_file)
-            print(f'median={quantiles[dataset_name][50]}, ', end='', file=out_file)
-            print(f'upper quartile={quantiles[dataset_name][75]}, ', end='', file=out_file)
-            print(f'upper whisker={quantiles[dataset_name][100]}, ', end='', file=out_file)
+            print(f'lower whisker={quantiles[column_name][0]}, ', end='', file=out_file)
+            print(f'lower quartile={quantiles[column_name][25]}, ', end='', file=out_file)
+            print(f'median={quantiles[column_name][50]}, ', end='', file=out_file)
+            print(f'upper quartile={quantiles[column_name][75]}, ', end='', file=out_file)
+            print(f'upper whisker={quantiles[column_name][100]}, ', end='', file=out_file)
             print(f'sample size={100}', end='', file=out_file)
             print(r'}] coordinates {};', file=out_file)
         print(r'            \addplot', end='', file=out_file)
@@ -70,19 +76,21 @@ def create_boxplots(
         print(f'{theoretical_value:.4f}', end='', file=out_file)
         print(r'};', file=out_file)
         print(r'      \end{axis}', file=out_file)
-        print(r'  \end{tikzpicture}} \caption{', end='', file=out_file)
-        print(caption, end='', file=out_file)
-        print(r'}', file=out_file)
+        print(r'  \end{tikzpicture}}', file=out_file)
+        # print(r'\caption{', end='', file=out_file)
+        # print(caption, end='', file=out_file)
+        # print(r'}', file=out_file)
         print(r'\end{subfigure}', file=out_file)
 
 
 def create_histograms_normal_plots(
-    directories: dict[str, Path],
+    directories: dict[str | tuple[int, ...], Path],
     input_subdir: str,
     property_name: str,
     output_dir: Path,
 ) -> None:
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(str(i) for i in key)
         histogram_file_name = directory / input_subdir / property_name / 'histogram_linear.csv'
         if not histogram_file_name.is_file():
             continue
@@ -200,7 +208,7 @@ def create_value_counts_log_plot(
         print(r'    \resizebox{\textwidth}{!}{', file=out_file)
         print(r'        \begin{tikzpicture}', file=out_file)
         print(r'            \begin{axis} [', file=out_file)
-        print(f'                    xmin={x_min:.4f}, xmax={x_max:.4f}, ymin={y_min:.4f}, ymax={y_max:.4f},', file=out_file)
+        print(f'                    xmin={x_min:.4f}, xmax={x_max:.4f}, ymin={y_min:.4f}, ymax={y_max},', file=out_file)
         print(r'                    clip mode=individual, smooth, xmode=log, ymode=log,', file=out_file)
         print(r'                    legend style={', file=out_file)
         print(r'                            at={(axis description cs:0.025,0.025)},', file=out_file)
@@ -328,3 +336,221 @@ def create_dataset_properties_table(
 #     \end{tabular}
 #   \end{minipage}
 # \end{table}
+
+
+def create_hypothesis_tests_plot(
+    in_dir: Path,
+    out_file_name: Path,
+    csv_file_dir: Path,
+    dataset_name: str | int,
+    caption: str,
+) -> None:
+    """Create value counts log plots."""
+    value_counts_file_name = in_dir / 'value_counts.csv'
+    if not value_counts_file_name.is_file():
+        return
+
+    info = pd.read_csv(
+        in_dir / 'distribution_info.csv',
+        converters={'theoretical_domain': pd.eval}
+    )
+
+    # read data
+    value_counts = pd.read_csv(value_counts_file_name, dtype=int, header=None)
+    value_counts.columns = ['value', 'count']
+    histogram = pd.read_csv(in_dir / 'histogram_linear.csv')
+    pdfs = pd.read_csv(in_dir / 'pdfs.csv', dtype=float)
+    pdfs.columns = ['x', 'empirical', 'theoretical']
+
+    test_info = pd.read_csv(in_dir / 'test_results.csv')
+    point_value = test_info['point_value'].iloc[0]
+    point_p_value = test_info['point_p_value'].iloc[0]
+
+    # determine x domain
+    x_min = info['empirical_domain_min'].iloc[0]
+    x_max = info['empirical_domain_max'].iloc[0]
+
+    if point_value < x_min:
+        point_value_position = 'left_from_distribution'
+    elif point_value > x_max:
+        point_value_position = 'right_from_distribution'
+    else:
+        point_value_position = 'inside_distribution'
+
+    x_range = x_max - x_min
+    x_min -= 0.05 * x_range
+    x_max += 0.05 * x_range
+
+    # determine_y_domain
+    y_min = 0
+    y_max = max(pdfs['theoretical'].max(), histogram['value'].max()) * 1.1
+
+    def get_xticks() -> list[int]:
+        digits_to_round_xticks = int(np.log10(x_max - x_min)) - 1
+        num_of_x_ticks = 2
+        xticks = [
+            int(round(x_min + (i + 1) * (x_max - x_min) / (num_of_x_ticks + 1), -digits_to_round_xticks))
+            for i in range(num_of_x_ticks)
+        ]
+        return xticks
+
+    def print_histogram_group_plot(side: str) -> None:
+        xticks = get_xticks()
+        print(r'                \nextgroupplot[', file=out_file)
+        if side == 'right':
+            print(r'                    axis x discontinuity=parallel,', file=out_file)
+            print(f'                    xmin={x_min - 0.1 * x_range:.4f}, xmax={x_max:.4f},', file=out_file)
+        elif side == 'left':
+            print(f'                    xmin={x_min:.4f}, xmax={x_max:.4f},', file=out_file)
+        print(r'                    xtick={', end='', file=out_file)
+        for xtick in xticks[:-1]:
+            print(f'{xtick}, ', end='', file=out_file)
+        print(f'{xticks[-1]}', end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                    xticklabels={', end='', file=out_file)
+        for xtick in xticks[:-1]:
+            print(f'${xtick:,}$'.replace(',', r'\,'), end='', file=out_file)
+            print(', ', end='', file=out_file)
+        print(f'${xticks[-1]:,}$'.replace(',', r'\,'), end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                    ytick=\empty,', file=out_file)
+        print(r'                    yticklabel=\empty,', file=out_file)
+        if side == 'right':
+            print(r'                    axis y line=right,', file=out_file)
+        elif side == 'left':
+            print(r'                    axis y line=left,', file=out_file)
+        print(r'                    scaled x ticks=false,', file=out_file)
+        print(r'                    scaled y ticks=false,', file=out_file)
+        print(r'                    xtick scale label code/.code={},', file=out_file)
+        print(r'                    xlabel=\phantom a,', file=out_file)
+        print(r'                    ylabel=\empty,', file=out_file)
+        print(r'                    width=7.0cm', file=out_file)
+        print(r'                ]', file=out_file)
+        print(r'                \addplot[ybar interval, mark=no, fill=gray!50!white,]', file=out_file)
+        print(f'                table[x={dataset_name}_bin_left_limit, y={dataset_name}_value, col sep=comma]', file=out_file)
+        print(r'                    {', end='', file=out_file)
+        print(f'{csv_file_dir}/linear_histograms.csv', end='', file=out_file)
+        print(r'};', file=out_file)
+        print(r'                \addplot[ultra thick, red, no marks, restrict x to domain={', end='', file=out_file)
+        print(f'{x_min}:{x_max}', end='', file=out_file)
+        print(r'}]', file=out_file)
+        print(f'                table [x={dataset_name}_value, y={dataset_name}_pdf, col sep=comma]', file=out_file)
+        print(r'                    {', end='', file=out_file)
+        print(f'{csv_file_dir}/theoretical_pdf.csv', end='', file=out_file)
+        print(r'};', file=out_file)
+
+    def print_point_value_groupplot(side: str) -> None:
+        print(r'                \nextgroupplot[', file=out_file)
+        if side == 'right':
+            print(r'                    axis x discontinuity=parallel,', file=out_file)
+        print(r'                    scaled x ticks=false,', file=out_file)
+        # print(r'                    scaled y ticks=false,', file=out_file)
+        print(f'                    xmin={point_value - 10:.4f}, xmax={point_value + 10:.4f},', file=out_file)
+        print(r'                    xtick={', end='', file=out_file)
+        print(f'{point_value}', end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                    xticklabels={', end='', file=out_file)
+        print(f'${point_value:,}$'.replace(',', r'\,'), end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                    ytick=\empty,', file=out_file)
+        print(r'                    yticklabel=\empty,', file=out_file)
+        if side == 'right':
+            print(r'                    axis y line=right,', file=out_file)
+        elif side == 'left':
+            print(r'                    axis y line=left,', file=out_file)
+        print(r'                    axis line style={-},', file=out_file)
+        print(r'                    width=3.5cm', file=out_file)
+        print(r'                ]', file=out_file)
+        print(r'                \addplot[ultra thick, green!70!black, mark=none, dashed]', file=out_file)
+        print(r'                coordinates {', end='', file=out_file)
+        print(f'({point_value}, 0) ({point_value}, {y_max})', end='', file=out_file)
+        print(r'};', file=out_file)
+
+    def print_joint_group_plot() -> None:
+        xticks = get_xticks()
+        print(r'                \nextgroupplot[', file=out_file)
+        print(f'                    xmin={x_min:.4f}, xmax={x_max:.4f},', file=out_file)
+        print(r'                    xtick={', end='', file=out_file)
+        for xtick in xticks[:-1]:
+            print(f'{xtick}, ', end='', file=out_file)
+        print(f'{xticks[-1]}', end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                    xticklabels={', end='', file=out_file)
+        for xtick in xticks[:-1]:
+            print(f'${xtick:,}$'.replace(',', r'\,'), end='', file=out_file)
+            print(', ', end='', file=out_file)
+        print(f'${xticks[-1]:,}$'.replace(',', r'\,'), end='', file=out_file)
+        print(r'},', file=out_file)
+        print(r'                    ylabel=\empty,', file=out_file)
+        print(r'                    ytick=\empty,', file=out_file)
+        print(r'                    yticklabel=\empty,', file=out_file)
+        print(r'                    axis line style={-},', file=out_file)
+        print(r'                    width=8.375cm,', file=out_file)
+        print(r'                    xtick scale label code/.code={},', file=out_file)
+        print(r'                    scaled x ticks=false,', file=out_file)
+        print(r'                    scaled y ticks=false', file=out_file)
+        print(r'                ]', file=out_file)
+        print(r'                \addplot[ybar interval, mark=no, fill=gray!50!white,]', file=out_file)
+        print(f'                table[x={dataset_name}_bin_left_limit, y={dataset_name}_value, col sep=comma]', file=out_file)
+        print(r'                    {', end='', file=out_file)
+        print(f'{csv_file_dir}/linear_histograms.csv', end='', file=out_file)
+        print(r'};', file=out_file)
+        print(r'                \addplot[ultra thick, red, no marks]', file=out_file)
+        print(f'                table [x={dataset_name}_value, y={dataset_name}_pdf, col sep=comma]', file=out_file)
+        print(r'                    {', end='', file=out_file)
+        print(f'{csv_file_dir}/theoretical_pdf.csv', end='', file=out_file)
+        print(r'};', file=out_file)
+        print(r'                \addplot[ultra thick, green!70!black, mark=none, dashed]', file=out_file)
+        print(r'                coordinates {', end='', file=out_file)
+        print(f'({point_value}, 0) ({point_value}, {y_max})', end='', file=out_file)
+        print(r'};', file=out_file)
+
+    # create plot
+    out_file_name.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_file_name, 'w') as out_file:
+        print(r'\begin{subfigure}[b]{0.22\textwidth}', file=out_file)
+        print(r'    \resizebox{\textwidth}{!}{', file=out_file)
+        print(r'        \begin{tikzpicture}', file=out_file)
+        print(r'            \begin{groupplot} [', file=out_file)
+        print(f'                    ymin={y_min}, ymax={y_max},', file=out_file)
+        if point_value_position in ['right_from_distribution', 'left_from_distribution']:
+            print(r'                    height=7.5cm,', file=out_file)
+        elif point_value_position == 'inside_distribution':
+            print(r'                    height=7.0cm,', file=out_file)
+        print(r'                    group style={', file=out_file)
+        print(r'                            xticklabels at=edge bottom,', file=out_file)
+        print(r'                            horizontal sep=0pt,', file=out_file)
+        if point_value_position in ['right_from_distribution', 'left_from_distribution']:
+            print(r'                            group size=2 by 1', file=out_file)
+        elif point_value_position == 'inside_distribution':
+            print(r'                            group size=1 by 1', file=out_file)
+        print(r'                        }', file=out_file)
+        print(r'            ]', file=out_file)
+
+        if point_value_position in ['right_from_distribution', 'left_from_distribution']:
+            if point_value_position == 'left_from_distribution':
+                print_point_value_groupplot('left')
+                print_histogram_group_plot('right')
+            elif point_value_position == 'right_from_distribution':
+                print_histogram_group_plot('left')
+                print_point_value_groupplot('right')
+        else:
+            print_joint_group_plot()
+
+        print(r'            \end{groupplot}', file=out_file)
+        print(r'            \node[anchor=north east, draw] at ', end='', file=out_file)
+        if point_value_position == 'right_from_distribution':
+            print('(4.5, 5.5)', file=out_file)
+        if point_value_position == 'inside_distribution':
+            print('(4.5, 5.0)', file=out_file)
+        if point_value_position == 'left_from_distribution':
+            print('(4.5, 5.5)', file=out_file)
+        print(r'            {\small{\textbf{p-value:} $\mathbf{', end='', file=out_file)
+        print(f'{point_p_value:.4f}', end='', file=out_file)
+        print(r'}$}};', file=out_file)
+        print(r'        \end{tikzpicture}', file=out_file)
+        print(r'    }', file=out_file)
+        print(r'    \caption{', end='', file=out_file)
+        print(f'{caption}', end='', file=out_file)
+        print(r'}', file=out_file)
+        print(r'\end{subfigure}', file=out_file)

@@ -24,12 +24,12 @@ from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
 SCALAR_PROPERTY_NAMES_TO_TEST = [
     'vertex_degree_exponent',
-    # 'num_of_isolated_vertices_normal_mle',
     'edge_degree_exponent',
-    # 'triangle_degree_exponent',
-    'average_interaction_degree_normal_mle',
     'vertex_interaction_degree_exponent',
     'interaction_vertex_degree_exponent',
+    # 'triangle_degree_exponent',
+    # 'average_interaction_degree_normal_mle',
+    # 'num_of_isolated_vertices_normal_mle',
     # 'num_of_edges_normal_mle',
     # 'num_of_edges_normal_match_quantile',
     # 'num_of_edges_stable',
@@ -239,8 +239,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
                 StableDistribution.DistributionParameters(
-                    # alpha=min(1 / GAMMA, 2.),
-                    alpha=np.nan,
+                    alpha=min(1 / GAMMA, 2.),
+                    # alpha=np.nan,
                     beta=-1.,
                     location=np.nan,
                     scale=np.nan
@@ -265,8 +265,8 @@ ALL_SCALAR_PROPERTY_PARAMS: tuple[DerivedNetworkProperty, ...] = (
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
                 StableDistribution.DistributionParameters(
-                    # alpha=min(1 / GAMMA, 2.),
-                    alpha=np.nan,
+                    alpha=min(1 / GAMMA, 2.),
+                    # alpha=np.nan,
                     beta=-1.,
                     location=np.nan,
                     scale=np.nan

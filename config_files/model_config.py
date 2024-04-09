@@ -29,7 +29,7 @@ class ModelConfig:
             BaseNetworkProperty.Type.NUM_OF_VERTICES,
             BaseNetworkProperty.Type.NUM_OF_EDGES,
             BaseNetworkProperty.Type.NUM_OF_TRIANGLES,
-            BaseNetworkProperty.Type.NUM_OF_INTERACTIONS,
+            # BaseNetworkProperty.Type.NUM_OF_INTERACTIONS,
             # BaseNetworkProperty.Type.EDGES,
             BaseNetworkProperty.Type.AVERAGE_DEGREE,
             BaseNetworkProperty.Type.MAX_DEGREE,
@@ -74,7 +74,7 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 2
+NETWORK_MAGNITUDE = 5
 GAMMA = 0.7
 GAMMA_PRIME = 0.2
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3

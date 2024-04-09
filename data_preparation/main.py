@@ -20,6 +20,7 @@ from data_preparation.latex_interface import (
     create_boxplots,
     create_dataset_properties_table,
     create_histograms_normal_plots,
+    create_hypothesis_tests_plot,
     create_value_counts_log_plot,
 )
 
@@ -61,7 +62,7 @@ def prepare_model_sample_data(directory: Path, output_dir: Path) -> None:
         'interaction_degree_distribution': 'Vertex--interaction degree distribution',
         'interaction_dimension_distribution': 'Interaction--vertex distribution',
         'ho_degree_distribution_1': 'Edge--triangle degree distribution',
-        'ho_degree_distribution_2': 'Triangle--tetrahedron degree distribution',
+        # 'ho_degree_distribution_2': 'Triangle--tetrahedron degree distribution',
     }
 
     for property_name in [
@@ -69,7 +70,7 @@ def prepare_model_sample_data(directory: Path, output_dir: Path) -> None:
         'interaction_degree_distribution',
         'interaction_dimension_distribution',
         'ho_degree_distribution_1',
-        'ho_degree_distribution_2',
+        # 'ho_degree_distribution_2',
     ]:
         directory_name = directory / 'model_analysis_finite' / property_name
         if directory_name.is_dir():
@@ -106,21 +107,37 @@ def prepare_simulation_simplex_count_data(directories: dict[str, Path], output_d
         'num_of_triangles_normal_mle',
         'num_of_triangles_stable',
     ]:
-        _merge_property_tables(directories, 'model_test', property_name, output_dir / 'model_test')
+        _merge_property_tables(
+            directories,
+            'model_test',
+            property_name,
+            output_dir / 'model_test',
+            tables_to_merge=[
+                'distribution_infos', 'linear_histograms', 'theoretical_pdfs', 'qq_plots',
+            ],
+        )
         create_histograms_normal_plots(directories, 'model_test', property_name, output_dir / 'model_test')
 
 
 def prepare_simulation_betti_number_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare all information related to the Betti numbers."""
     for property_name in [
-        'betti_number_0_normal',
-        'betti_number_0_stable',
+        # 'betti_number_0_normal',
+        # 'betti_number_0_stable',
         'betti_number_1_normal',
         'betti_number_1_stable',
-        'betti_number_2_normal',
-        'betti_number_2_stable',
+        # 'betti_number_2_normal',
+        # 'betti_number_2_stable',
     ]:
-        _merge_property_tables(directories, 'model_test', property_name, output_dir / 'model_test')
+        _merge_property_tables(
+            directories,
+            'model_test',
+            property_name,
+            output_dir / 'model_test',
+            tables_to_merge=[
+                'distribution_infos', 'linear_histograms', 'theoretical_pdfs', 'qq_plots',
+            ],
+        )
         create_histograms_normal_plots(directories, 'model_test', property_name, output_dir / 'model_test')
 
 
@@ -129,33 +146,66 @@ def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Pa
     (output_dir / 'hypothesis_test').mkdir(parents=True, exist_ok=True)
     _merge_model_info(directories, 'model_test', output_dir / 'hypothesis_test')
 
+    captions = {
+        'computer_science': 'cs',
+        'engineering': 'eess',
+        'mathematics': 'math',
+        'statistics': 'stat',
+    }
+
     for property_name in [
-        'vertex_degree_exponent',
-        'edge_degree_exponent',
-        'triangle_degree_exponent',
-        'num_of_edges_normal_mle',
+        # 'vertex_degree_exponent',
+        # 'edge_degree_exponent',
+        # 'triangle_degree_exponent',
+        # 'num_of_edges_normal_mle',
         'num_of_edges_stable',
-        'num_of_triangles_normal_mle',
+        # 'num_of_triangles_normal_mle',
         'num_of_triangles_stable',
-        'betti_number_0_normal',
-        'betti_number_0_stable',
-        'betti_number_1_normal',
+        # 'betti_number_0_normal',
+        # 'betti_number_0_stable',
+        # 'betti_number_1_normal',
         'betti_number_1_stable',
-        'betti_number_2_normal',
-        'betti_number_2_stable',
+        # 'betti_number_2_normal',
+        # 'betti_number_2_stable',
     ]:
-        _merge_property_tables(directories, 'model_test', property_name, output_dir / 'hypothesis_test')
+        _merge_property_tables(
+            directories,
+            'model_test',
+            property_name,
+            output_dir / 'hypothesis_test',
+            tables_to_merge=[
+                'distribution_infos', 'test_results',
+                'linear_histograms', 'theoretical_pdfs',
+            ],
+        )
+
+        for dataset_name, directory in directories.items():
+            create_hypothesis_tests_plot(
+                in_dir=directory / 'model_test' / property_name,
+                out_file_name=output_dir / 'hypothesis_test' / property_name / f'hypothesis_test_{dataset_name}_latex_figure.tex',
+                csv_file_dir=Path('data/hypothesis_test') / property_name,
+                dataset_name=dataset_name,
+                caption=captions[dataset_name],
+            )
 
 
 def _merge_degree_exponents(directories: dict[str, Path], output_dir: Path):
     for property_name in [
         'vertex_degree_exponent',
         'edge_degree_exponent',
-        'triangle_degree_exponent',
+        # 'triangle_degree_exponent',
         'interaction_vertex_degree_exponent',
         'vertex_interaction_degree_exponent',
     ]:
-        _merge_property_tables(directories, 'model_test', property_name, output_dir / 'model_test')
+        _merge_property_tables(
+            directories,
+            'model_test',
+            property_name,
+            output_dir / 'model_test',
+            tables_to_merge=[
+                'distribution_infos', 'quantiles',
+            ],
+        )
 
 
 def _create_boxplots_degree_distributions(directories: dict[str, Path], output_dir: Path):
@@ -188,7 +238,20 @@ def _create_boxplots_degree_distributions(directories: dict[str, Path], output_d
             caption = 'Vertex--interaction degree exponent distribution'
             theoretical_value = 1. + 1. / GAMMA
 
-        create_boxplots(directories, 'model_test', property_name, output_dir / 'model_test', caption, theoretical_value)
+        minimum_degrees = set([key[1] for key in directories.keys()])
+        for minimum_degree in minimum_degrees:
+            directories_filtered = {
+                key: directory for key, directory in directories.items() if key[1] == minimum_degree
+            }
+            create_boxplots(
+                directories_filtered,
+                'model_test',
+                property_name,
+                output_dir / 'model_test',
+                caption,
+                theoretical_value,
+                suffix=f'{minimum_degree}'
+            )
 
 
 def create_data_degree_distributions(directories: dict[str, Path], output_dir: Path) -> None:
@@ -197,17 +260,25 @@ def create_data_degree_distributions(directories: dict[str, Path], output_dir: P
         'total_degree_distribution',
         'interaction_degree_distribution',
         'ho_degree_distribution_1',
-        'ho_degree_distribution_2',
-        'ho_degree_distribution_3',
-        'simplex_dimension_distribution',
+        # 'ho_degree_distribution_2',
+        # 'ho_degree_distribution_3',
+        # 'simplex_dimension_distribution',
         'interaction_dimension_distribution',
-        'facet_dimension_distribution',
+        # 'facet_dimension_distribution',
     ]:
-        _merge_property_tables(directories, 'data', property_name, output_dir / 'data')
+        _merge_property_tables(
+            directories,
+            'data',
+            property_name,
+            output_dir / 'data',
+            tables_to_merge=[
+                'distribution_infos', 'value_counts',
+            ],
+        )
         for dataset_name, directory in directories.items():
             create_value_counts_log_plot(
                 in_dir=directory / 'data' / property_name,
-                out_file_name=output_dir / 'data' / property_name / 'distribution_latex_figure.tex',
+                out_file_name=output_dir / 'data' / property_name / f'{dataset_name}_distribution_latex_figure.tex',
                 csv_file_name=Path('data/data') / property_name / 'value_counts.csv',
                 x_column='value',
                 y_column=dataset_name,
@@ -289,19 +360,28 @@ def _merge_property_tables(
     input_subdir: str,
     property_name: str,
     output_dir: Path,
+    tables_to_merge: list[str],
 ) -> None:
-
+    """Merge property tables."""
     (output_dir / property_name).mkdir(parents=True, exist_ok=True)
-
-    _merge_distribution_info(directories, input_subdir, property_name, output_dir)
-    _merge_histograms(directories, input_subdir, property_name, output_dir)
-    # _merge_value_sequences(directories, input_subdir, property_name, output_dir)
-    _merge_value_counts(directories, input_subdir, property_name, output_dir)
-    _merge_qq_plots(directories, input_subdir, property_name, output_dir)
-    _merge_confidence_intervals(directories, input_subdir, property_name, output_dir)
-    _merge_quantiles(directories, input_subdir, property_name, output_dir)
-    _merge_theoretical_pdfs(directories, input_subdir, property_name, output_dir)
-    _merge_test_results(directories, input_subdir, property_name, output_dir)
+    if 'distribution_infos' in tables_to_merge:
+        _merge_distribution_info(directories, input_subdir, property_name, output_dir)
+    if 'linear_histograms' in tables_to_merge:
+        _merge_histograms(directories, input_subdir, property_name, output_dir)
+    if 'value_sequences' in tables_to_merge:
+        _merge_value_sequences(directories, input_subdir, property_name, output_dir)
+    if 'value_counts' in tables_to_merge:
+        _merge_value_counts(directories, input_subdir, property_name, output_dir)
+    if 'qq_plots' in tables_to_merge:
+        _merge_qq_plots(directories, input_subdir, property_name, output_dir)
+    if 'confidence_intervals' in tables_to_merge:
+        _merge_confidence_intervals(directories, input_subdir, property_name, output_dir)
+    if 'quantiles' in tables_to_merge:
+        _merge_quantiles(directories, input_subdir, property_name, output_dir)
+    if 'theoretical_pdfs' in tables_to_merge:
+        _merge_theoretical_pdfs(directories, input_subdir, property_name, output_dir)
+    if 'test_results' in tables_to_merge:
+        _merge_test_results(directories, input_subdir, property_name, output_dir)
 
 
 def _merge_model_info(
@@ -329,7 +409,7 @@ def _merge_model_info(
 
 
 def _merge_distribution_info(
-    directories: dict[str, Path],
+    directories: dict[str | tuple[int, ...], Path],
     input_subdir: str,
     property_name: str,
     output_path: Path,
@@ -337,7 +417,8 @@ def _merge_distribution_info(
     """Create and merge network info."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'distribution_info.csv'
         if not in_file_name.is_file():
             continue
@@ -362,7 +443,8 @@ def _merge_histograms(
     """Merge linearly binned histograms."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'histogram_linear.csv'
         if not in_file_name.is_file():
             continue
@@ -389,7 +471,8 @@ def _merge_value_sequences(
     """Crete higher order degree distributions."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'value_sequence.csv'
         if not in_file_name.is_file():
             continue
@@ -416,7 +499,8 @@ def _merge_value_counts(
     """Crete higher order degree distributions."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'value_counts.csv'
         if not in_file_name.is_file():
             continue
@@ -446,7 +530,8 @@ def _merge_qq_plots(
     """Crete higher order degree distributions."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'qq_plot_points.csv'
         if not in_file_name.is_file():
             continue
@@ -474,7 +559,8 @@ def _merge_confidence_intervals(
     """Crete higher order degree distributions."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'confidence_intervals.csv'
         if not in_file_name.is_file():
             continue
@@ -507,7 +593,8 @@ def _merge_quantiles(
     """Crete higher order degree distributions."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'quantiles.csv'
         if not in_file_name.is_file():
             continue
@@ -535,7 +622,8 @@ def _merge_theoretical_pdfs(
     """Merge theoretical probability density functions."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'pdfs.csv'
         if not in_file_name.is_file():
             continue
@@ -562,7 +650,8 @@ def _merge_test_results(
     """Merge test results table."""
     data_frames: list[pd.DataFrame] = []
 
-    for dataset_name, directory in directories.items():
+    for key, directory in directories.items():
+        dataset_name = key if isinstance(key, str) else '_'.join(map(str, key))
         in_file_name = directory / input_subdir / property_name / 'test_results.csv'
         if not in_file_name.is_file():
             continue
