@@ -2,52 +2,39 @@
 """This module is responsible for calculating the summaries for a given network."""
 
 from dataclasses import dataclass
-from enum import Enum, auto
+from enum import Enum, auto, unique
 from typing import Any, Callable
 
 from distribution.approximation import DistributionApproximation
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
 
 
-@dataclass
-class BaseNetworkProperty:
+@unique
+class BaseNetworkProperty(Enum):
     """Represent the calculatable properties of a model."""
-
-    class Type(Enum):
-        """Represent the calculatable property types of a network."""
-
-        NUM_OF_VERTICES: int = auto()
-        NUM_OF_EDGES: int = auto()
-        NUM_OF_TRIANGLES: int = auto()
-        NUM_OF_INTERACTIONS: int = auto()
-        EDGES: int = auto()
-        AVERAGE_DEGREE: int = auto()
-        MAX_DEGREE: int = auto()
-        AVG_CLUSTERING: int = auto()
-        NUM_OF_CONNECTED_COMPONENTS: int = auto()
-        INTERACTION_DIMENSION_DISTRIBUTION: int = auto()
-        SIMPLEX_DIMENSION_DISTRIBUTION: int = auto()
-        FACET_DIMENSION_DISTRIBUTION: int = auto()
-        DEGREE_DISTRIBUTION: int = auto()
-        IN_DEGREE_DISTRIBUTION: int = auto()
-        OUT_DEGREE_DISTRIBUTION: int = auto()
-        VERTEX_INTERACTION_DEGREE_DISTRIBUTION: int = auto()
-        HIGHER_ORDER_DEGREE_DISTRIBUTION_1: int = auto()
-        HIGHER_ORDER_DEGREE_DISTRIBUTION_2: int = auto()
-        BETTI_NUMBERS: int = auto()
-        BETTI_NUMBERS_BY_COMPONENT: int = auto()
-        VERTICES_BY_COMPONENT: int = auto()
-        PERSISTENCE: int = auto()
-        PERSISTENCE_PAIRS: int = auto()
-
-    class CalculationMethod(Enum):
-        """Represent the calculatable property types of a network."""
-
-        NETWORK: int = auto()
-        TYPICAL_OBJECT: int = auto()
-
-    property_type: Type
-    calculation_method: CalculationMethod = CalculationMethod.NETWORK
+    num_of_vertices: int = auto()
+    num_of_edges: int = auto()
+    num_of_triangles: int = auto()
+    num_of_interactions: int = auto()
+    edges: int = auto()
+    mean_degree: int = auto()
+    max_degree: int = auto()
+    mean_clustering: int = auto()
+    num_of_connected_components: int = auto()
+    interaction_vertex_degree_distribution: int = auto()
+    simplex_dimension_distribution: int = auto()
+    facet_dimension_distribution: int = auto()
+    vertex_edge_degree_distribution: int = auto()
+    in_degree_distribution: int = auto()
+    out_degree_distribution: int = auto()
+    vertex_interaction_degree_distribution: int = auto()
+    edge_triangle_degree_distribution: int = auto()
+    triangle_tetrahedra_degree_distribution: int = auto()
+    betti_numbers: int = auto()
+    betti_numbers_by_component: int = auto()
+    num_of_vertices_by_component: int = auto()
+    persistence: int = auto()
+    persistence_pairs: int = auto()
 
 
 @dataclass

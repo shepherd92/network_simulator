@@ -1,8 +1,10 @@
 #include "finite_network.h"
+#include "simplex.h"
+#include "simplex_list.h"
 #include "tools.h"
 
 FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions)
-    : Network{max_dimension, vertices, create_simplices(interactions)},
+    : Network{max_dimension, vertices, SimplexList{interactions}},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
@@ -32,9 +34,14 @@ PointIdList FiniteNetwork::get_vertices() const
     return vertices_;
 }
 
+const SimplexList &FiniteNetwork::get_neighbors(const Dimension dimension)
+{
+    return get_simplices(dimension);
+}
+
 SimplexList FiniteNetwork::calc_simplices(const Dimension dimension)
 {
-    return get_faces_simplices(get_facets(), dimension);
+    return get_facets().faces(dimension);
 }
 
 FiniteNetwork FiniteNetwork::filter(const PointIdList &vertices) const

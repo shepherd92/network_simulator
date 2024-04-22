@@ -52,11 +52,11 @@ class FiniteNetwork(Network):
     @log_function_name
     def calc_network_summary(
         self,
-        properties_to_calculate: list[BaseNetworkProperty.Type]
-    ) -> dict[BaseNetworkProperty.Type, Any]:
+        properties_to_calculate: list[BaseNetworkProperty]
+    ) -> dict[BaseNetworkProperty, Any]:
         """Calculate the summary of the network."""
         info('Finite network summary calculation started.')
-        summary: dict[BaseNetworkProperty.Type, Any] = {
+        summary: dict[BaseNetworkProperty, Any] = {
             property_type: self.calc_base_property(property_type)
             for property_type in properties_to_calculate
         }
@@ -72,7 +72,7 @@ class FiniteNetwork(Network):
         Note: the parameter of this function contains a callable calculator method.
         This makes this function impossible to use in parallelized settings.
         """
-        base_network_property_type = scalar_property_params.source_base_property.property_type
+        base_network_property_type = scalar_property_params.source_base_property
         source_base_property = self.calc_base_property(base_network_property_type)
         scalar_property_value = scalar_property_params.calculator_default(source_base_property)
         return scalar_property_value
@@ -88,54 +88,54 @@ class FiniteNetwork(Network):
         return collapsed_network
 
     @log_function_name
-    def calc_base_property(self, property_type: BaseNetworkProperty.Type) -> Any:
+    def calc_base_property(self, property_type: BaseNetworkProperty) -> Any:
         """Return a base property of the network."""
         debug(f'Calculating {property_type.name}...')
 
-        if property_type == BaseNetworkProperty.Type.NUM_OF_VERTICES:
+        if property_type == BaseNetworkProperty.num_of_vertices:
             property_value = self.num_simplices(0)
-        elif property_type == BaseNetworkProperty.Type.NUM_OF_EDGES:
+        elif property_type == BaseNetworkProperty.num_of_edges:
             property_value = self.num_simplices(1)
-        elif property_type == BaseNetworkProperty.Type.NUM_OF_TRIANGLES:
+        elif property_type == BaseNetworkProperty.num_of_triangles:
             property_value = self.num_simplices(2)
-        elif property_type == BaseNetworkProperty.Type.NUM_OF_INTERACTIONS:
+        elif property_type == BaseNetworkProperty.num_of_interactions:
             property_value = len(self.interactions)
-        elif property_type == BaseNetworkProperty.Type.EDGES:
+        elif property_type == BaseNetworkProperty.edges:
             property_value = np.array(self.graph.edges, dtype=int)
-        elif property_type == BaseNetworkProperty.Type.AVERAGE_DEGREE:
+        elif property_type == BaseNetworkProperty.mean_degree:
             property_value = self._calculate_average_degree()
-        elif property_type == BaseNetworkProperty.Type.MAX_DEGREE:
+        elif property_type == BaseNetworkProperty.max_degree:
             oridnary_degree_distributions = self._calculate_degree_distribution()
             property_value = oridnary_degree_distributions.domain.max_
-        elif property_type == BaseNetworkProperty.Type.DEGREE_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
             property_value = self._calculate_degree_distribution()
-        elif property_type == BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.vertex_interaction_degree_distribution:
             property_value = self._calculate_vertex_interaction_degree_distribution()
-        elif property_type == BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.in_degree_distribution:
             property_value = self._calculate_in_degree_distribution()
-        elif property_type == BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.out_degree_distribution:
             property_value = self._calculate_out_degree_distribution()
-        elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1:
+        elif property_type == BaseNetworkProperty.edge_triangle_degree_distribution:
             property_value = self._calculate_higher_order_degree_distribution(1)
-        elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2:
+        elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
             property_value = self._calculate_higher_order_degree_distribution(2)
-        elif property_type == BaseNetworkProperty.Type.AVG_CLUSTERING:
+        elif property_type == BaseNetworkProperty.mean_clustering:
             property_value = nx.average_clustering(self.graph)
-        elif property_type == BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS:
+        elif property_type == BaseNetworkProperty.num_of_connected_components:
             property_value = nx.number_connected_components(self.graph)
-        elif property_type == BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.interaction_vertex_degree_distribution:
             property_value = self._calculate_interaction_dimension_distribution()
-        elif property_type == BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.simplex_dimension_distribution:
             property_value = self._calculate_simplex_dimension_distribution()
-        elif property_type == BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.facet_dimension_distribution:
             property_value = self._calculate_facet_dimension_distribution()
-        elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS:
+        elif property_type == BaseNetworkProperty.betti_numbers:
             property_value = self._calculate_betti_numbers()
-        elif property_type == BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT:
+        elif property_type == BaseNetworkProperty.betti_numbers_by_component:
             property_value = self._calculate_betti_numbers_in_components()
-        elif property_type == BaseNetworkProperty.Type.VERTICES_BY_COMPONENT:
+        elif property_type == BaseNetworkProperty.num_of_vertices_by_component:
             property_value = self._calculate_vertices_in_components()
-        elif property_type == BaseNetworkProperty.Type.PERSISTENCE_PAIRS:
+        elif property_type == BaseNetworkProperty.persistence_pairs:
             property_value = self._calc_persistence_pairs()
         else:
             raise NotImplementedError(
@@ -152,7 +152,7 @@ class FiniteNetwork(Network):
             'num_of_vertices': self.num_simplices(0),
             'num_of_interactions': len(self.interactions),
             'max_dimension': self.max_dimension,
-            'num_of_components': self.calc_base_property(BaseNetworkProperty.Type.NUM_OF_CONNECTED_COMPONENTS),
+            'num_of_components': self.calc_base_property(BaseNetworkProperty.num_of_connected_components),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
         }
 
@@ -203,7 +203,7 @@ class FiniteNetwork(Network):
     def _calculate_betti_numbers_in_components(self) -> list[list[int]]:
 
         betti_numbers_by_component: list[list[int]] = [
-            component.calc_base_property(BaseNetworkProperty.Type.BETTI_NUMBERS)
+            component.calc_base_property(BaseNetworkProperty.betti_numbers)
             for component in tqdm(
                 self.components,
                 desc='Calculating Betti numbers in components',

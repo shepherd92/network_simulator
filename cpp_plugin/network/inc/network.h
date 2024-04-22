@@ -1,11 +1,10 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
-#include <gudhi/Simplex_tree.h>
 #include <map>
 #include <optional>
 
-#include "simplex.h"
+#include "simplex_list.h"
 #include "typedefs.h"
 
 class Network
@@ -45,6 +44,7 @@ protected:
     const SimplexList &get_interactions() const;
     const SimplexList &get_facets();
     const SimplexList &get_simplices(const Dimension dimension);
+    virtual const SimplexList &get_neighbors(const Dimension dimension) = 0;
 
     Dimension max_dimension_;
     PointIdList vertices_;
@@ -53,7 +53,6 @@ protected:
     std::vector<std::optional<SimplexList>> simplices_;
 
 private:
-    SimplexList calc_facets() const;
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
     std::map<PointId, std::vector<int32_t>> create_vertex_simplex_map(const SimplexList &simplices) const;
     void filter_facets(const PointIdList &vertices);

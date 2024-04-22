@@ -9,6 +9,7 @@
 #include "point.h"
 #include "rectangle.h"
 #include "simplex.h"
+#include "simplex_list.h"
 #include "tools.h"
 #include "typedefs.h"
 
@@ -167,11 +168,11 @@ SimplexList HypergraphModel::create_simplices_from_connections(const ConnectionL
         interactions[pair.second].push_back(pair.first);
     }
 
-    SimplexList simplices{};
+    std::vector<Simplex> simplices{};
     for (const auto &interaction : interactions)
     {
         simplices.push_back(Simplex{interaction.second});
     }
 
-    return simplices;
+    return SimplexList{simplices};
 }

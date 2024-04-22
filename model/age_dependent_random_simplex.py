@@ -51,10 +51,10 @@ class AgeDependentRandomSimplexModel(Model):
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
-        average_degree: float = data_set.calc_base_property(BaseNetworkProperty.Type.AVERAGE_DEGREE)
+        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.num_of_vertices)
+        average_degree: float = data_set.calc_base_property(BaseNetworkProperty.mean_degree)
         degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
-            BaseNetworkProperty.Type.DEGREE_DISTRIBUTION
+            BaseNetworkProperty.vertex_edge_degree_distribution
         )
         exponent_guess = guess_power_law_exponent(degree_distribution)
         gamma_guess = 1. / (exponent_guess - 1.)

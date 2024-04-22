@@ -1,8 +1,6 @@
 #ifndef _ADRCM_MODEL_H_
 #define _ADRCM_MODEL_H_
 
-#include <random>
-
 #include "model.h"
 #include "typedefs.h"
 

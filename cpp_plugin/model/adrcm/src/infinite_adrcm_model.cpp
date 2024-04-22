@@ -24,10 +24,11 @@ InfiniteNetwork InfiniteAdrcmModel::generate_network() const
     const auto vertices{create_vertices()};
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
+    const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices)};
     const auto simplices{create_simplices_from_connections(connections)};
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, 0};
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, 0, vertex_marks};
     return network;
 }
 

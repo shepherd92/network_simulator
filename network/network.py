@@ -16,6 +16,7 @@ from cpp_plugin.build.release.cpp_plugin import FiniteNetwork as CppFiniteNetwor
 from cpp_plugin.build.release.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
 # pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
+from network.property import BaseNetworkProperty
 from tools.logging_helper import log_function_name
 
 
@@ -29,6 +30,11 @@ class Network:
         self._digraph: nx.DiGraph | None = None
         self._vertex_positions: dict[int, tuple[float, ...]] | None = None
         self._interaction_positions: dict[int, tuple[float, ...]] | None = None
+
+    @log_function_name
+    def calc_base_property(self, property_type: BaseNetworkProperty) -> Any:
+        """Generate typical properties of the given type."""
+        raise NotImplementedError
 
     @log_function_name
     def generate_simplicial_complex_from_graph(self) -> None:

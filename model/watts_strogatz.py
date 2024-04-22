@@ -30,10 +30,10 @@ class WattsStrogatzModel(Model):
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
         num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty(
-            BaseNetworkProperty.Type.NUM_OF_VERTICES
+            BaseNetworkProperty.num_of_vertices
         ))
         num_of_edges: int = data_set.calc_base_property(BaseNetworkProperty(
-            BaseNetworkProperty.Type.NUM_OF_EDGES
+            BaseNetworkProperty.num_of_edges
         ))
         edges_of_new_node_guess = round(num_of_edges / num_of_nodes)
 

@@ -1,6 +1,7 @@
 #include "finite_adrcm_model.h"
 #include "finite_network.h"
 #include "point.h"
+#include "simplex_list.h"
 #include "typedefs.h"
 
 FiniteAdrcmModel::FiniteAdrcmModel(const std::vector<double> &parameters_in, const uint32_t seed)

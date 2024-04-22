@@ -52,7 +52,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_facets", &FiniteNetwork::get_facets_interface);
 
     py::class_<InfiniteNetwork>(m, "InfiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const PointId>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const PointId, const MarkList &>())
         .def("get_skeleton", &InfiniteNetwork::get_skeleton_interface)
         .def("num_vertices", &InfiniteNetwork::num_vertices)
         .def("num_simplices", &Network::num_simplices)

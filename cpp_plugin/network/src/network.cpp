@@ -1,9 +1,11 @@
 #include <atomic>
+#include <cassert>
 #include <execution>
 #include <mutex>
 
 #include "network.h"
 #include "simplex.h"
+#include "simplex_list.h"
 #include "tools.h"
 #include "typedefs.h"
 
@@ -14,43 +16,11 @@ Network::Network(const Dimension max_dimension, const PointIdList &vertices, con
       facets_{std::nullopt},
       simplices_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
 {
-    sort_simplices(interactions_, true);
     if (vertices_.empty())
     {
-        std::unordered_set<PointId> unique_vertices{};
-        std::for_each(
-            std::execution::seq,
-            interactions_.begin(),
-            interactions_.end(),
-            [&](const auto &interaction)
-            {
-                for (const auto &vertex : interaction.vertices())
-                {
-                    unique_vertices.insert(vertex);
-                }
-            });
-        vertices_ = PointIdList{unique_vertices.begin(), unique_vertices.end()};
+        vertices_ = interactions_.vertices();
     }
     std::sort(vertices_.begin(), vertices_.end());
-}
-
-std::map<PointId, std::vector<int32_t>> Network::create_vertex_simplex_map(const SimplexList &simplices) const
-{
-    std::map<PointId, std::vector<int32_t>> vertex_simplex_map{};
-    for (const auto &vertex : vertices_)
-    {
-        vertex_simplex_map[vertex] = std::vector<int32_t>{};
-    }
-
-    for (auto index{0U}; index < simplices.size(); ++index)
-    {
-        for (const auto &vertex : simplices[index].vertices())
-        {
-            vertex_simplex_map[vertex].push_back(index);
-        }
-    }
-    // note: assume that the vertex_simplex_map is sorted
-    return vertex_simplex_map;
 }
 
 void Network::reset()
@@ -76,12 +46,12 @@ void Network::set_vertices(const PointIdList &vertices)
 
 ISimplexList Network::get_interactions_interface() const
 {
-    return create_raw_simplices(get_interactions());
+    return get_interactions().raw();
 }
 
 ISimplexList Network::get_facets_interface()
 {
-    return create_raw_simplices(get_facets());
+    return get_facets().raw();
 }
 
 uint32_t Network::num_vertices()
@@ -91,22 +61,19 @@ uint32_t Network::num_vertices()
 
 std::vector<Dimension> Network::calc_interaction_dimension_distribution() const
 {
-    const auto result{calc_dimension_distribution(interactions_)};
-    return result;
+    return interactions_.calc_dimension_distribution();
 }
 
 std::vector<Dimension> Network::calc_facet_dimension_distribution()
 {
-    const auto &facets{get_facets()};
-    const auto result{calc_dimension_distribution(facets)};
-    return result;
+    return get_facets().calc_dimension_distribution();
 }
 
 const SimplexList &Network::get_facets()
 {
     if (!facets_.has_value())
     {
-        facets_ = calc_facets();
+        facets_ = interactions_.facets();
     }
     return *facets_;
 }
@@ -127,7 +94,7 @@ std::vector<uint32_t> Network::calc_degree_sequence(
 {
     assert(neighbor_dimension > simplex_dimension);
     const auto &simplices{get_simplices(simplex_dimension)};
-    const auto &possible_cofaces{get_simplices(neighbor_dimension)};
+    const auto &possible_cofaces{get_neighbors(neighbor_dimension)};
     std::vector<uint32_t> degree_sequence{};
     degree_sequence.reserve(simplices.size());
 
@@ -164,43 +131,6 @@ std::vector<uint32_t> Network::calc_degree_sequence(
     return degree_sequence;
 }
 
-SimplexList Network::calc_facets() const
-{
-    std::mutex mutex{};
-    SimplexList facets{};
-    const auto total{interactions_.size()};
-    std::atomic<uint32_t> counter{0U};
-
-    std::for_each(
-        execution_policy,
-        interactions_.begin(),
-        interactions_.end(),
-        [&](auto &&interaction)
-        {
-            const auto first_it{interactions_.begin() + (&interaction - &(interactions_[0]))};
-            auto first_is_face{false};
-            for (auto second_it{first_it + 1}; second_it < interactions_.end(); ++second_it)
-            {
-                first_is_face = false;
-                if (interaction.is_face(*second_it))
-                {
-                    first_is_face = true;
-                    break;
-                }
-            }
-
-            if (!first_is_face)
-            {
-                std::lock_guard<std::mutex> lock_guard(mutex);
-                facets.push_back(interaction);
-            }
-            log_progress(++counter, total, 1000U, "Calc facets");
-        });
-
-    log_progress(counter, total, 1U, "Calc facets");
-    return facets;
-}
-
 const SimplexList &Network::get_interactions() const
 {
     return interactions_;
@@ -208,18 +138,18 @@ const SimplexList &Network::get_interactions() const
 
 void Network::set_interactions(const ISimplexList &interactions)
 {
-    interactions_ = create_simplices(interactions);
+    interactions_ = SimplexList{interactions};
 }
 
 ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 {
-    return create_raw_simplices(get_skeleton(max_dimension));
+    return get_skeleton(max_dimension).raw();
 }
 
 void Network::keep_only_vertices(const PointIdList &vertices)
 {
     vertices_ = vertices;
-    interactions_ = filter_simplices(interactions_, vertices);
+    interactions_ = interactions_.filter(vertices);
     reset();
 }
 
@@ -228,9 +158,7 @@ SimplexList Network::get_skeleton(const Dimension max_dimension)
     SimplexList result{};
     for (auto dimension{0}; dimension <= max_dimension; ++dimension)
     {
-        const auto simplices_of_dimension{get_simplices(dimension)};
-        result.reserve(result.size() + simplices_of_dimension.size());
-        result.insert(result.end(), simplices_of_dimension.begin(), simplices_of_dimension.end());
+        result += get_simplices(dimension);
     }
     return result;
 }
@@ -256,8 +184,8 @@ std::vector<uint32_t> Network::calc_vertex_interaction_degree_distribution() con
 
     std::for_each(
         std::execution::seq,
-        interactions_.begin(),
-        interactions_.end(),
+        interactions_.simplices().begin(),
+        interactions_.simplices().end(),
         [&](const auto &interaction)
         {
             std::for_each(

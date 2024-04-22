@@ -55,11 +55,11 @@ class HypergraphModel(Model):
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
-        num_of_vertices: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_VERTICES)
-        num_of_interactions: int = data_set.calc_base_property(BaseNetworkProperty.Type.NUM_OF_INTERACTIONS)
+        num_of_vertices: int = data_set.calc_base_property(BaseNetworkProperty.num_of_vertices)
+        num_of_interactions: int = data_set.calc_base_property(BaseNetworkProperty.num_of_interactions)
 
         vertex_interaction_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
-            BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION
+            BaseNetworkProperty.vertex_interaction_degree_distribution
         )
         vertex_interaction_exponent = guess_power_law_exponent(vertex_interaction_degree_distribution)
         average_vertex_interaction_degree = vertex_interaction_degree_distribution.value_sequence.mean()
@@ -67,7 +67,7 @@ class HypergraphModel(Model):
         assert gamma > 0. and gamma < 1., f'gamma_guess = {gamma}'
 
         document_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
-            BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION
+            BaseNetworkProperty.interaction_vertex_degree_distribution
         )
         interaction_vertex_exponent = guess_power_law_exponent(document_degree_distribution)
         gamma_prime = 1. / (interaction_vertex_exponent - 1.)

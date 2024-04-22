@@ -4,8 +4,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum, auto
-from multiprocessing import Value
+from enum import Enum, auto, unique
 from pathlib import Path
 from typing import Any
 
@@ -17,17 +16,12 @@ from distribution.empirical_distribution import EmpiricalDistribution
 from network.finite_network import FiniteNetwork
 from network.infinite_network import InfiniteNetworkSet
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
-import tools.istarmap  # pylint: disable=unused-import # noqa: F401
-
-
-NUM_OF_SIMULATIONS = 0
-SIMULATIONS_DONE = Value('i', 0)
-PROGRESS_BAR = None
 
 
 class Model:
     """Base class representing a network model."""
 
+    @unique
     class Type(Enum):
         """Specify the available model types."""
 
@@ -39,6 +33,12 @@ class Model:
         AGE_DEPENDENT_RANDOM_SIMPLEX = auto()
         AGE_DEPENDENT_RANDOM_HYPERGRAPH = auto()
         INVALID = auto()
+
+    @unique
+    class Mode(Enum):
+        """Model testing mode."""
+        FINITE: int = auto()
+        INFINITE: int = auto()
 
     @dataclass
     class Parameters:
@@ -53,29 +53,42 @@ class Model:
 
     def simulate(
         self,
+        mode: Mode,
         scalar_property_params_to_calculate: list[DerivedNetworkProperty],
         num_of_simulations: int,
-        num_of_infinite_networks: int,
-        seed: int,
-    ) -> list[EmpiricalDistribution]:
-        """Calculate the summaries for the given network model."""
-        base_network_properties = [
+        initial_seed: int,
+        num_of_infinite_networks_per_simulation: int = 0,
+    ) -> dict[str, EmpiricalDistribution]:
+        base_property_types: set[BaseNetworkProperty] = {
             scalar_property_params.source_base_property
             for scalar_property_params in scalar_property_params_to_calculate
-        ]
+        }
+        scalar_properties: dict[str, list[int | float]] = {
+            property_type.name: []
+            for property_type in scalar_property_params_to_calculate
+        }
 
-        all_networks_base_network_properties = self._simulate_base_properties(
-            base_network_properties,
-            num_of_simulations,
-            num_of_infinite_networks,
-            seed,
-        )
+        for seed in tqdm(
+            range(initial_seed, initial_seed + num_of_simulations),
+            desc='Simulation'
+        ):
+            network = self.generate_finite_network(seed) \
+                if mode == Model.Mode.FINITE \
+                else self.generate_infinite_network_set(num_of_infinite_networks_per_simulation, seed)
 
-        scalar_property_distributions = self._extract_derived_properties(
-            scalar_property_params_to_calculate,
-            all_networks_base_network_properties
-        )
-        return scalar_property_distributions
+            base_properties: dict[BaseNetworkProperty, Any] = {
+                property_type: network.calc_base_property(property_type)
+                for property_type in base_property_types
+            }
+
+            for scalar_property_params in scalar_property_params_to_calculate:
+                scalar_properties[scalar_property_params.name].append(
+                    scalar_property_params.calculator_default(
+                        base_properties[scalar_property_params.source_base_property]
+                    )
+                )
+
+        return {name: EmpiricalDistribution(values) for name, values in scalar_properties.items()}
 
     def generate_finite_network(self, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
@@ -97,76 +110,6 @@ class Model:
         information = self.info()
         data_frame = pd.DataFrame(information, index=[0])
         data_frame.to_csv(save_path, index=False)
-
-    def _simulate_base_properties(
-        self,
-        base_network_properties: list[BaseNetworkProperty],
-        num_of_simulations: int,
-        num_of_infinite_networks: int,
-        initial_seed: int,
-    ) -> list[list[Any]]:
-
-        global NUM_OF_SIMULATIONS  # pylint: disable=global-statement
-        NUM_OF_SIMULATIONS = num_of_simulations
-
-        global PROGRESS_BAR  # pylint: disable=global-statement
-        PROGRESS_BAR = tqdm(total=NUM_OF_SIMULATIONS, desc='Simulation')
-
-        base_network_property_values = [
-            self._generate_properties(base_network_properties, num_of_infinite_networks, seed)
-            for seed in range(initial_seed, initial_seed + num_of_simulations)
-        ]
-
-        return base_network_property_values
-
-    def _extract_derived_properties(
-        self,
-        scalar_property_params_to_calculate: list[DerivedNetworkProperty],
-        base_network_property_values: list[list[Any]]
-    ) -> list[EmpiricalDistribution]:
-        scalar_property_distributions: list[EmpiricalDistribution] = []
-        for index, scalar_property_params in enumerate(scalar_property_params_to_calculate):
-            scalar_property_values = [
-                scalar_property_params.calculator_default(this_network_base_properties[index])
-                for this_network_base_properties in base_network_property_values
-            ]
-            empirical_distribution = EmpiricalDistribution(scalar_property_values)
-            scalar_property_distributions.append(empirical_distribution)
-
-        return scalar_property_distributions
-
-    def _generate_properties(
-        self,
-        base_properties: list[BaseNetworkProperty],
-        num_of_infinite_networks: int,
-        seed: int,
-    ) -> list[Any]:
-        """Build a single network of the model and return its summary."""
-        finite_network: FiniteNetwork | None = None
-        infinite_network_set: InfiniteNetworkSet | None = None
-        property_values: list[Any] = []
-        for property_ in base_properties:
-            if property_.calculation_method == BaseNetworkProperty.CalculationMethod.NETWORK:
-                finite_network = self.generate_finite_network(seed) if finite_network is None else finite_network
-                property_value = finite_network.calc_base_property(property_.property_type)
-            elif property_.calculation_method == BaseNetworkProperty.CalculationMethod.TYPICAL_OBJECT:
-                infinite_network_set = \
-                    self.generate_infinite_network_set(num_of_infinite_networks, seed) \
-                    if infinite_network_set is None else infinite_network_set
-                property_value = infinite_network_set.calc_typical_property_distribution(property_.property_type)
-            else:
-                raise NotImplementedError(f'Unknown calculation method {property_.calculation_method}')
-            property_values.append(property_value)
-            # print(f'\nProperty value: {property_value}')
-
-        global SIMULATIONS_DONE  # pylint: disable=global-statement,global-variable-not-assigned
-        global PROGRESS_BAR  # pylint: disable=global-statement,global-variable-not-assigned
-        with SIMULATIONS_DONE.get_lock():
-            SIMULATIONS_DONE.value += 1
-            PROGRESS_BAR.n = SIMULATIONS_DONE.value
-            PROGRESS_BAR.refresh()
-
-        return property_values
 
     @property
     def parameters(self) -> Model.Parameters:

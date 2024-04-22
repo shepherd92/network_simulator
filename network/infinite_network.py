@@ -40,32 +40,28 @@ class InfiniteNetworkSet:
     @log_function_name
     def calc_network_summary(
         self,
-        properties_to_calculate: list[BaseNetworkProperty.Type]
-    ) -> dict[BaseNetworkProperty.Type, EmpiricalDistribution]:
+        properties_to_calculate: list[BaseNetworkProperty]
+    ) -> dict[BaseNetworkProperty, EmpiricalDistribution]:
         """Calculate the summary of the network."""
         info('Infinite network summary calculation started.')
-        summary: dict[BaseNetworkProperty.Type, EmpiricalDistribution] = {
-            property_type: self.calc_typical_property_distribution(property_type)
+        summary: dict[BaseNetworkProperty, list[Any]] = {
+            property_type: self.calc_base_property(property_type)
             for property_type in properties_to_calculate
         }
         info('Infinite network summary calculation finished.')
         return summary
 
     @log_function_name
-    def calc_typical_property_distribution(
+    def calc_base_property(
         self,
-        property_type: BaseNetworkProperty.Type,
-    ) -> EmpiricalDistribution:
+        property_type: BaseNetworkProperty,
+    ) -> list[Any]:
         """Generate typical properties of the given type."""
-        typical_property_sets = [
-            infinite_network.calc_base_property_value_set(property_type)
+        base_property_set = [
+            infinite_network.calc_base_property(property_type)
             for infinite_network in self._infinite_networks
         ]
-
-        distribution = EmpiricalDistribution([
-            value for property_set in typical_property_sets for value in property_set
-        ])
-        return distribution
+        return base_property_set
 
     def save_info(self, save_path: Path) -> None:
         """Save the main parameters to the given file as a pandas data frame."""
@@ -89,20 +85,24 @@ class InfiniteNetwork(Network):
         super().__init__()
         self._cpp_network = cpp_network
 
-    def calc_base_property_value_set(self, property_type: BaseNetworkProperty.Type) -> list[float | int]:
+    def calc_base_property(self, property_type: BaseNetworkProperty) -> Any:
         """Return a base property of the network.
 
         Calculate a set of values of a property type.
         """
-        if property_type == BaseNetworkProperty.Type.DEGREE_DISTRIBUTION:
+        if property_type == BaseNetworkProperty.num_of_edges:
+            property_value_set = self.num_simplices(1)
+        elif property_type == BaseNetworkProperty.num_of_triangles:
+            property_value_set = self.num_simplices(2)
+        elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
             property_value_set = self._calc_degree_sequence(0, 1)
-        elif property_type == BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.in_degree_distribution:
             property_value_set = self._calc_typical_in_degree()
-        elif property_type == BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION:
+        elif property_type == BaseNetworkProperty.out_degree_distribution:
             property_value_set = self._calc_typical_out_degree()
-        elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1:
+        elif property_type == BaseNetworkProperty.edge_triangle_degree_distribution:
             property_value_set = self._calc_degree_sequence(1, 2)
-        elif property_type == BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2:
+        elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
             property_value_set = self._calc_degree_sequence(2, 3)
         else:
             raise NotImplementedError(

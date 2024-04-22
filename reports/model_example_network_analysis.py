@@ -39,7 +39,7 @@ PLOT_HYPERGRAPH_DETERMINED_POSITIONS = False
 
 def analyze_model_example_finite_network(
     network: FiniteNetwork,
-    calculated_properties: list[BaseNetworkProperty.Type],
+    calculated_properties: list[BaseNetworkProperty],
     plot: bool,
     save_directory: Path,
 ) -> None:
@@ -60,8 +60,8 @@ def analyze_model_example_finite_network(
     axes_grid_width = 3
 
     network.save_info(save_directory / 'network_info.csv')
-    if BaseNetworkProperty.Type.EDGES in calculated_properties:
-        edges = summary.get(BaseNetworkProperty.Type.EDGES)
+    if BaseNetworkProperty.edges in calculated_properties:
+        edges = summary.get(BaseNetworkProperty.edges)
         np.savetxt(save_directory / 'edges.csv', edges, delimiter=',', fmt='%i')
 
     figure = plt.figure('Network Analysis', figsize=(axes_grid_width * 10, axes_grid_height * 10))
@@ -69,19 +69,19 @@ def analyze_model_example_finite_network(
     subfigure_row_index = 0
 
     report_vertex_edge_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.vertex_edge_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_in_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.in_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_out_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.out_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory
     )
@@ -89,18 +89,18 @@ def analyze_model_example_finite_network(
     subfigure_row_index += 1
 
     report_vertices_by_component(
-        summary.get(BaseNetworkProperty.Type.VERTICES_BY_COMPONENT),
+        summary.get(BaseNetworkProperty.num_of_vertices_by_component),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory,
     )
     report_edge_triangle_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1),
+        summary.get(BaseNetworkProperty.edge_triangle_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_triangle_tetrahedron_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2),
+        summary.get(BaseNetworkProperty.triangle_tetrahedra_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
@@ -109,25 +109,25 @@ def analyze_model_example_finite_network(
     subfigure_row_index += 1
 
     report_simplex_dimension_distribution(
-        summary.get(BaseNetworkProperty.Type.SIMPLEX_DIMENSION_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.simplex_dimension_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_facet_dimension_distribution(
-        summary.get(BaseNetworkProperty.Type.FACET_DIMENSION_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.facet_dimension_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_vertex_interaction_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.VERTEX_INTERACTION_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.vertex_interaction_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_interaction_dimension_distribution(
-        summary.get(BaseNetworkProperty.Type.INTERACTION_DIMENSION_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.interaction_vertex_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
@@ -136,17 +136,17 @@ def analyze_model_example_finite_network(
     subfigure_row_index += 1
 
     report_betti_numbers(
-        summary.get(BaseNetworkProperty.Type.BETTI_NUMBERS),
+        summary.get(BaseNetworkProperty.betti_numbers),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory
     )
     report_persistence_diagram(
-        summary.get(BaseNetworkProperty.Type.PERSISTENCE),
+        summary.get(BaseNetworkProperty.persistence),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
     report_betti_number_1_by_component(
-        summary.get(BaseNetworkProperty.Type.BETTI_NUMBERS_BY_COMPONENT),
+        summary.get(BaseNetworkProperty.betti_numbers_by_component),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory
     )
@@ -162,7 +162,7 @@ def analyze_model_example_finite_network(
 
 def analyze_model_example_infinite_network_set(
     network_set: InfiniteNetworkSet,
-    calculated_properties: list[BaseNetworkProperty.Type],
+    calculated_properties: list[BaseNetworkProperty],
     save_directory: Path
 ) -> None:
     """Analyze the given infinite network set."""
@@ -186,19 +186,19 @@ def analyze_model_example_infinite_network_set(
     subfigure_row_index = 0
 
     report_vertex_edge_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.vertex_edge_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_in_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.IN_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.in_degree_distribution),
         POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )
     report_out_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.OUT_DEGREE_DISTRIBUTION),
+        summary.get(BaseNetworkProperty.out_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 2]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
@@ -207,13 +207,13 @@ def analyze_model_example_infinite_network_set(
     subfigure_row_index += 1
 
     report_edge_triangle_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1),
+        summary.get(BaseNetworkProperty.edge_triangle_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 0]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_triangle_tetrahedron_degree_distribution(
-        summary.get(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_2),
+        summary.get(BaseNetworkProperty.triangle_tetrahedra_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,

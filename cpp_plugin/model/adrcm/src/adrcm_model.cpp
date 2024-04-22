@@ -3,6 +3,7 @@
 #include "adrcm_model.h"
 #include "point.h"
 #include "simplex.h"
+#include "simplex_list.h"
 #include "tools.h"
 
 AdrcmModel::Parameters::Parameters(const std::vector<double> &model_parameters)
@@ -70,13 +71,13 @@ ConnectionList AdrcmModel::generate_connections(const PointList &vertices) const
 
 SimplexList AdrcmModel::create_simplices_from_connections(const ConnectionList &connections) const
 {
-    SimplexList simplices{};
+    std::vector<Simplex> simplices{};
     simplices.reserve(connections.size());
     for (const auto &connection : connections)
     {
         simplices.emplace_back(Simplex{PointIdList{connection.first, connection.second}});
     }
-    return simplices;
+    return SimplexList{simplices};
 }
 
 Dimension AdrcmModel::max_dimension() const

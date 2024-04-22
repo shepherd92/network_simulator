@@ -3,6 +3,7 @@
 #include "finite_hypergraph_model.h"
 #include "finite_network.h"
 #include "point.h"
+#include "simplex_list.h"
 #include "rectangle.h"
 
 FiniteHypergraphModel::FiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed)

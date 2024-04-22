@@ -20,7 +20,10 @@ from tqdm import tqdm
 
 from configuration import Configuration
 from config_files.model_fitting import SCALAR_PROPERTY_PARAMS_TO_FIT
-from config_files.properties_to_test import SCALAR_PROPERTY_PARAMS_TO_TEST
+from config_files.properties_to_test import (
+    FINITE_SCALAR_PROPERTY_PARAMS_TO_TEST,
+    INFINITE_SCALAR_PROPERTY_PARAMS_TO_TEST,
+)
 from data_set.factory import load_data
 from distribution.approximation import DistributionApproximation
 from model.model import Model
@@ -34,7 +37,6 @@ from reports.model_example_network_analysis import (
     analyze_model_example_infinite_network_set,
 )
 from reports.model_testing import create_model_test_report
-from tools.debugger import debugger_is_active
 
 
 class Mode(Enum):
@@ -95,21 +97,23 @@ def main(mode: Mode, configuration: Configuration) -> None:
             data_set = load_data(data_set_type)
             model.set_relevant_parameters_from_data_set(data_set)
 
+        scalar_property_params = FINITE_SCALAR_PROPERTY_PARAMS_TO_TEST \
+            if configuration.model.network_testing.mode == Model.Mode.FINITE \
+            else INFINITE_SCALAR_PROPERTY_PARAMS_TO_TEST
+
         scalar_property_distributions = model.simulate(
-            scalar_property_params_to_calculate=list(SCALAR_PROPERTY_PARAMS_TO_TEST),
+            configuration.model.network_testing.mode,
+            scalar_property_params_to_calculate=list(scalar_property_params),
             num_of_simulations=configuration.model.network_testing.num_of_simulations,
-            num_of_infinite_networks=configuration.model.network_testing.num_of_infinite_networks,
-            seed=seed,
+            initial_seed=seed,
+            num_of_infinite_networks_per_simulation=configuration.model.network_testing.num_of_infinite_networks,
         )
 
         scalar_property_reports: list[ScalarNetworkPropertyReport] = []
-        for property_params, distribution in tqdm(
-            zip(SCALAR_PROPERTY_PARAMS_TO_TEST, scalar_property_distributions),
-            total=len(SCALAR_PROPERTY_PARAMS_TO_TEST),
-        ):
+        for property_params in tqdm(scalar_property_params):
             assert isinstance(property_params, DerivedNetworkProperty)
             distribution_pair = DistributionApproximation(
-                distribution,
+                scalar_property_distributions[property_params.name],
                 property_params.theoretical_approximation_type
             )
 

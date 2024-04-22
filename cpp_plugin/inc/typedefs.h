@@ -17,6 +17,7 @@ using Dimension = int32_t;
 class Point;
 class Rectangle;
 class Simplex;
+class SimplexList;
 class SimplexHash;
 
 using PointList = std::vector<Point>;
@@ -32,7 +33,6 @@ using MarkPosition = std::pair<Mark, Position>;
 using MarkPositionList = std::vector<MarkPosition>;
 
 using ISimplexList = std::vector<PointIdList>;
-using SimplexList = std::vector<Simplex>;
 using SimplexSet = std::unordered_set<Simplex, SimplexHash>;
 using RectangleList = std::vector<Rectangle>;
 using Connection = std::pair<PointId, PointId>;

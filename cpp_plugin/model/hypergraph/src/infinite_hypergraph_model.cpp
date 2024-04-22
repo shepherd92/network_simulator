@@ -44,11 +44,12 @@ InfiniteHypergraphModel::generate_network() const
     vertices.emplace_back(Point{u, 0.F, typical_vertex_id}); // add the typical node
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
+    const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices, interactions)};
     const auto simplices{create_simplices_from_connections(connections)};
 
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_id};
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_id, vertex_marks};
 
     return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
 }

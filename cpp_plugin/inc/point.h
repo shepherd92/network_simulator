@@ -25,6 +25,7 @@ private:
 #include "point.inl"
 
 PointIdList convert_to_id_list(const PointList &points);
+MarkList convert_to_mark_list(const PointList &points);
 MarkPositionList convert_to_mark_position_pairs(const PointList &points);
 void transform_points(PointList &points, const std::function<void(Point &)> &lambda);
 

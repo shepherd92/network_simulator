@@ -29,7 +29,7 @@ class DataSetTest(unittest.TestCase):
     def test_degree_distribution(self):
         """Test if the higher order degree distribution is correct."""
         degree_distribution: EmpiricalDistribution = \
-            self.data_set.calc_base_property(BaseNetworkProperty.Type.DEGREE_DISTRIBUTION)
+            self.data_set.calc_base_property(BaseNetworkProperty.vertex_edge_degree_distribution)
 
         np.testing.assert_array_equal(
             degree_distribution.value_sequence,
@@ -39,7 +39,7 @@ class DataSetTest(unittest.TestCase):
     def test_ho_degree_distribution(self):
         """Test if the higher order degree distribution is correct."""
         degree_distribution: EmpiricalDistribution = \
-            self.data_set.calc_base_property(BaseNetworkProperty.Type.HIGHER_ORDER_DEGREE_DISTRIBUTION_1)
+            self.data_set.calc_base_property(BaseNetworkProperty.edge_triangle_degree_distribution)
 
         np.testing.assert_array_equal(
             degree_distribution.value_sequence,

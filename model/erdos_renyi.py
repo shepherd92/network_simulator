@@ -29,10 +29,10 @@ class ErdosRenyiModel(Model):
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""
         num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty(
-            BaseNetworkProperty.Type.NUM_OF_VERTICES
+            BaseNetworkProperty.num_of_vertices
         ))
         num_of_edges: int = data_set.calc_base_property(BaseNetworkProperty(
-            BaseNetworkProperty.Type.NUM_OF_EDGES
+            BaseNetworkProperty.num_of_edges
         ))
         edge_probability_guess = num_of_edges / (num_of_nodes * (num_of_nodes - 1) / 2)
 

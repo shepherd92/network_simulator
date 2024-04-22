@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <gudhi/Persistent_cohomology.h>
+#include <gudhi/Simplex_tree.h>
 
 #include "network.h"
 #include "typedefs.h"
@@ -41,6 +42,7 @@ private:
     using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
     using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
+    const SimplexList &get_neighbors(const Dimension dimension) override;
     SimplexList calc_simplices(const Dimension dimension) override;
 
     void calc_persistent_cohomology();

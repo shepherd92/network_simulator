@@ -11,18 +11,24 @@ public:
         const Dimension max_dimension,
         const PointIdList &vertices,
         const ISimplexList &interactions,
-        const PointId typical_vertex_id);
+        const PointId typical_vertex_id,
+        const MarkList &marks);
     InfiniteNetwork(
         const Dimension max_dimension,
         const PointIdList &vertices,
         const SimplexList &interactions,
-        const PointId typical_vertex_id);
+        const PointId typical_vertex_id,
+        const MarkList &marks);
     PointIdList get_vertices() const override;
     InfiniteNetwork filter(const PointIdList &vertices) const;
+    const SimplexList &get_neighbors(const Dimension dimension) override;
 
 private:
+    SimplexList calc_neighbors(const Dimension dimension);
     SimplexList calc_simplices(const Dimension dimension) override;
     PointId typical_vertex_id_;
+    MarkList marks_;
+    std::vector<std::optional<SimplexList>> neighbors_;
 };
 
 #endif

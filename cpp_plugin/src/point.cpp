@@ -30,6 +30,21 @@ PointIdList convert_to_id_list(const PointList &points)
     return ids;
 }
 
+MarkList convert_to_mark_list(const PointList &points)
+{
+    MarkList mark_list{};
+    mark_list.reserve(points.size());
+    std::transform(
+        points.begin(),
+        points.end(),
+        std::back_inserter(mark_list),
+        [](const auto &point)
+        {
+            return point.mark();
+        });
+    return mark_list;
+}
+
 void transform_points(PointList &points, const std::function<void(Point &)> &lambda)
 {
     std::for_each(
