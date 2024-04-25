@@ -266,28 +266,116 @@ def create_dataset_properties_table(
         print(r'    \end{tabular}', file=out_file)
         print(r'\end{table}', file=out_file)
 
-# \begin{table} [h] \centering \caption{Fitted exponents of the degree distributions and the inferred $\g$ model parameters} \label{dataset_exponents}
-#   \begin{tabular}{|l|r|r|r|r|} \hline
-#     % exponent = m - (m+1) / gamma - 1
-#     % inferred gamma = (m+1) / (m-1 - exponent)
-#     \multirow{2}{*}{dataset } & \multicolumn{2}{|c|}{vertex degree} & \multicolumn{2}{|c|}{edge degree} \\ %\cline{2-5}
-#                      &  exponent & inferred $\g$ &  exponent & inferred $\g$ \\ \hline
-#     cs & -2.39 &      0.72 & -3.76 &      0.53 \\
-#     eess      & -2.98 &      0.50 & -4.14 &      0.48 \\
-#     math      & -2.79 &      0.56 & -4.47 &      0.45 \\
-#     stat       & -2.96 &      0.51 & -4.86 &      0.41 \\ \hline
-#   \end{tabular}
-# \end{table}
 
-# \begin{table} [h] \centering \caption{Mean vertex degree \& $\hat\b$} \label{dataset_betas}
-#   \begin{tabular}{|l|r|r|} \hline
-#     dataset & mean vertex degree & $\hat \b$ \\ \hline
-#     cs      &               9.57 &      2.69 \\
-#     eess    &               7.13 &      3.54 \\
-#     math    &               4.58 &      2.02 \\
-#     stat    &               5.14 &      2.52 \\ \hline
-#   \end{tabular}
-# \end{table}
+def create_dataset_parameter_estimates_table(
+    dataset_directories: dict[str, Path],
+    hypothesis_testing_directories: dict[str, Path],
+    out_file_name: Path,
+) -> None:
+    """Create parameter estimates table."""
+    out_file_name.parent.mkdir(parents=True, exist_ok=True)
+    dataset_name_translation = {
+        'computer_science': 'cs',
+        'engineering': 'eess',
+        'mathematics': 'math',
+        'statistics': 'stat',
+    }
+    with open(out_file_name, 'w') as out_file:
+        print(r"\begin{table} [h] \centering \caption{Fitted power-law exponents and the inferred model parameters} \label{tab:dataset_parameter_estimates}", file=out_file)
+        print(r'    \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline', file=out_file)
+        print(r"        \multirow{2}{*}{dataset} & \multicolumn{2}{|c|}{vertex--interaction degree} & \multicolumn{2}{|c|}{interaction--vertex degree} & \multirow{2}{*}{$\b$} & \multirow{2}{*}{$\la$} & \multirow{2}{*}{$\la'$} \\", file=out_file)
+        print(r"            & exponent & $\g$ & exponent & $\g'$ & & & \\ \hline", file=out_file)
+        for name_in_table, name_to_print in dataset_name_translation.items():
+            vertex_interaction_exponent = \
+                pd.read_csv(dataset_directories[name_in_table] / 'data' / 'interaction_degree_distribution' / 'distribution_info.csv')['theoretical_exponent'][0]
+            interaction_vertex_exponent = \
+                pd.read_csv(dataset_directories[name_in_table] / 'data' / 'interaction_dimension_distribution' / 'distribution_info.csv')['theoretical_exponent'][0]
+
+            model_info = pd.read_csv(hypothesis_testing_directories[name_in_table] / 'model_test' / 'model_info.csv')
+            lambda_ = model_info['network_size'][0]
+            lambda_prime = model_info['interaction_intensity'][0]
+            beta = model_info['parameter_beta'][0]
+
+            print(f'        {name_to_print: <7} & ', end='', file=out_file)
+            print(f'${vertex_interaction_exponent:.2f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${1. / (vertex_interaction_exponent - 1.):.2f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${interaction_vertex_exponent:.2f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${1. / (interaction_vertex_exponent - 1.):.2f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${beta:.2E}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${lambda_:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${lambda_prime:,.0f}$ '.replace(',', r'\,'), end='', file=out_file)
+            print(r'\\', file=out_file)
+        print(r'        \hline', file=out_file)
+        print(r'    \end{tabular}', file=out_file)
+        print(r'\end{table}', file=out_file)
+
+
+def create_hypothesis_tests_table(
+    directories: dict[str, Path],
+    property_name: str,
+    caption: str,
+    out_file_name: Path,
+) -> None:
+    """Create hypothesis tests table."""
+    out_file_name.parent.mkdir(parents=True, exist_ok=True)
+    dataset_name_translation = {
+        'computer_science': 'cs',
+        'engineering': 'eess',
+        'mathematics': 'math',
+        'statistics': 'stat',
+    }
+    with open(out_file_name, 'w') as out_file:
+        print(r'\begin{table} [h] \centering \caption{', file=out_file, end='')
+        print(caption, file=out_file, end='')
+        print(r'} \label{tab:edge_counts_hypothesis_tests}', file=out_file)
+        print(r'    \begin{tabular}{|l|r|r|r|r|r|r|} \hline', file=out_file)
+        print(r'        dataset & dataset value & $\hat\alpha$ & $\hat\b$ & location & scale & $p$-value \\ \hline', file=out_file)
+        for name_in_table, name_to_print in dataset_name_translation.items():
+            info = pd.read_csv(directories[name_in_table] / 'model_test' / property_name / 'distribution_info.csv')
+            test = pd.read_csv(directories[name_in_table] / 'model_test' / property_name / 'test_results.csv')
+            print(f'        {name_to_print: <7} & ', end='', file=out_file)
+            print(f'${test['point_value'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info['theoretical_alpha'][0]:.4f}$ & ', end='', file=out_file)
+            print(f'${info['theoretical_beta'][0]:.1f}$ & ', end='', file=out_file)
+            print(f'${info['theoretical_location'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info['theoretical_scale'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${test['point_p_value'][0]:.4f}$', end='', file=out_file)
+            print(r'\\', file=out_file)
+        print(r'        \hline', file=out_file)
+        print(r'    \end{tabular}', file=out_file)
+        print(r'\end{table}', file=out_file)
+
+
+def create_triangle_counts_hypothesis_tests_table(
+    directories: dict[str, Path],
+    out_file_name: Path,
+) -> None:
+    out_file_name.parent.mkdir(parents=True, exist_ok=True)
+    dataset_name_translation = {
+        'computer_science': 'cs',
+        'engineering': 'eess',
+        'mathematics': 'math',
+        'statistics': 'stat',
+    }
+    with open(out_file_name, 'w') as out_file:
+        print(r'\begin{table} [h] \centering \caption{Hypothesis tests for the edge counts} \label{tab:edge_counts_hypothesis_tests}', file=out_file)
+        print(r'    \begin{tabular}{|l|r|r|r|r|r|r|} \hline', file=out_file)
+        print(r'        dataset & edge count & $\hat\alpha$ & $\hat\b$ & location & scale & $p$-value \\ \hline', file=out_file)
+        for name_in_table, name_to_print in dataset_name_translation.items():
+            info = pd.read_csv(directories[name_in_table] / 'model_test' / 'num_of_triangles_stable' / 'distribution_info.csv')
+            test = pd.read_csv(directories[name_in_table] / 'model_test' / 'num_of_triangles_stable' / 'test_results.csv')
+            print(f'        {name_to_print: <7} & ', end='', file=out_file)
+            print(f'${test['point_value'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info['theoretical_alpha'][0]:.4f}$ & ', end='', file=out_file)
+            print(f'${info['theoretical_beta'][0]:.1f}$ & ', end='', file=out_file)
+            print(f'${info['theoretical_location'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${info['theoretical_scale'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
+            print(f'${test['point_p_value'][0]:.4f}$', end='', file=out_file)
+            print(r'\\', file=out_file)
+        print(r'        \hline', file=out_file)
+        print(r'    \end{tabular}', file=out_file)
+        print(r'\end{table}', file=out_file)
+
 
 # \begin{table}[!htb]
 #   \begin{minipage}{.5\linewidth} \centering

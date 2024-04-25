@@ -74,6 +74,40 @@ PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
     return interactions;
 }
 
+// PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions) const
+// {
+//     PointList vertices{};
+//     std::mutex mutex{};
+//     std::atomic<PointId> vertex_id{1U}; // 0 is reserved for the typical vertex
+//     for (auto interaction_index{0U}; interaction_index < interactions.size(); ++interaction_index)
+//     {
+//         const auto vertices_in_neighborhood{create_vertices_in_interaction_neighborhood(interactions[interaction_index])};
+//         std::for_each(
+//             execution_policy,
+//             vertices_in_neighborhood.begin(), vertices_in_neighborhood.end(),
+//             [&](const auto &potential_vertex)
+//             {
+//                 auto should_be_discarded{false};
+//                 for (auto index{0U}; index < interaction_index; ++index)
+//                 {
+//                     if (connects(potential_vertex, interactions[index]))
+//                     {
+//                         std::lock_guard<std::mutex> lock{mutex};
+//                         should_be_discarded = true;
+//                         break;
+//                     }
+//                 }
+//                 if (!should_be_discarded)
+//                 {
+//                     std::lock_guard<std::mutex> lock{mutex};
+//                     vertices.emplace_back(Point(potential_vertex.mark(), potential_vertex.position(), vertex_id));
+//                     ++vertex_id;
+//                 }
+//             });
+//     }
+//     return vertices;
+// }
+
 PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions) const
 {
     PointList vertices{};

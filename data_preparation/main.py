@@ -18,9 +18,11 @@ from data_preparation.data_dirs.hypergraph import (
 )
 from data_preparation.latex_interface import (
     create_boxplots,
+    create_dataset_parameter_estimates_table,
     create_dataset_properties_table,
     create_histograms_normal_plots,
     create_hypothesis_tests_plot,
+    create_hypothesis_tests_table,
     create_value_counts_log_plot,
 )
 
@@ -29,7 +31,7 @@ def main() -> None:
     """Prepare all data for publication."""
     output_path_root.mkdir(parents=True, exist_ok=True)
 
-    prepare_data_analysis_data(data_analysis_directories, output_path_root)
+    prepare_data_analysis_data(data_analysis_directories, hypothesis_testing_directories, output_path_root)
     prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path_root)
     # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path_root)
     prepare_model_sample_data(model_sample_directory, output_path_root)
@@ -39,13 +41,22 @@ def main() -> None:
     prepare_hypothesis_testing_data(hypothesis_testing_directories, output_path_root)
 
 
-def prepare_data_analysis_data(directories: dict[str, Path], output_dir: Path) -> None:
+def prepare_data_analysis_data(
+    dataset_directories: dict[str, Path],
+    hypothesis_testing_directories: dict[str, Path],
+    output_dir: Path
+) -> None:
     """Prepare all information related to the data analysis."""
-    create_data_degree_distributions(directories, output_dir)
-    create_betti_numbers(directories, output_dir)
-    _copy_data_network_plots(directories, output_dir)
-    network_info = _merge_network_info(directories, 'data', output_dir)
+    create_data_degree_distributions(dataset_directories, output_dir)
+    create_betti_numbers(dataset_directories, output_dir)
+    _copy_data_network_plots(dataset_directories, output_dir)
+    network_info = _merge_network_info(dataset_directories, 'data', output_dir)
     create_dataset_properties_table(network_info, output_dir / 'data' / 'latex_tables' / 'network_info.tex')
+    create_dataset_parameter_estimates_table(
+        dataset_directories,
+        hypothesis_testing_directories,
+        output_dir / 'data' / 'latex_tables' / 'parameter_estimates.tex'
+    )
 
 
 def prepare_model_sample_for_data_sets_data(directories: dict[str, Path], output_dir: Path) -> None:
@@ -146,11 +157,17 @@ def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Pa
     (output_dir / 'hypothesis_test').mkdir(parents=True, exist_ok=True)
     _merge_model_info(directories, 'model_test', output_dir / 'hypothesis_test')
 
-    captions = {
+    figure_captions = {
         'computer_science': 'cs',
         'engineering': 'eess',
         'mathematics': 'math',
         'statistics': 'stat',
+    }
+
+    table_captions = {
+        'num_of_edges_stable': 'Results of the hypothesis test for the number of edges',
+        'num_of_triangles_stable': 'Results of the hypothesis test for the number of triangles',
+        'betti_number_1_stable': 'Results of the hypothesis test for the first Betti numbers',
     }
 
     for property_name in [
@@ -185,7 +202,15 @@ def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Pa
                 out_file_name=output_dir / 'hypothesis_test' / property_name / f'hypothesis_test_{dataset_name}_latex_figure.tex',
                 csv_file_dir=Path('data/hypothesis_test') / property_name,
                 dataset_name=dataset_name,
-                caption=captions[dataset_name],
+                caption=figure_captions[dataset_name],
+            )
+
+        if property_name != 'num_of_triangles_stable':  # IF IS TEMPORARY, REMOVE LATER
+            create_hypothesis_tests_table(
+                directories,
+                property_name,
+                table_captions[property_name],
+                output_dir / 'hypothesis_test' / 'latex_tables' / f'{property_name}_hypothesis_test_table.tex'
             )
 
 

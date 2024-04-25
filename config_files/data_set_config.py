@@ -28,7 +28,7 @@ class DataSetConfig(NamedTuple):
         # BaseNetworkProperty.edges,
         BaseNetworkProperty.mean_degree,
         BaseNetworkProperty.max_degree,
-        # BaseNetworkProperty.mean_clustering,
+        BaseNetworkProperty.mean_clustering,
         BaseNetworkProperty.num_of_connected_components,
         BaseNetworkProperty.interaction_vertex_degree_distribution,
         BaseNetworkProperty.simplex_dimension_distribution,
