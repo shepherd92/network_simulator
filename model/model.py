@@ -44,8 +44,8 @@ class Model:
     class Parameters:
         """Base class representing the parameters."""
 
-        max_dimension: int = 0
-        network_size: float = 0.
+        max_dimension: int = 2
+        network_size: float = 1000.
 
     def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
         """Set the model parameters based ona a data set."""

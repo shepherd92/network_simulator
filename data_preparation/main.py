@@ -42,19 +42,19 @@ def main() -> None:
 
 
 def prepare_data_analysis_data(
-    dataset_directories: dict[str, Path],
-    hypothesis_testing_directories: dict[str, Path],
+    dataset_dirs: dict[str, Path],
+    hypothesis_testing_dirs: dict[str, Path],
     output_dir: Path
 ) -> None:
     """Prepare all information related to the data analysis."""
-    create_data_degree_distributions(dataset_directories, output_dir)
-    create_betti_numbers(dataset_directories, output_dir)
-    _copy_data_network_plots(dataset_directories, output_dir)
-    network_info = _merge_network_info(dataset_directories, 'data', output_dir)
+    create_data_degree_distributions(dataset_dirs, output_dir)
+    create_betti_numbers(dataset_dirs, output_dir)
+    _copy_data_network_plots(dataset_dirs, output_dir)
+    network_info = _merge_network_info(dataset_dirs, 'data', output_dir)
     create_dataset_properties_table(network_info, output_dir / 'data' / 'latex_tables' / 'network_info.tex')
     create_dataset_parameter_estimates_table(
-        dataset_directories,
-        hypothesis_testing_directories,
+        dataset_dirs,
+        hypothesis_testing_dirs,
         output_dir / 'data' / 'latex_tables' / 'parameter_estimates.tex'
     )
 
@@ -199,7 +199,8 @@ def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Pa
         for dataset_name, directory in directories.items():
             create_hypothesis_tests_plot(
                 in_dir=directory / 'model_test' / property_name,
-                out_file_name=output_dir / 'hypothesis_test' / property_name / f'hypothesis_test_{dataset_name}_latex_figure.tex',
+                out_file_name=output_dir / 'hypothesis_test' / property_name /
+                f'hypothesis_test_{dataset_name}_latex_figure.tex',
                 csv_file_dir=Path('data/hypothesis_test') / property_name,
                 dataset_name=dataset_name,
                 caption=figure_captions[dataset_name],

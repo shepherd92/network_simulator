@@ -388,42 +388,6 @@ def create_triangle_counts_hypothesis_tests_table(
 #     stat    &  44\,380 &    114\,003 &    135\,800 \\ \hline
 #   \end{tabular}
 #   \end{minipage}
-#   \qquad \qquad
-#   \begin{minipage}{.5\linewidth} \centering
-#     \caption{Estimated parameters of the stable distributions for triangle counts} \label{triangle_count_stable_distribution_parameters}
-#     \begin{tabular}{|l|r|r|r|r|r|r|} \hline
-#       dataset & $\hat\alpha$ & $\hat\b$ &     location &    scale \\ \hline
-#       cs      &         1.39 &      1.0 & 18\,785\,263 & 504\,582 \\
-#       eess    &         1.98 &      1.0 &  1\,911\,396 &  38\,527 \\
-#       math    &         1.79 &      1.0 &  2\,027\,542 &  28\,774 \\
-#       stat    &         1.96 &      1.0 &     566\,665 &  15\,352 \\ \hline
-#     \end{tabular}
-#   \end{minipage}
-# \end{table}
-
-# \begin{table}[!htb]
-#   \begin{minipage}[t]{.5\linewidth}
-#     \centering \caption{Betti numbers of the datasets} \label{betti_numbers_table}
-#       \begin{tabular}{|l|r|r|} \hline
-#         dataset & Betti-0 &  Betti-1 \\ \hline
-#         cs      & 22\,576 & 168\,770 \\
-#         eess    &  5\,533 &   7\,419 \\
-#         math    & 26\,197 &  78\,009 \\
-#         stat    &  4\,049 &   7\,275 \\ \hline
-#       \end{tabular}
-#     \end{minipage}
-# \qquad \qquad
-#   \begin{minipage}[t]{.5\linewidth}
-#     \centering \caption{Parameter estimates of the stable distributions for Betti-1} \label{betti_number_stable_distribution_parameters}
-#     \begin{tabular}{|l|r|r|r|r|} \hline
-#       dataset & $\hat\a$ & $\hat\b$ & location & scale \\ \hline
-#       cs      &     1.39 &     -1.0 &       37 & 12.83 \\
-#       eess    &     1.98 &     -1.0 &      105 &  9.66 \\
-#       math    &     1.79 &     -1.0 &      490 & 19.16 \\
-#       stat    &     1.96 &     -1.0 &      126 &  8.99 \\ \hline
-#     \end{tabular}
-#   \end{minipage}
-# \end{table}
 
 
 def create_hypothesis_tests_plot(

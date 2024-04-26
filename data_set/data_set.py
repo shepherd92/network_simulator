@@ -59,8 +59,7 @@ class DataSet(FiniteNetwork):
             if scalar_property_params.calculator_data_set is not None \
             else scalar_property_params.calculator_default
 
-        base_network_property_type = scalar_property_params.source_base_property.property_type
-        source_base_property = self.calc_base_property(base_network_property_type)
+        source_base_property = self.calc_base_property(scalar_property_params.source_base_property)
         scalar_property_value = calculator(source_base_property)
         return scalar_property_value
 

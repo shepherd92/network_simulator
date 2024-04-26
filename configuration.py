@@ -2,7 +2,6 @@
 """Configuration class."""
 
 from datetime import datetime, UTC
-import os
 
 from config_files.general_config import GeneralConfig
 from config_files.data_set_config import DataSetConfig

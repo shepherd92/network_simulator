@@ -21,8 +21,8 @@ from tqdm import tqdm
 from configuration import Configuration
 from config_files.model_fitting import SCALAR_PROPERTY_PARAMS_TO_FIT
 from config_files.properties_to_test import (
-    FINITE_SCALAR_PROPERTY_PARAMS_TO_TEST,
-    INFINITE_SCALAR_PROPERTY_PARAMS_TO_TEST,
+    get_finite_scalar_property_params,
+    get_infinite_scalar_property_params,
 )
 from data_set.factory import load_data
 from distribution.approximation import DistributionApproximation
@@ -97,9 +97,9 @@ def main(mode: Mode, configuration: Configuration) -> None:
             data_set = load_data(data_set_type)
             model.set_relevant_parameters_from_data_set(data_set)
 
-        scalar_property_params = FINITE_SCALAR_PROPERTY_PARAMS_TO_TEST \
+        scalar_property_params = get_finite_scalar_property_params(model.parameters.gamma) \
             if configuration.model.network_testing.mode == Model.Mode.FINITE \
-            else INFINITE_SCALAR_PROPERTY_PARAMS_TO_TEST
+            else get_infinite_scalar_property_params(model.parameters.gamma)
 
         scalar_property_distributions = model.simulate(
             configuration.model.network_testing.mode,

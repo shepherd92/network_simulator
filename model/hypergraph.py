@@ -11,6 +11,7 @@ import numpy.typing as npt
 from scipy import integrate
 from scipy.optimize import fsolve
 
+import config_files.model_config as model_config
 # pylint: disable-next=no-name-in-module
 from cpp_plugin.build.release.cpp_plugin import (  # type: ignore
     FiniteHypergraphModel,
@@ -105,6 +106,12 @@ class HypergraphModel(Model):
         self._parameters.gamma = gamma
         self._parameters.gamma_prime = gamma_prime
         # pylint: enable=attribute-defined-outside-init
+
+        model_config.HYPERGRAPH_MODEL_PARAMETERS.max_dimension = data_set.max_dimension
+        model_config.HYPERGRAPH_MODEL_PARAMETERS.network_size = network_size
+        model_config.HYPERGRAPH_MODEL_PARAMETERS.interaction_intensity = interaction_intensity
+        model_config.HYPERGRAPH_MODEL_PARAMETERS.gamma = gamma
+        model_config.HYPERGRAPH_MODEL_PARAMETERS.gamma_prime = gamma_prime
 
         print(self)
 
