@@ -5,6 +5,7 @@
 
 #include "infinite_hypergraph_model.h"
 #include "infinite_network.h"
+#include "neighborhood.h"
 #include "point.h"
 #include "rectangle.h"
 #include "tools.h"
@@ -209,4 +210,29 @@ bool InfiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &v
     }
 
     return false;
+}
+
+Hyperbola InfiniteHypergraphModel::get_neighborhood_left_tail(const Point &interaction) const
+{
+    return Hyperbola(
+        -std::numeric_limits<float>::infinity(),
+        interaction.position() - interaction.mark(),
+        interaction.position(),
+        interaction.mark());
+}
+
+Center InfiniteHypergraphModel::get_neighborhood_center(const Point &interaction) const
+{
+    return Center(
+        interaction.position() - interaction.mark(),
+        interaction.position() + interaction.mark());
+}
+
+Hyperbola InfiniteHypergraphModel::get_neighborhood_right_tail(const Point &interaction) const
+{
+    return Hyperbola(
+        interaction.position() + interaction.mark(),
+        std::numeric_limits<float>::infinity(),
+        interaction.position(),
+        interaction.mark());
 }

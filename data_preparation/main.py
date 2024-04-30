@@ -133,8 +133,8 @@ def prepare_simulation_simplex_count_data(directories: dict[str, Path], output_d
 def prepare_simulation_betti_number_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare all information related to the Betti numbers."""
     for property_name in [
-        # 'betti_number_0_normal',
-        # 'betti_number_0_stable',
+        'betti_number_0_normal',
+        'betti_number_0_stable',
         'betti_number_1_normal',
         'betti_number_1_stable',
         # 'betti_number_2_normal',
@@ -168,6 +168,12 @@ def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Pa
         'num_of_edges_stable': 'Results of the hypothesis test for the number of edges',
         'num_of_triangles_stable': 'Results of the hypothesis test for the number of triangles',
         'betti_number_1_stable': 'Results of the hypothesis test for the first Betti numbers',
+    }
+
+    table_labels = {
+        'num_of_edges_stable': 'tab:num_of_edges_hypothesis_tests',
+        'num_of_triangles_stable': 'tab:num_of_triangles_hypothesis_tests',
+        'betti_number_1_stable': 'tab:betti_number_1_hypothesis_tests',
     }
 
     for property_name in [
@@ -206,13 +212,13 @@ def prepare_hypothesis_testing_data(directories: dict[str, Path], output_dir: Pa
                 caption=figure_captions[dataset_name],
             )
 
-        if property_name != 'num_of_triangles_stable':  # IF IS TEMPORARY, REMOVE LATER
-            create_hypothesis_tests_table(
-                directories,
-                property_name,
-                table_captions[property_name],
-                output_dir / 'hypothesis_test' / 'latex_tables' / f'{property_name}_hypothesis_test_table.tex'
-            )
+        create_hypothesis_tests_table(
+            directories,
+            property_name,
+            table_captions[property_name],
+            table_labels[property_name],
+            output_dir / 'hypothesis_test' / 'latex_tables' / f'{property_name}_hypothesis_test_table.tex'
+        )
 
 
 def _merge_degree_exponents(directories: dict[str, Path], output_dir: Path):

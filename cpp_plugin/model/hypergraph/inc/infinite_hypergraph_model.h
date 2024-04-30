@@ -4,6 +4,8 @@
 #include "hypergraph_model.h"
 #include "infinite_model.h"
 
+class Center;
+class Hyperbola;
 class InfiniteNetwork;
 
 class InfiniteHypergraphModel : public InfiniteModel, public HypergraphModel
@@ -13,6 +15,10 @@ public:
 
     std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
     generate_networks(const uint32_t num_of_infinite_networks) const;
+
+    Hyperbola get_neighborhood_left_tail(const Point &point) const;
+    Center get_neighborhood_center(const Point &point) const;
+    Hyperbola get_neighborhood_right_tail(const Point &point) const;
 
 private:
     std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList> generate_network() const;

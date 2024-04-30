@@ -27,7 +27,7 @@ FINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
     # 'vertex_interaction_degree_exponent',
     # 'interaction_vertex_degree_exponent',
     # 'triangle_degree_exponent',
-    # 'average_interaction_degree_normal_mle',
+    'average_interaction_degree_normal_mle',
     # 'num_of_isolated_vertices_normal_mle',
     'num_of_edges_normal_mle',
     'num_of_edges_normal_match_quantile',

@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import numpy as np
+from scipy.stats import norm
 
 
 def create_boxplots(
@@ -116,7 +117,7 @@ def create_histograms_normal_plots(
             histogram_x_range[0] - (histogram_x_range[1] - histogram_x_range[0]) * 0.05,
             histogram_x_range[1] + (histogram_x_range[1] - histogram_x_range[0]) * 0.05,
         ]
-        histogram_y_limits = [0, histogram_y_values.max() * 1.1,]
+        histogram_y_limits = [0, max(histogram_y_values.max(), norm.pdf(mean, mean, std)) * 1.1,]
 
         out_file_name = output_dir / property_name / 'distribution_latex_figures' / f'figure_{dataset_name}.tex'
         out_file_name.parent.mkdir(parents=True, exist_ok=True)
@@ -314,6 +315,7 @@ def create_hypothesis_tests_table(
     directories: dict[str, Path],
     property_name: str,
     caption: str,
+    label: str,
     out_file_name: Path,
 ) -> None:
     """Create hypothesis tests table."""
@@ -327,43 +329,14 @@ def create_hypothesis_tests_table(
     with open(out_file_name, 'w') as out_file:
         print(r'\begin{table} [h] \centering \caption{', file=out_file, end='')
         print(caption, file=out_file, end='')
-        print(r'} \label{tab:edge_counts_hypothesis_tests}', file=out_file)
+        print(r'} \label{', end='', file=out_file)
+        print(label, end='', file=out_file)
+        print(r'}', file=out_file)
         print(r'    \begin{tabular}{|l|r|r|r|r|r|r|} \hline', file=out_file)
         print(r'        dataset & dataset value & $\hat\alpha$ & $\hat\b$ & location & scale & $p$-value \\ \hline', file=out_file)
         for name_in_table, name_to_print in dataset_name_translation.items():
             info = pd.read_csv(directories[name_in_table] / 'model_test' / property_name / 'distribution_info.csv')
             test = pd.read_csv(directories[name_in_table] / 'model_test' / property_name / 'test_results.csv')
-            print(f'        {name_to_print: <7} & ', end='', file=out_file)
-            print(f'${test['point_value'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
-            print(f'${info['theoretical_alpha'][0]:.4f}$ & ', end='', file=out_file)
-            print(f'${info['theoretical_beta'][0]:.1f}$ & ', end='', file=out_file)
-            print(f'${info['theoretical_location'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
-            print(f'${info['theoretical_scale'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
-            print(f'${test['point_p_value'][0]:.4f}$', end='', file=out_file)
-            print(r'\\', file=out_file)
-        print(r'        \hline', file=out_file)
-        print(r'    \end{tabular}', file=out_file)
-        print(r'\end{table}', file=out_file)
-
-
-def create_triangle_counts_hypothesis_tests_table(
-    directories: dict[str, Path],
-    out_file_name: Path,
-) -> None:
-    out_file_name.parent.mkdir(parents=True, exist_ok=True)
-    dataset_name_translation = {
-        'computer_science': 'cs',
-        'engineering': 'eess',
-        'mathematics': 'math',
-        'statistics': 'stat',
-    }
-    with open(out_file_name, 'w') as out_file:
-        print(r'\begin{table} [h] \centering \caption{Hypothesis tests for the edge counts} \label{tab:edge_counts_hypothesis_tests}', file=out_file)
-        print(r'    \begin{tabular}{|l|r|r|r|r|r|r|} \hline', file=out_file)
-        print(r'        dataset & edge count & $\hat\alpha$ & $\hat\b$ & location & scale & $p$-value \\ \hline', file=out_file)
-        for name_in_table, name_to_print in dataset_name_translation.items():
-            info = pd.read_csv(directories[name_in_table] / 'model_test' / 'num_of_triangles_stable' / 'distribution_info.csv')
-            test = pd.read_csv(directories[name_in_table] / 'model_test' / 'num_of_triangles_stable' / 'test_results.csv')
             print(f'        {name_to_print: <7} & ', end='', file=out_file)
             print(f'${test['point_value'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
             print(f'${info['theoretical_alpha'][0]:.4f}$ & ', end='', file=out_file)
@@ -560,7 +533,7 @@ def create_hypothesis_tests_plot(
     # create plot
     out_file_name.parent.mkdir(parents=True, exist_ok=True)
     with open(out_file_name, 'w') as out_file:
-        print(r'\begin{subfigure}[b]{0.22\textwidth}', file=out_file)
+        print(r'\begin{subfigure}[b]{0.2\textwidth}', file=out_file)
         print(r'    \resizebox{\textwidth}{!}{', file=out_file)
         print(r'        \begin{tikzpicture}', file=out_file)
         print(r'            \begin{groupplot} [', file=out_file)
@@ -590,19 +563,19 @@ def create_hypothesis_tests_plot(
             print_joint_group_plot()
 
         print(r'            \end{groupplot}', file=out_file)
-        print(r'            \node[anchor=north east, draw] at ', end='', file=out_file)
-        if point_value_position == 'right_from_distribution':
-            print('(4.5, 5.5)', file=out_file)
-        if point_value_position == 'inside_distribution':
-            print('(4.5, 5.0)', file=out_file)
-        if point_value_position == 'left_from_distribution':
-            print('(4.5, 5.5)', file=out_file)
-        print(r'            {\small{\textbf{p-value:} $\mathbf{', end='', file=out_file)
-        print(f'{point_p_value:.4f}', end='', file=out_file)
-        print(r'}$}};', file=out_file)
+        # print(r'            \node[anchor=north east, draw] at ', end='', file=out_file)
+        # if point_value_position == 'right_from_distribution':
+        #     print('(4.5, 5.5)', file=out_file)
+        # if point_value_position == 'inside_distribution':
+        #     print('(4.5, 5.0)', file=out_file)
+        # if point_value_position == 'left_from_distribution':
+        #     print('(4.5, 5.5)', file=out_file)
+        # print(r'            {\small{\textbf{p-value:} $\mathbf{', end='', file=out_file)
+        # print(f'{point_p_value:.4f}', end='', file=out_file)
+        # print(r'}$}};', file=out_file)
         print(r'        \end{tikzpicture}', file=out_file)
         print(r'    }', file=out_file)
-        print(r'    \caption{', end='', file=out_file)
-        print(f'{caption}', end='', file=out_file)
-        print(r'}', file=out_file)
+        # print(r'    \caption{', end='', file=out_file)
+        # print(f'{caption}', end='', file=out_file)
+        # print(r'}', file=out_file)
         print(r'\end{subfigure}', file=out_file)
