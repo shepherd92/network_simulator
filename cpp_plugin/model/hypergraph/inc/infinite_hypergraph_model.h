@@ -23,6 +23,19 @@ public:
 private:
     std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList> generate_network() const;
     PointList create_interactions(const Mark u) const;
+    PointList transform_interactions(const PointList &interactions) const;
+
+    std::vector<std::unique_ptr<NeighborhoodPart>>
+    create_dominating_neighborhood_parts(const PointList &transformed_interactions) const;
+
+    std::vector<Center> create_neighborhood_centers(const PointList &transformed_interactions) const;
+    void merge_neighborhood_centers(std::vector<Center> &centers) const;
+    std::vector<Hyperbola> create_neighborhood_tails(const PointList &transformed_interactions) const;
+    void remove_center_domains_from_neighborhood_tails(
+        std::vector<Hyperbola> &tails,
+        const std::vector<Center> &centers) const;
+    std::vector<Hyperbola> determine_dominating_hyperbolas(std::vector<Hyperbola> &tails) const;
+
     PointList create_points(const size_t num_of_nodes, const float exponent) const;
     PointList create_vertices(const PointList &interactions) const;
     PositionList generate_positions(

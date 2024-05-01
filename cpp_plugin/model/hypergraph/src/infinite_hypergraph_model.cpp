@@ -40,6 +40,9 @@ InfiniteHypergraphModel::generate_network() const
 
     const auto interactions{create_interactions(u)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
+    const auto transformed_interactions{transform_interactions(interactions)};
+    const std::vector<std::unique_ptr<NeighborhoodPart>> dominating_neighborhood_parts{
+        create_dominating_neighborhood_parts(transformed_interactions)};
 
     auto vertices{create_vertices(interactions)};
     vertices.emplace_back(Point{u, 0.F, typical_vertex_id}); // add the typical node
@@ -73,6 +76,207 @@ PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
     }
 
     return interactions;
+}
+
+PointList InfiniteHypergraphModel::transform_interactions(const PointList &interactions) const
+{
+    PointList transformed_interactions{};
+    transformed_interactions.reserve(interactions.size());
+    std::transform(
+        execution_policy,
+        interactions.begin(), interactions.end(),
+        std::back_inserter(transformed_interactions),
+        [&](const auto &point)
+        {
+            return Point{beta() * std::pow(point.mark(), -gamma_prime()), point.position(), point.id()};
+        });
+    return transformed_interactions;
+}
+
+std::vector<std::unique_ptr<NeighborhoodPart>>
+InfiniteHypergraphModel::create_dominating_neighborhood_parts(const PointList &transformed_interactions) const
+{
+    auto centers{create_neighborhood_centers(transformed_interactions)};
+    merge_neighborhood_centers(centers);
+    auto tails{create_neighborhood_tails(transformed_interactions)};
+    remove_center_domains_from_neighborhood_tails(tails, centers);
+    const auto dominating_tails{determine_dominating_hyperbolas(tails)};
+
+    std::vector<std::unique_ptr<NeighborhoodPart>> dominating_neighborhood_parts{};
+    dominating_neighborhood_parts.reserve(centers.size() + dominating_tails.size());
+    std::transform(
+        execution_policy,
+        centers.begin(), centers.end(),
+        std::back_inserter(dominating_neighborhood_parts),
+        [](const auto &center)
+        {
+            return std::make_unique<NeighborhoodPart>(center);
+        });
+    std::transform(
+        execution_policy,
+        dominating_tails.begin(), dominating_tails.end(),
+        std::back_inserter(dominating_neighborhood_parts),
+        [](const auto &tail)
+        {
+            return std::make_unique<NeighborhoodPart>(tail);
+        });
+    return dominating_neighborhood_parts;
+}
+
+std::vector<Center>
+InfiniteHypergraphModel::create_neighborhood_centers(const PointList &transformed_interactions) const
+{
+    std::vector<Center> centers{};
+    centers.reserve(transformed_interactions.size());
+    std::transform(
+        execution_policy,
+        transformed_interactions.begin(), transformed_interactions.end(),
+        std::back_inserter(centers),
+        [&](const auto &interaction)
+        {
+            return get_neighborhood_center(interaction);
+        });
+}
+
+void InfiniteHypergraphModel::merge_neighborhood_centers(std::vector<Center> &centers) const
+{
+    std::sort( // sort by left border
+        execution_policy,
+        centers.begin(), centers.end(),
+        [](const auto &center1, const auto &center2)
+        {
+            return center1.left() < center2.left();
+        });
+
+    std::vector<Center> merged_centers{centers[0]};
+    for (auto index{1U}; index < centers.size(); ++index)
+    {
+        if (centers[index].left() <= merged_centers.back().right())
+        {
+            merged_centers.back().set_right(centers[index].right());
+        }
+        else
+        {
+            merged_centers.push_back(centers[index]);
+        }
+    }
+    centers = merged_centers;
+}
+
+std::vector<Hyperbola>
+InfiniteHypergraphModel::create_neighborhood_tails(const PointList &transformed_interactions) const
+{
+    std::vector<Hyperbola> tails{};
+    tails.reserve(2 * transformed_interactions.size());
+
+    std::for_each(
+        std::execution::seq,
+        transformed_interactions.begin(), transformed_interactions.end(),
+        [&](const auto &interaction)
+        {
+            tails.push_back(get_neighborhood_left_tail(interaction));
+            tails.push_back(get_neighborhood_right_tail(interaction));
+        });
+}
+
+void InfiniteHypergraphModel::remove_center_domains_from_neighborhood_tails(std::vector<Hyperbola> &tails, const std::vector<Center> &centers) const
+{
+    std::vector<Hyperbola> result{};
+    std::for_each(
+        std::execution::seq,
+        tails.begin(), tails.end(),
+        [&](auto &tail)
+        {
+            std::vector<Hyperbola> remaining_parts{};
+            for (const auto &center : centers)
+            {
+                if (tail.right() < center.left())
+                {
+                    // center:         |-----|
+                    // tail:   |-----|
+                    remaining_parts.push_back(tail);
+                    // we reached the right end of the tail
+                    break;
+                }
+                else if (tail.left() < center.left() && tail.right() < center.right())
+                {
+                    // center:    |-----|
+                    // tail:   |-----|
+                    remaining_parts.push_back(Hyperbola(tail.left(), center.left(), tail.position(), tail.transformed_mark()));
+                    // we reached the right end of the tail
+                    break;
+                }
+                else if (tail.left() < center.left() && tail.right() > center.right())
+                {
+                    // center:    |-----|
+                    // tail:   |-----------|
+                    remaining_parts.push_back(Hyperbola(tail.left(), center.left(), tail.position(), tail.transformed_mark()));
+                    tail.set_left(center.right());
+                }
+                else if (center.left() < tail.left() && center.right() > tail.right())
+                {
+                    // center: |-------|
+                    // tail:     |---|
+                    // we reached the right end of the tail
+                    break;
+                }
+                else if (center.right() < tail.left())
+                {
+                    // center: |-----|
+                    // tail:            |-----|
+                    continue; // do nothing
+                }
+                else if (center.left() < tail.left() && center.right() < tail.right())
+                {
+                    // center: |-----|
+                    // tail:      |-----|
+                    tail.set_left(center.right());
+                }
+                else
+                {
+                    assert(false);
+                }
+            }
+            if (tail.side() == Hyperbola::Side::RIGHT)
+            {
+                // if the tail is right sided, then put the last part to the remaining parts
+                remaining_parts.push_back(tail);
+            }
+            result.insert(result.end(), remaining_parts.begin(), remaining_parts.end());
+        });
+    tails = result;
+}
+
+std::vector<Hyperbola>
+InfiniteHypergraphModel::determine_dominating_hyperbolas(std::vector<Hyperbola> &tails) const
+{
+    std::sort(
+        execution_policy,
+        tails.begin(), tails.end(),
+        [](const auto &tail1, const auto &tail2)
+        {
+            return tail1.left() < tail2.left();
+        });
+
+    std::vector<Hyperbola> result{};
+    Position currently_left{tails[0].left()};
+    for (auto index{0U}; index < tails.size() - 1; ++index)
+    {
+        std::vector<Hyperbola> hyperbolas_in_this_domain{};
+        if (is_close(tails[index].left(), currently_left))
+        {
+            hyperbolas_in_this_domain.push_back(tails[index]);
+        }
+        else
+        {
+            // all hyperbolas in the domain are collected
+            // PROCESSING
+            currently_left = tails[index].left();
+            hyperbolas_in_this_domain.clear();
+            hyperbolas_in_this_domain.push_back(tails[index]);
+        }
+    }
+    return result;
 }
 
 // PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions) const

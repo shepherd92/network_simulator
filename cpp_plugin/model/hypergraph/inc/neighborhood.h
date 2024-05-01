@@ -11,11 +11,15 @@ public:
     NeighborhoodPart(const Position left, const Position right);
     virtual PointList create_points(const HypergraphModel::Parameters &parameters, std::mt19937 &rng) const = 0;
 
+    Position left() const;
+    Position right() const;
+    void set_left(const Position value);
+    void set_right(const Position value);
+
 protected:
+private:
     Position left;
     Position right;
-
-private:
 };
 
 class Hyperbola : public NeighborhoodPart
