@@ -15,6 +15,11 @@ void log_progress(
 
 inline bool is_close(const double first, const double second)
 {
+    if (std::isinf(first))
+    {
+        return std::isinf(second);
+    }
+
     constexpr auto relative_difference_factor = 1e-4;
     const auto greater_magnitude = std::max(fabs(first), fabs(second));
     return (fabs(first - second) < relative_difference_factor * greater_magnitude);

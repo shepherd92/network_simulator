@@ -18,6 +18,7 @@ public:
         float gamma_prime;
     };
     HypergraphModel(const std::vector<double> &parameters_in);
+    Parameters parameters() const;
 
 protected:
     ConnectionList generate_connections(const PointList &vertices, const PointList &interactions) const;

@@ -38,14 +38,14 @@ InfiniteHypergraphModel::generate_network() const
     std::uniform_real_distribution<Mark> mark_distribution(0., 1.);
     const auto u{mark_distribution(random_number_generator_)}; // mark of the typical node
 
-    const auto interactions{create_interactions(u)};
+    auto interactions{create_interactions(u)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
-    const auto transformed_interactions{transform_interactions(interactions)};
-    const std::vector<std::unique_ptr<NeighborhoodPart>> dominating_neighborhood_parts{
-        create_dominating_neighborhood_parts(transformed_interactions)};
 
-    auto vertices{create_vertices(interactions)};
+    transform_interactions(interactions);
+    const auto dominating_neighborhood_parts{create_dominating_neighborhood_parts(interactions)};
+    auto vertices{create_vertices(dominating_neighborhood_parts.first, dominating_neighborhood_parts.second)};
     vertices.emplace_back(Point{u, 0.F, typical_vertex_id}); // add the typical node
+
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
     const auto vertex_marks{convert_to_mark_list(vertices)};
@@ -78,49 +78,26 @@ PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
     return interactions;
 }
 
-PointList InfiniteHypergraphModel::transform_interactions(const PointList &interactions) const
+void InfiniteHypergraphModel::transform_interactions(PointList &interactions) const
 {
-    PointList transformed_interactions{};
-    transformed_interactions.reserve(interactions.size());
-    std::transform(
+    std::for_each(
         execution_policy,
         interactions.begin(), interactions.end(),
-        std::back_inserter(transformed_interactions),
-        [&](const auto &point)
+        [&](auto &point)
         {
-            return Point{beta() * std::pow(point.mark(), -gamma_prime()), point.position(), point.id()};
+            point.set_mark(beta() * std::pow(point.mark(), -gamma_prime()));
         });
-    return transformed_interactions;
 }
 
-std::vector<std::unique_ptr<NeighborhoodPart>>
+std::pair<std::vector<Center>, std::vector<Hyperbola>>
 InfiniteHypergraphModel::create_dominating_neighborhood_parts(const PointList &transformed_interactions) const
 {
     auto centers{create_neighborhood_centers(transformed_interactions)};
-    merge_neighborhood_centers(centers);
     auto tails{create_neighborhood_tails(transformed_interactions)};
-    remove_center_domains_from_neighborhood_tails(tails, centers);
-    const auto dominating_tails{determine_dominating_hyperbolas(tails)};
+    const auto tail_parts_in_slots{remove_center_domains_from_neighborhood_tails(tails, centers)};
+    const auto dominating_tails{determine_dominating_hyperbolas(tail_parts_in_slots)};
 
-    std::vector<std::unique_ptr<NeighborhoodPart>> dominating_neighborhood_parts{};
-    dominating_neighborhood_parts.reserve(centers.size() + dominating_tails.size());
-    std::transform(
-        execution_policy,
-        centers.begin(), centers.end(),
-        std::back_inserter(dominating_neighborhood_parts),
-        [](const auto &center)
-        {
-            return std::make_unique<NeighborhoodPart>(center);
-        });
-    std::transform(
-        execution_policy,
-        dominating_tails.begin(), dominating_tails.end(),
-        std::back_inserter(dominating_neighborhood_parts),
-        [](const auto &tail)
-        {
-            return std::make_unique<NeighborhoodPart>(tail);
-        });
-    return dominating_neighborhood_parts;
+    return std::make_pair(centers, dominating_tails);
 }
 
 std::vector<Center>
@@ -128,17 +105,17 @@ InfiniteHypergraphModel::create_neighborhood_centers(const PointList &transforme
 {
     std::vector<Center> centers{};
     centers.reserve(transformed_interactions.size());
-    std::transform(
-        execution_policy,
+    std::for_each(
+        std::execution::seq,
         transformed_interactions.begin(), transformed_interactions.end(),
-        std::back_inserter(centers),
         [&](const auto &interaction)
         {
-            return get_neighborhood_center(interaction);
+            centers.emplace_back(get_neighborhood_center(interaction));
         });
+    return merge_neighborhood_centers(centers);
 }
 
-void InfiniteHypergraphModel::merge_neighborhood_centers(std::vector<Center> &centers) const
+std::vector<Center> InfiniteHypergraphModel::merge_neighborhood_centers(std::vector<Center> &centers) const
 {
     std::sort( // sort by left border
         execution_policy,
@@ -160,7 +137,7 @@ void InfiniteHypergraphModel::merge_neighborhood_centers(std::vector<Center> &ce
             merged_centers.push_back(centers[index]);
         }
     }
-    centers = merged_centers;
+    return merged_centers;
 }
 
 std::vector<Hyperbola>
@@ -177,187 +154,134 @@ InfiniteHypergraphModel::create_neighborhood_tails(const PointList &transformed_
             tails.push_back(get_neighborhood_left_tail(interaction));
             tails.push_back(get_neighborhood_right_tail(interaction));
         });
+    return tails;
 }
 
-void InfiniteHypergraphModel::remove_center_domains_from_neighborhood_tails(std::vector<Hyperbola> &tails, const std::vector<Center> &centers) const
+std::vector<std::vector<Hyperbola>>
+InfiniteHypergraphModel::remove_center_domains_from_neighborhood_tails(
+    const std::vector<Hyperbola> &tails,
+    const std::vector<Center> &centers) const
 {
-    std::vector<Hyperbola> result{};
+    /*Algorithm:
+    Assumption: centers are disjoint and sorted
+    Extract hyperbolas in each slot (centers: |---|)
+       slot1 |-------|  slot2  |--|  slot3  |---------| slot4 |----|  slot5*/
+    std::vector<std::vector<Hyperbola>> result{};
+    Position current_slot_left{-std::numeric_limits<float>::infinity()};
+    std::for_each(
+        std::execution::seq,
+        centers.begin(), centers.end(),
+        [&](const auto &center)
+        {
+            std::vector<Hyperbola> hyperbolas_this_slot{};
+            Position current_slot_right{center.left()};
+            std::for_each(
+                std::execution::seq,
+                tails.begin(), tails.end(),
+                [&](auto &tail)
+                {
+                    const auto tail_part{tail.intersect_domain(current_slot_left, current_slot_right)};
+                    if (tail_part.has_value())
+                    {
+                        hyperbolas_this_slot.push_back(tail_part.value());
+                    }
+                });
+            current_slot_left = center.right();
+            result.push_back(hyperbolas_this_slot);
+        });
+
+    // add the last slot from <last center>.right() to infinity
+    std::vector<Hyperbola> hyperbolas_last_slot{};
     std::for_each(
         std::execution::seq,
         tails.begin(), tails.end(),
         [&](auto &tail)
         {
-            std::vector<Hyperbola> remaining_parts{};
-            for (const auto &center : centers)
+            const auto tail_part{tail.intersect_domain(current_slot_left, std::numeric_limits<float>::infinity())};
+            if (tail_part.has_value())
             {
-                if (tail.right() < center.left())
-                {
-                    // center:         |-----|
-                    // tail:   |-----|
-                    remaining_parts.push_back(tail);
-                    // we reached the right end of the tail
-                    break;
-                }
-                else if (tail.left() < center.left() && tail.right() < center.right())
-                {
-                    // center:    |-----|
-                    // tail:   |-----|
-                    remaining_parts.push_back(Hyperbola(tail.left(), center.left(), tail.position(), tail.transformed_mark()));
-                    // we reached the right end of the tail
-                    break;
-                }
-                else if (tail.left() < center.left() && tail.right() > center.right())
-                {
-                    // center:    |-----|
-                    // tail:   |-----------|
-                    remaining_parts.push_back(Hyperbola(tail.left(), center.left(), tail.position(), tail.transformed_mark()));
-                    tail.set_left(center.right());
-                }
-                else if (center.left() < tail.left() && center.right() > tail.right())
-                {
-                    // center: |-------|
-                    // tail:     |---|
-                    // we reached the right end of the tail
-                    break;
-                }
-                else if (center.right() < tail.left())
-                {
-                    // center: |-----|
-                    // tail:            |-----|
-                    continue; // do nothing
-                }
-                else if (center.left() < tail.left() && center.right() < tail.right())
-                {
-                    // center: |-----|
-                    // tail:      |-----|
-                    tail.set_left(center.right());
-                }
-                else
-                {
-                    assert(false);
-                }
+                hyperbolas_last_slot.push_back(tail_part.value());
             }
-            if (tail.side() == Hyperbola::Side::RIGHT)
-            {
-                // if the tail is right sided, then put the last part to the remaining parts
-                remaining_parts.push_back(tail);
-            }
-            result.insert(result.end(), remaining_parts.begin(), remaining_parts.end());
         });
-    tails = result;
+    result.push_back(hyperbolas_last_slot);
+    return result;
 }
 
 std::vector<Hyperbola>
-InfiniteHypergraphModel::determine_dominating_hyperbolas(std::vector<Hyperbola> &tails) const
+InfiniteHypergraphModel::determine_dominating_hyperbolas(
+    const std::vector<std::vector<Hyperbola>> &tails_in_slots) const
 {
-    std::sort(
-        execution_policy,
-        tails.begin(), tails.end(),
-        [](const auto &tail1, const auto &tail2)
-        {
-            return tail1.left() < tail2.left();
-        });
-
     std::vector<Hyperbola> result{};
-    Position currently_left{tails[0].left()};
-    for (auto index{0U}; index < tails.size() - 1; ++index)
+    for (const auto &slot : tails_in_slots)
     {
-        std::vector<Hyperbola> hyperbolas_in_this_domain{};
-        if (is_close(tails[index].left(), currently_left))
+        std::vector<Hyperbola> dominating_hyperbolas{slot[0]};
+
+        for (const auto &hyperbola : slot)
         {
-            hyperbolas_in_this_domain.push_back(tails[index]);
+            std::mutex mutex{};
+            std::vector<Hyperbola> new_dominating_hyperbolas{};
+            std::for_each(
+                execution_policy,
+                dominating_hyperbolas.begin(), dominating_hyperbolas.end(),
+                [&](const auto &dominating_hyperbola)
+                {
+                    const auto dominating_hyperbola_parts{dominating_hyperbola.get_dominating_hyperbola_parts(hyperbola)};
+                    std::lock_guard<std::mutex> lock(mutex);
+                    new_dominating_hyperbolas.insert(
+                        new_dominating_hyperbolas.end(),
+                        dominating_hyperbola_parts.begin(),
+                        dominating_hyperbola_parts.end());
+                });
+
+            for (const auto &dominating_hyperbola : dominating_hyperbolas)
+            {
+                const auto dominating_hyperbola_parts{dominating_hyperbola.get_dominating_hyperbola_parts(hyperbola)};
+                new_dominating_hyperbolas.insert(new_dominating_hyperbolas.end(), dominating_hyperbola_parts.begin(), dominating_hyperbola_parts.end());
+            }
+            dominating_hyperbolas = new_dominating_hyperbolas;
         }
-        else
-        {
-            // all hyperbolas in the domain are collected
-            // PROCESSING
-            currently_left = tails[index].left();
-            hyperbolas_in_this_domain.clear();
-            hyperbolas_in_this_domain.push_back(tails[index]);
-        }
+        result.insert(result.end(), dominating_hyperbolas.begin(), dominating_hyperbolas.end());
     }
     return result;
 }
 
-// PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions) const
-// {
-//     PointList vertices{};
-//     std::mutex mutex{};
-//     std::atomic<PointId> vertex_id{1U}; // 0 is reserved for the typical vertex
-//     for (auto interaction_index{0U}; interaction_index < interactions.size(); ++interaction_index)
-//     {
-//         const auto vertices_in_neighborhood{create_vertices_in_interaction_neighborhood(interactions[interaction_index])};
-//         std::for_each(
-//             execution_policy,
-//             vertices_in_neighborhood.begin(), vertices_in_neighborhood.end(),
-//             [&](const auto &potential_vertex)
-//             {
-//                 auto should_be_discarded{false};
-//                 for (auto index{0U}; index < interaction_index; ++index)
-//                 {
-//                     if (connects(potential_vertex, interactions[index]))
-//                     {
-//                         std::lock_guard<std::mutex> lock{mutex};
-//                         should_be_discarded = true;
-//                         break;
-//                     }
-//                 }
-//                 if (!should_be_discarded)
-//                 {
-//                     std::lock_guard<std::mutex> lock{mutex};
-//                     vertices.emplace_back(Point(potential_vertex.mark(), potential_vertex.position(), vertex_id));
-//                     ++vertex_id;
-//                 }
-//             });
-//     }
-//     return vertices;
-// }
-
-PointList InfiniteHypergraphModel::create_vertices(const PointList &interactions) const
+PointList InfiniteHypergraphModel::create_vertices(
+    const std::vector<Center> &centers,
+    const std::vector<Hyperbola> &hyperbolas) const
 {
     PointList vertices{};
-    std::mutex mutex{};
-    std::atomic<PointId> vertex_id{1U}; // 0 is reserved for the typical vertex
-    for (auto interaction_index{0U}; interaction_index < interactions.size(); ++interaction_index)
+    PointList vertices_under_centers{create_vertices_under_centers(centers)};
+    vertices.insert(vertices.end(), vertices_under_centers.begin(), vertices_under_centers.end());
+    PointList vertices_under_tails{create_vertices_under_tails(hyperbolas)};
+    vertices.insert(vertices.end(), vertices_under_tails.begin(), vertices_under_tails.end());
+
+    PointId vertex_id{1U}; // 0 is reserved for the typical vertex
+    for (auto &vertex : vertices)
     {
-        const auto vertices_in_neighborhood{create_vertices_in_interaction_neighborhood(interactions[interaction_index])};
-        std::for_each(
-            execution_policy,
-            vertices_in_neighborhood.begin(), vertices_in_neighborhood.end(),
-            [&](const auto &potential_vertex)
-            {
-                auto should_be_discarded{false};
-                for (auto index{0U}; index < interaction_index; ++index)
-                {
-                    if (connects(potential_vertex, interactions[index]))
-                    {
-                        std::lock_guard<std::mutex> lock{mutex};
-                        should_be_discarded = true;
-                        break;
-                    }
-                }
-                if (!should_be_discarded)
-                {
-                    std::lock_guard<std::mutex> lock{mutex};
-                    vertices.emplace_back(Point(potential_vertex.mark(), potential_vertex.position(), vertex_id));
-                    ++vertex_id;
-                }
-            });
+        vertex.set_id(vertex_id);
+        ++vertex_id;
     }
     return vertices;
 }
 
-PointList InfiniteHypergraphModel::create_vertices_in_interaction_neighborhood(const Point &interaction) const
+PointList InfiniteHypergraphModel::create_vertices_under_centers(const std::vector<Center> &centers) const
 {
-    const auto expected_num_of_vertices{2 * beta() * lambda() * std::pow(interaction.mark(), -gamma_prime()) / (1. - gamma())};
-    const auto num_of_vertices{std::poisson_distribution<int32_t>(expected_num_of_vertices)(random_number_generator_)};
-    const auto marks{generate_marks(num_of_vertices, MIN_MARK)};
-    const auto positions{generate_positions_in_interaction_neighborhood(interaction, marks)};
     PointList vertices{};
-    vertices.reserve(num_of_vertices);
-    for (auto index{0}; index < num_of_vertices; ++index)
+    for (const auto &center : centers)
     {
-        vertices.emplace_back(Point{marks[index], positions[index], index});
+        auto new_vertices{center.create_points(parameters(), random_number_generator_)};
+        vertices.insert(vertices.end(), new_vertices.begin(), new_vertices.end());
+    }
+    return vertices;
+}
+
+PointList InfiniteHypergraphModel::create_vertices_under_tails(const std::vector<Hyperbola> &hyperbolas) const
+{
+    PointList vertices{};
+    for (const auto &hyperbola : hyperbolas)
+    {
+        auto new_vertices{hyperbola.create_points(parameters(), random_number_generator_)};
+        vertices.insert(vertices.end(), new_vertices.begin(), new_vertices.end());
     }
     return vertices;
 }
@@ -366,24 +290,8 @@ PositionList InfiniteHypergraphModel::generate_positions_in_vertex_neighborhood(
     const Point &vertex,
     const MarkList &marks) const
 {
-    return generate_positions_in_neighborhood(vertex, marks, gamma(), gamma_prime());
-}
-
-PositionList InfiniteHypergraphModel::generate_positions_in_interaction_neighborhood(
-    const Point &interaction,
-    const MarkList &marks) const
-{
-    return generate_positions_in_neighborhood(interaction, marks, gamma_prime(), gamma());
-}
-
-PositionList InfiniteHypergraphModel::generate_positions_in_neighborhood(
-    const Point &point,
-    const MarkList &marks,
-    const float exponent_of_central_point,
-    const float exponent_of_points_in_neighborhood) const
-{
     std::uniform_real_distribution<Position> uniform_distribution(-1., 1.);
-    const auto beta_x_mark_to_gamma{beta() * std::pow(point.mark(), -exponent_of_central_point)};
+    const auto beta_x_mark_to_gamma{beta() * std::pow(vertex.mark(), -gamma())};
 
     PositionList positions{};
     positions.reserve(marks.size());
@@ -392,28 +300,10 @@ PositionList InfiniteHypergraphModel::generate_positions_in_neighborhood(
         marks.begin(), marks.end(),
         [&](const auto mark)
         {
-            const auto position{uniform_distribution(random_number_generator_) * beta_x_mark_to_gamma * std::pow(mark, -exponent_of_points_in_neighborhood)};
+            const auto position{uniform_distribution(random_number_generator_) * beta_x_mark_to_gamma * std::pow(mark, -gamma_prime())};
             positions.push_back(position);
         });
     return positions;
-}
-
-bool InfiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const
-{
-    const Point vtl{vertex_rectangle.top(), vertex_rectangle.left()};
-    const Point vtr{vertex_rectangle.top(), vertex_rectangle.right()};
-    const Point itl{interaction_rectangle.top(), interaction_rectangle.left()};
-    const Point itr{interaction_rectangle.top(), interaction_rectangle.right()};
-
-    if (fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
-        fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
-        fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
-        fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
-    {
-        return true;
-    }
-
-    return false;
 }
 
 Hyperbola InfiniteHypergraphModel::get_neighborhood_left_tail(const Point &interaction) const
@@ -439,4 +329,22 @@ Hyperbola InfiniteHypergraphModel::get_neighborhood_right_tail(const Point &inte
         std::numeric_limits<float>::infinity(),
         interaction.position(),
         interaction.mark());
+}
+
+bool InfiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const
+{
+    const Point vtl{vertex_rectangle.top(), vertex_rectangle.left()};
+    const Point vtr{vertex_rectangle.top(), vertex_rectangle.right()};
+    const Point itl{interaction_rectangle.top(), interaction_rectangle.left()};
+    const Point itr{interaction_rectangle.top(), interaction_rectangle.right()};
+
+    if (fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
+        fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
+        fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
+        fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
+    {
+        return true;
+    }
+
+    return false;
 }

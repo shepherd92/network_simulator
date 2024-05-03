@@ -1,6 +1,8 @@
 #ifndef _NEIGHBORHOOD_H_
 #define _NEIGHBORHOOD_H_
 
+#include <optional>
+
 #include "typedefs.h"
 
 class InfiniteHypergraphModel;
@@ -18,8 +20,8 @@ public:
 
 protected:
 private:
-    Position left;
-    Position right;
+    Position left_;
+    Position right_;
 };
 
 class Hyperbola : public NeighborhoodPart
@@ -31,13 +33,20 @@ public:
         const Position position,
         const Mark transformed_mark);
     PointList create_points(const HypergraphModel::Parameters &parameters, std::mt19937 &rng) const override;
+    std::optional<Hyperbola> intersect_domain(const Position min_, const Position max_) const;
+    std::vector<Hyperbola> get_dominating_hyperbola_parts(const Hyperbola &other) const;
+
     float operator()(const Position x, const float gamma) const;
+    float integral(const float exponent) const;
+    bool is_left_tail() const;
+    bool less_than(const Hyperbola &other, const Position position) const;
+
+    Position position() const;
+    Mark transformed_mark() const;
 
 private:
-    float integral(const float exponent) const;
-
-    Position position;
-    Mark transformed_mark;
+    Position position_;
+    Mark transformed_mark_;
 };
 
 class Center : public NeighborhoodPart

@@ -28,6 +28,11 @@ HypergraphModel::HypergraphModel(const std::vector<double> &parameters)
 {
 }
 
+HypergraphModel::Parameters HypergraphModel::parameters() const
+{
+    return parameters_;
+}
+
 ConnectionList HypergraphModel::generate_connections(
     const PointList &vertices,
     const PointList &interactions) const

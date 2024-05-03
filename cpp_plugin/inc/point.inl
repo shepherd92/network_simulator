@@ -23,6 +23,11 @@ const Position &Point::position() const
     return position_;
 }
 
+void Point::set_id(const PointId id)
+{
+    id_ = id;
+}
+
 void Point::set_mark(const Mark mark)
 {
     mark_ = mark;

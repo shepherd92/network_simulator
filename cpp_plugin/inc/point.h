@@ -14,12 +14,13 @@ public:
     inline const Mark &mark() const;
     inline const Position &position() const;
 
+    inline void set_id(const PointId id);
     inline void set_mark(const Mark mark);
 
 private:
     Mark mark_;
-    const Position position_;
-    const PointId id_;
+    Position position_;
+    PointId id_;
 };
 
 #include "point.inl"
