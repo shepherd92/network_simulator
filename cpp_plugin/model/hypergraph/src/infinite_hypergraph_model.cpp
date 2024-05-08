@@ -41,10 +41,14 @@ InfiniteHypergraphModel::generate_network() const
     auto interactions{create_interactions(u)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
-    transform_interactions(interactions);
-    const auto dominating_neighborhood_parts{create_dominating_neighborhood_parts(interactions)};
-    auto vertices{create_vertices(dominating_neighborhood_parts.first, dominating_neighborhood_parts.second)};
-    vertices.emplace_back(Point{u, 0.F, typical_vertex_id}); // add the typical node
+    PointList vertices{Point{u, 0.F, typical_vertex_id}}; // add the typical node
+    if (!interactions.empty())
+    {
+        transform_interactions(interactions);
+        const auto dominating_neighborhood_parts{create_dominating_neighborhood_parts(interactions)};
+        const auto ordinary_vertices{create_vertices(dominating_neighborhood_parts.first, dominating_neighborhood_parts.second)};
+        vertices.insert(vertices.end(), ordinary_vertices.begin(), ordinary_vertices.end());
+    }
 
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
@@ -92,11 +96,14 @@ void InfiniteHypergraphModel::transform_interactions(PointList &interactions) co
 std::pair<std::vector<Center>, std::vector<Hyperbola>>
 InfiniteHypergraphModel::create_dominating_neighborhood_parts(const PointList &transformed_interactions) const
 {
+    if (transformed_interactions.empty())
+    {
+        return {};
+    }
     auto centers{create_neighborhood_centers(transformed_interactions)};
     auto tails{create_neighborhood_tails(transformed_interactions)};
     const auto tail_parts_in_slots{remove_center_domains_from_neighborhood_tails(tails, centers)};
     const auto dominating_tails{determine_dominating_hyperbolas(tail_parts_in_slots)};
-
     return std::make_pair(centers, dominating_tails);
 }
 
@@ -128,7 +135,7 @@ std::vector<Center> InfiniteHypergraphModel::merge_neighborhood_centers(std::vec
     std::vector<Center> merged_centers{centers[0]};
     for (auto index{1U}; index < centers.size(); ++index)
     {
-        if (centers[index].left() <= merged_centers.back().right())
+        if (is_significantly_less(centers[index].left(), merged_centers.back().right()))
         {
             merged_centers.back().set_right(centers[index].right());
         }
@@ -232,12 +239,6 @@ InfiniteHypergraphModel::determine_dominating_hyperbolas(
                         dominating_hyperbola_parts.begin(),
                         dominating_hyperbola_parts.end());
                 });
-
-            for (const auto &dominating_hyperbola : dominating_hyperbolas)
-            {
-                const auto dominating_hyperbola_parts{dominating_hyperbola.get_dominating_hyperbola_parts(hyperbola)};
-                new_dominating_hyperbolas.insert(new_dominating_hyperbolas.end(), dominating_hyperbola_parts.begin(), dominating_hyperbola_parts.end());
-            }
             dominating_hyperbolas = new_dominating_hyperbolas;
         }
         result.insert(result.end(), dominating_hyperbolas.begin(), dominating_hyperbolas.end());

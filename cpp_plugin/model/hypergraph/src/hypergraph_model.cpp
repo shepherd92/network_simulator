@@ -98,7 +98,7 @@ RectangleList HypergraphModel::create_rectangles(
     while (bottom < 1.)
     {
         auto width{std::min(1., sqrt_beta * std::pow(bottom, exponent))};
-        const auto height{std::min(area / width, 1. - bottom)};
+        const auto height{std::max(std::min(area / width, 1. - bottom), 1e-6)};
         const auto rectangles_in_row{std::ceil(1. / width)};
         width = space_size / rectangles_in_row; // adjust width to match the number of rectangles
 

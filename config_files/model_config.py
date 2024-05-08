@@ -64,19 +64,19 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.FINITE
+        mode: Model.Mode = Model.Mode.INFINITE
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 10
+        num_of_infinite_networks: int = 1000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
-    set_params_from_data_set: bool = True
+    set_params_from_data_set: bool = False
     analysis = Analysis()
     fitting = Fitting()
     network_testing = Testing()
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 4
+NETWORK_MAGNITUDE = 3
 
 GAMMA = 0.7276  # computer science
 GAMMA_PRIME = 0.2247  # computer science
@@ -89,6 +89,9 @@ GAMMA_PRIME = 0.1846  # mathematics
 
 GAMMA = 0.5285  # statistics
 GAMMA_PRIME = 0.2089  # statistics
+
+GAMMA = 0.7
+GAMMA_PRIME = 0.2
 
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(

@@ -25,6 +25,18 @@ inline bool is_close(const double first, const double second)
     return (fabs(first - second) < relative_difference_factor * greater_magnitude);
 }
 
+inline bool is_significantly_less(const double first, const double second)
+{
+    if (std::isinf(first))
+    {
+        return std::isinf(second);
+    }
+
+    constexpr auto relative_difference_factor = 1e-4;
+    const auto greater_magnitude = std::max(fabs(first), fabs(second));
+    return (first - second < relative_difference_factor * greater_magnitude);
+}
+
 inline int32_t binomial_coefficient(int32_t n, int32_t k)
 {
     if (k > n)

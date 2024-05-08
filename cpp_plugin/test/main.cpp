@@ -62,16 +62,16 @@ void test_infinite_hypergraph()
 
     const std::vector<double> model_params{
         2U,   // max_dimension
-        10.,  // network_size
-        10.,  // interaction_intensity
-        0.1,  // beta
+        1.,   // network_size
+        1.,   // interaction_intensity
+        1,    // beta
         0.7,  // gamma
         0.2}; // gamma_prime
 
     std::cout << "\rCreating infinite hypergraph model" << std::endl;
     const InfiniteHypergraphModel model{model_params, seed};
     std::cout << "\rGenerating infinite network" << std::endl;
-    auto network_interface{model.generate_networks(1)};
+    auto network_interface{model.generate_networks(1000)};
     auto network{std::get<0>(network_interface[0])};
 
     // std::cout << "\rCalculating degree sequence (0, 1)" << std::endl;
