@@ -179,6 +179,18 @@ class FiniteNetwork(Network):
         return EmpiricalDistribution(degree_sequence)
 
     @log_function_name
+    def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        interaction_degree_distribution = EmpiricalDistribution(
+            self.cpp_network.calc_vertex_interaction_degree_distribution())
+        return interaction_degree_distribution
+
+    @log_function_name
+    def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each dimension."""
+        return EmpiricalDistribution(self.cpp_network.calc_interaction_dimension_distribution())
+
+    @log_function_name
     def _calculate_higher_order_degree_distribution(
         self,
         simplex_dimension: int,

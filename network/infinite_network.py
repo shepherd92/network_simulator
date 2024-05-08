@@ -91,25 +91,29 @@ class InfiniteNetwork(Network):
         Calculate a set of values of a property type.
         """
         if property_type == BaseNetworkProperty.num_of_edges:
-            property_value_set = self.num_simplices(1)
+            property_value = self.num_simplices(1)
         elif property_type == BaseNetworkProperty.num_of_triangles:
-            property_value_set = self.num_simplices(2)
+            property_value = self.num_simplices(2)
         elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
-            property_value_set = self._calc_degree_sequence(0, 1)
+            property_value = self._calc_degree_sequence(0, 1)
+        elif property_type == BaseNetworkProperty.vertex_interaction_degree_distribution:
+            property_value = self._calc_typical_vertex_interaction_degree()
         elif property_type == BaseNetworkProperty.in_degree_distribution:
-            property_value_set = self._calc_typical_in_degree()
+            property_value = self._calc_typical_in_degree()
         elif property_type == BaseNetworkProperty.out_degree_distribution:
-            property_value_set = self._calc_typical_out_degree()
+            property_value = self._calc_typical_out_degree()
         elif property_type == BaseNetworkProperty.edge_triangle_degree_distribution:
-            property_value_set = self._calc_degree_sequence(1, 2)
+            property_value = self._calc_degree_sequence(1, 2)
         elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
-            property_value_set = self._calc_degree_sequence(2, 3)
+            property_value = self._calc_degree_sequence(2, 3)
+        elif property_type == BaseNetworkProperty.interaction_vertex_degree_distribution:
+            property_value = self._calculate_interaction_dimension_distribution()
         else:
             raise NotImplementedError(
                 f'Requested property type {property_type} is not available.'
             )
 
-        return property_value_set
+        return property_value
 
     @log_function_name
     def num_simplices(self, dimension: int) -> int:
@@ -125,8 +129,20 @@ class InfiniteNetwork(Network):
         """Return a dict representation based on the network properties."""
         raise NotImplementedError('This method is not implemented.')
 
+    @log_function_name
+    def _calculate_interaction_dimension_distribution(self) -> list[int]:
+        """Return the number of interactions for each dimension."""
+        return self.cpp_network.calc_interaction_dimension_distribution()
+
+    @log_function_name
+    def _calc_typical_vertex_interaction_degree(self) -> int:
+        """Return the number of interactions for each vertex."""
+        return self.cpp_network.calc_vertex_interaction_degree_distribution()
+
+    @log_function_name
     def _calc_typical_in_degree(self) -> list[int]:
         return [self.digraph.in_degree(0)]
 
+    @log_function_name
     def _calc_typical_out_degree(self) -> list[int]:
         return [self.digraph.out_degree(0)]

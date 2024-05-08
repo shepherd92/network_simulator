@@ -62,10 +62,9 @@ SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
     return SimplexList{result};
 }
 
-SimplexList InfiniteNetwork::calc_neighbors(const Dimension dimension)
+std::vector<uint32_t> InfiniteNetwork::calc_vertex_interaction_degree_distribution() const
 {
-    const auto all_simplices_of_dimension{get_facets().faces(dimension)};
-    return all_simplices_of_dimension.cofaces(Simplex{PointIdList{typical_vertex_id_}});
+    return {interactions_.cofaces(Simplex{PointIdList{typical_vertex_id_}}).size()};
 }
 
 const SimplexList &InfiniteNetwork::get_neighbors(const Dimension dimension)
@@ -76,6 +75,16 @@ const SimplexList &InfiniteNetwork::get_neighbors(const Dimension dimension)
         neighbors_[dimension] = calc_neighbors(dimension);
     }
     return *neighbors_[dimension];
+}
+
+SimplexList InfiniteNetwork::calc_neighbors(const Dimension dimension)
+{
+    if (dimension == 0U)
+    {
+        return SimplexList{std::vector<Simplex>{Simplex{PointIdList{typical_vertex_id_}}}};
+    }
+    const auto all_simplices_of_dimension{get_facets().faces(dimension)};
+    return all_simplices_of_dimension.cofaces(Simplex{PointIdList{typical_vertex_id_}});
 }
 
 InfiniteNetwork InfiniteNetwork::filter(const PointIdList &vertices) const

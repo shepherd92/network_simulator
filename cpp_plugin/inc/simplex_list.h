@@ -10,7 +10,7 @@
 class SimplexList
 {
 public:
-    SimplexList(const std::vector<PointIdList> &input = {});
+    SimplexList(const ISimplexList &input = {});
     SimplexList(const std::vector<Simplex> &input);
     SimplexList(SimplexSet &input);
 

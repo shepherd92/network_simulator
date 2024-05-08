@@ -66,7 +66,7 @@ class ModelConfig:
 
         mode: Model.Mode = Model.Mode.INFINITE
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 1000
+        num_of_infinite_networks: int = 10000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
     set_params_from_data_set: bool = False

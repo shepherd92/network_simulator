@@ -173,41 +173,6 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
     return result;
 }
 
-std::vector<uint32_t> Network::calc_vertex_interaction_degree_distribution() const
-{
-    // initialize result with zeros
-    std::map<PointId, uint32_t> result{};
-    for (const auto vertex_id : get_vertices())
-    {
-        result.emplace(vertex_id, 0U);
-    }
-
-    std::for_each(
-        std::execution::seq,
-        interactions_.simplices().begin(),
-        interactions_.simplices().end(),
-        [&](const auto &interaction)
-        {
-            std::for_each(
-                execution_policy, // can execute parallel, different vertices in an interaction
-                interaction.vertices().begin(),
-                interaction.vertices().end(),
-                [&](const auto vertex_id)
-                {
-                    ++result[vertex_id];
-                });
-        });
-
-    std::vector<uint32_t> counts{};
-    counts.reserve(result.size());
-    for (std::map<PointId, uint32_t>::iterator it = result.begin(); it != result.end(); ++it)
-    {
-        counts.push_back(it->second);
-    }
-
-    return counts;
-}
-
 uint32_t Network::num_simplices(const Dimension dimension)
 {
     return get_simplices(dimension).size();

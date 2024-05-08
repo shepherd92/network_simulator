@@ -22,6 +22,7 @@ public:
     void reset() override;
 
     PointIdList get_vertices() const override;
+    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
     std::vector<int32_t> calc_betti_numbers();
     std::vector<ISimplexList> calc_persistence_pairs();
 

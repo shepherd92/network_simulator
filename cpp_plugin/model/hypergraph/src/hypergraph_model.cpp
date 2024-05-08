@@ -74,6 +74,7 @@ RectangleList HypergraphModel::create_transformed_filled_rectangles(
     const auto sqrt_beta{std::pow(beta(), 0.5)};
     auto rectangles{create_rectangles(points, exponent)};
     fill_rectangles(rectangles, points);
+    rectangles = remove_empty_rectangles(rectangles);
     transform_points(rectangles,
                      [&](Point &point)
                      { point.set_mark(sqrt_beta * std::pow(point.mark(), exponent)); });
@@ -83,9 +84,7 @@ RectangleList HypergraphModel::create_transformed_filled_rectangles(
     return rectangles;
 }
 
-RectangleList HypergraphModel::create_rectangles(
-    const PointList &points_in,
-    const float exponent) const
+RectangleList HypergraphModel::create_rectangles(const PointList &points_in, const float exponent) const
 {
     const auto n_points{points_in.size()};
     RectangleList rectangles{};

@@ -123,6 +123,23 @@ void fill_rectangles(RectangleList &rectangles, const PointList &points)
         });
 }
 
+RectangleList remove_empty_rectangles(RectangleList &rectangles)
+{
+    RectangleList result{};
+    std::for_each(
+        std::execution::seq,
+        rectangles.begin(),
+        rectangles.end(),
+        [&](auto &rectangle)
+        {
+            if (!rectangle.points().empty())
+            {
+                result.push_back(std::move(rectangle));
+            }
+        });
+    return result;
+}
+
 void transform_points(RectangleList &rectangles, const std::function<void(Point &)> &lambda)
 {
     std::for_each(

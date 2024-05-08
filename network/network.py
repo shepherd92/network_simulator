@@ -3,12 +3,10 @@
 
 from __future__ import annotations
 
-from itertools import chain
 from pathlib import Path
 from typing import Any
 
 import networkx as nx
-import numpy as np
 import pandas as pd
 
 # pylint: disable=no-name-in-module
@@ -128,19 +126,12 @@ class Network:
     @log_function_name
     def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each vertex."""
-        self.cpp_network.calc_vertex_interaction_degree_distribution()
-        vertices_in_interactions = np.array(list(chain(*self.interactions)))
-        degree_sequence = np.unique(vertices_in_interactions, return_counts=True)[1]
-
-        num_of_zero_degree_vertices = self.num_simplices(0) - len(degree_sequence)
-        interaction_degree_distribution = EmpiricalDistribution(
-            list(degree_sequence) + [0] * num_of_zero_degree_vertices)
-        return interaction_degree_distribution
+        raise NotImplementedError
 
     @log_function_name
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each dimension."""
-        return EmpiricalDistribution(self.cpp_network.calc_interaction_dimension_distribution())
+        raise NotImplementedError
 
     @log_function_name
     def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:

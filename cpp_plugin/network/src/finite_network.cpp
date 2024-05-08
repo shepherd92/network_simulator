@@ -124,6 +124,41 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
     return result;
 }
 
+std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution() const
+{
+    // initialize result with zeros
+    std::map<PointId, uint32_t> result{};
+    for (const auto vertex_id : get_vertices())
+    {
+        result.emplace(vertex_id, 0U);
+    }
+
+    std::for_each(
+        std::execution::seq,
+        interactions_.simplices().begin(),
+        interactions_.simplices().end(),
+        [&](const auto &interaction)
+        {
+            std::for_each(
+                execution_policy, // can execute parallel, different vertices in an interaction
+                interaction.vertices().begin(),
+                interaction.vertices().end(),
+                [&](const auto vertex_id)
+                {
+                    ++result[vertex_id];
+                });
+        });
+
+    std::vector<uint32_t> counts{};
+    counts.reserve(result.size());
+    for (std::map<PointId, uint32_t>::iterator it = result.begin(); it != result.end(); ++it)
+    {
+        counts.push_back(it->second);
+    }
+
+    return counts;
+}
+
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
 {
     std::vector<int32_t> result{max_dimension_, 0};

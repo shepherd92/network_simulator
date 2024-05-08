@@ -47,10 +47,10 @@ FINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
 INFINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
     'vertex_degree_exponent',
     'edge_degree_exponent',
-    # 'vertex_interaction_degree_exponent',
-    # 'interaction_vertex_degree_exponent',
+    'vertex_interaction_degree_exponent',
+    'interaction_vertex_degree_exponent',
     # 'triangle_degree_exponent',
-    # 'average_interaction_degree_normal_mle',
+    'average_interaction_degree_normal_mle',
     'num_of_edges_normal_mle',
     'num_of_edges_normal_match_quantile',
     'num_of_edges_stable',
@@ -87,7 +87,7 @@ def _get_power_law_exponent_infinite_model_model(list_of_degree_sets: list[list[
     return _get_power_law_exponent_model(EmpiricalDistribution(flat_list))
 
 
-def _get_power_law_exponent_infinite_model_data(list_of_degree_sets: list[list[int]]) -> float:
+def _get_power_law_exponent_infinite_model_data_set(list_of_degree_sets: list[list[int]]) -> float:
     flat_list = [degree for degree_set in list_of_degree_sets for degree in degree_set]
     return _get_power_law_exponent_data_set(EmpiricalDistribution(flat_list))
 
@@ -290,25 +290,31 @@ def get_infinite_scalar_property_params(gamma: float) -> list[DerivedNetworkProp
                                theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
                                fitting_parameters=create_fitting_parameters_normal(),
                                calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data),
+                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
         DerivedNetworkProperty(name='edge_degree_exponent',
                                source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
                                theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
                                fitting_parameters=create_fitting_parameters_normal(),
                                calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data),
+                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
         DerivedNetworkProperty(name='triangle_degree_exponent',
                                source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
                                theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
                                fitting_parameters=create_fitting_parameters_normal(),
                                calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data),
+                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
         DerivedNetworkProperty(name='vertex_interaction_degree_exponent',
                                source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
                                theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
                                fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
+                               calculator_default=_get_power_law_exponent_infinite_model_model,
+                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
+        DerivedNetworkProperty(name='interaction_vertex_degree_exponent',
+                               source_base_property=BaseNetworkProperty.interaction_vertex_degree_distribution,
+                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+                               fitting_parameters=create_fitting_parameters_normal(),
+                               calculator_default=_get_power_law_exponent_infinite_model_model,
+                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
         DerivedNetworkProperty(name='num_of_edges_normal_mle',
                                source_base_property=BaseNetworkProperty.num_of_edges,
                                theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,

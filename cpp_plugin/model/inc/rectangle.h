@@ -44,6 +44,7 @@ private:
 };
 
 void fill_rectangles(RectangleList &rectangles, const PointList &points);
+RectangleList remove_empty_rectangles(RectangleList &rectangles);
 void transform_points(RectangleList &rectangles, const std::function<void(Point &)> &lambda);
 void transform_rectangles(RectangleList &rectangles, const std::function<void(Rectangle &)> &lambda);
 ConnectionList all_point_pairs(const Rectangle &left, const Rectangle &right);

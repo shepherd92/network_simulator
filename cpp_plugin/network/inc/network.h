@@ -22,7 +22,7 @@ public:
     std::vector<Dimension> calc_simplex_dimension_distribution();
     std::vector<Dimension> calc_facet_dimension_distribution();
     std::vector<Dimension> calc_interaction_dimension_distribution() const;
-    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const;
+    virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
 
     std::vector<uint32_t> calc_degree_sequence(
         const Dimension simplex_dimension,
