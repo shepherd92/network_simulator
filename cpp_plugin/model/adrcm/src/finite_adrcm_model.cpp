@@ -17,7 +17,7 @@ std::tuple<FiniteNetwork, MarkPositionList> FiniteAdrcmModel::generate_network()
 
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto simplices{create_simplices_from_connections(connections)};
-    const FiniteNetwork network{max_dimension(), vertex_ids, simplices};
+    const FiniteNetwork network{max_dimension(), vertex_ids, simplices, false};
     const auto mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
     return std::make_tuple<>(network, mark_position_pairs);

@@ -135,7 +135,13 @@ class FiniteNetwork(Network):
             property_value = self._calculate_betti_numbers_in_components()
         elif property_type == BaseNetworkProperty.num_of_vertices_by_component:
             property_value = self._calculate_vertices_in_components()
+        elif property_type == BaseNetworkProperty.persistence:
+            property_value = self._calc_persistence_diagram()
         elif property_type == BaseNetworkProperty.persistence_pairs:
+            property_value = self._calc_persistence_pairs()
+        elif property_type == BaseNetworkProperty.weighted_persistence_diagram:
+            property_value = self._calc_persistence_diagram()
+        elif property_type == BaseNetworkProperty.weighted_persistence_pairs:
             property_value = self._calc_persistence_pairs()
         else:
             raise NotImplementedError(
@@ -242,6 +248,10 @@ class FiniteNetwork(Network):
     def _calculate_betti_numbers(self) -> list[int]:
         """Calculate the Betti numbers for different dimensions."""
         return self.cpp_network.calc_betti_numbers()
+
+    @log_function_name
+    def _calc_persistence_diagram(self) -> list[tuple[list[int], list[int]]]:
+        return self.cpp_network.calc_persistence_diagram()
 
     @log_function_name
     def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:

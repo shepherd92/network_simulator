@@ -72,7 +72,11 @@ class Model:
             range(initial_seed, initial_seed + num_of_simulations),
             desc='Simulation'
         ):
-            network = self.generate_finite_network(seed) \
+            weighted = \
+                BaseNetworkProperty.weighted_persistence_diagram in base_property_types \
+                or BaseNetworkProperty.weighted_persistence_pairs in base_property_types
+
+            network = self.generate_finite_network(weighted, seed) \
                 if mode == Model.Mode.FINITE \
                 else self.generate_infinite_network_set(num_of_infinite_networks_per_simulation, seed)
 
@@ -90,7 +94,7 @@ class Model:
 
         return {name: EmpiricalDistribution(values) for name, values in scalar_properties.items()}
 
-    def generate_finite_network(self, seed: int) -> FiniteNetwork:
+    def generate_finite_network(self, weighted: bool, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
         raise NotImplementedError
 

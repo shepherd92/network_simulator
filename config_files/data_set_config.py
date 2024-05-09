@@ -44,6 +44,8 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.num_of_vertices_by_component,
         # BaseNetworkProperty.persistence,
         # BaseNetworkProperty.persistence_pairs,
+        BaseNetworkProperty.weighted_persistence_diagram,
+        BaseNetworkProperty.weighted_persistence_pairs,
     ]
 
 

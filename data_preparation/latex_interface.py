@@ -41,7 +41,7 @@ def create_boxplots(
         print(r'\begin{subfigure}[t]{0.2\textwidth} \resizebox{\textwidth}{!}{', file=out_file)
         print(r'    \begin{tikzpicture}', file=out_file)
         print(r'        \begin{axis}[', file=out_file)
-        print(f'                xmin=0, xmax={len(directories) + 1}, ymin={y_min}, ymax={y_max},', file=out_file)
+        print(f'                xmin=0, xmax={len(directories) + 1}, ymin={y_min:.6f}, ymax={y_max:.6f},', file=out_file)
         # print(r'                xlabel=network size,', file=out_file)
         # print(r'                axis x line=middle, axis y line=middle,', file=out_file)
         print(r'                xtick={', end='', file=out_file)
@@ -55,9 +55,14 @@ def create_boxplots(
         print(f'{int(y_max)}', end='', file=out_file)
         print(r'},', file=out_file)
         print(r'                xticklabels={', end='', file=out_file)
-        for network_size, _ in list(directories.keys())[:-1]:
-            print(f'{network_size}, ', end='', file=out_file)
-        print(f'{list(directories.keys())[-1][0]}', end='', file=out_file)
+        directory_keys = list(directories.keys())
+        for index, (network_size, _) in enumerate(directory_keys):
+            if network_size == 'inf':
+                print(r'$\infty$', end='', file=out_file)
+            else:
+                print(f'$10^{int(np.log10(network_size))}$', end='', file=out_file)
+            if index != len(directory_keys) - 1:
+                print(', ', end='', file=out_file)
         print(r'},', file=out_file)
         print(r'        ]', file=out_file)
         for i, key in enumerate(directories.keys()):

@@ -3,15 +3,25 @@
 #include "simplex_list.h"
 #include "tools.h"
 
-FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions)
+FiniteNetwork::FiniteNetwork(
+    const Dimension max_dimension,
+    const PointIdList &vertices,
+    const ISimplexList &interactions,
+    const bool weighted)
     : Network{max_dimension, vertices, SimplexList{interactions}},
+      weighted_{weighted},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
 }
 
-FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions)
+FiniteNetwork::FiniteNetwork(
+    const Dimension max_dimension,
+    const PointIdList &vertices,
+    const SimplexList &interactions,
+    const bool weighted)
     : Network{max_dimension, vertices, interactions},
+      weighted_{weighted},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
@@ -19,6 +29,7 @@ FiniteNetwork::FiniteNetwork(const Dimension max_dimension, const PointIdList &v
 
 FiniteNetwork::FiniteNetwork(const FiniteNetwork &other)
     : Network{other},
+      weighted_{weighted_},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
@@ -220,7 +231,8 @@ void FiniteNetwork::fill_simplicial_complex()
             simplices.end(),
             [&](const auto &simplex)
             {
-                simplex_tree_->insert_simplex_and_subfaces(simplex.vertices());
+                const auto weight{weighted_ ? -interactions_.cofaces(simplex).size() : 0};
+                simplex_tree_->insert_simplex(simplex.vertices(), weight);
             });
     }
 

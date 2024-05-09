@@ -115,12 +115,12 @@ class HypergraphModel(Model):
 
         print(self)
 
-    def generate_finite_network(self, seed: int) -> FiniteNetwork:
+    def generate_finite_network(self, weighted: bool, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = FiniteHypergraphModel(self._parameters.to_numpy(), seed)
-        cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network()
+        cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network(weighted)
         network = FiniteNetwork(cpp_network)
         network.vertex_positions = self._create_point_positions_dict(vertex_positions)
         network.interaction_positions = self._create_point_positions_dict(interaction_positions)

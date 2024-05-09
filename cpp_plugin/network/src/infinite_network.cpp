@@ -39,6 +39,10 @@ PointIdList InfiniteNetwork::get_vertices() const
 
 SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
 {
+    if (dimension == 0U)
+    {
+        return SimplexList{std::vector<Simplex>{Simplex{get_vertices()}}};
+    }
     const auto cofaces_of_typical_vertex{get_neighbors(dimension)};
 
     const auto typical_vertex_mark{marks_[typical_vertex_id_]};
@@ -64,7 +68,7 @@ SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
 
 std::vector<uint32_t> InfiniteNetwork::calc_vertex_interaction_degree_distribution() const
 {
-    return {interactions_.cofaces(Simplex{PointIdList{typical_vertex_id_}}).size()};
+    return {interactions_.cofaces(get_typical_vertex_as_simplex()).size()};
 }
 
 const SimplexList &InfiniteNetwork::get_neighbors(const Dimension dimension)
@@ -81,10 +85,10 @@ SimplexList InfiniteNetwork::calc_neighbors(const Dimension dimension)
 {
     if (dimension == 0U)
     {
-        return SimplexList{std::vector<Simplex>{Simplex{PointIdList{typical_vertex_id_}}}};
+        return SimplexList{std::vector<Simplex>{get_typical_vertex_as_simplex()}};
     }
     const auto all_simplices_of_dimension{get_facets().faces(dimension)};
-    return all_simplices_of_dimension.cofaces(Simplex{PointIdList{typical_vertex_id_}});
+    return all_simplices_of_dimension.cofaces(get_typical_vertex_as_simplex());
 }
 
 InfiniteNetwork InfiniteNetwork::filter(const PointIdList &vertices) const
@@ -92,4 +96,9 @@ InfiniteNetwork InfiniteNetwork::filter(const PointIdList &vertices) const
     InfiniteNetwork result{*this};
     result.keep_only_vertices(vertices);
     return result;
+}
+
+Simplex InfiniteNetwork::get_typical_vertex_as_simplex() const
+{
+    return Simplex{PointIdList{typical_vertex_id_}};
 }

@@ -31,7 +31,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("generate_networks", &InfiniteHypergraphModel::generate_networks);
 
     py::class_<FiniteNetwork>(m, "FiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const bool>())
         .def("calc_betti_numbers", &FiniteNetwork::calc_betti_numbers)
         .def("calc_persistence_pairs", &FiniteNetwork::calc_persistence_pairs)
         .def("create_simplicial_complex", &FiniteNetwork::create_simplicial_complex)

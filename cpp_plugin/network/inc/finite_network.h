@@ -11,8 +11,16 @@
 class FiniteNetwork : public Network
 {
 public:
-    FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const ISimplexList &interactions);
-    FiniteNetwork(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions);
+    FiniteNetwork(
+        const Dimension max_dimension,
+        const PointIdList &vertices,
+        const ISimplexList &interactions,
+        const bool weighted);
+    FiniteNetwork(
+        const Dimension max_dimension,
+        const PointIdList &vertices,
+        const SimplexList &interactions,
+        const bool weighted);
     FiniteNetwork(const FiniteNetwork &other);
     ~FiniteNetwork();
     void create_simplicial_complex();
@@ -57,8 +65,8 @@ private:
     void reset_persistence();
     const PersistentCohomology &get_persistence();
 
+    const bool weighted_;
     std::optional<SimplexTree> simplex_tree_;
-
     PersistentCohomology *persistent_cohomology_;
 };
 

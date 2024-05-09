@@ -49,6 +49,8 @@ class ModelConfig:
             BaseNetworkProperty.num_of_vertices_by_component,
             # BaseNetworkProperty.persistence,
             # BaseNetworkProperty.persistence_pairs,
+            BaseNetworkProperty.weighted_persistence_diagram,
+            BaseNetworkProperty.weighted_persistence_pairs,
         ]
         properties_to_calculate_infinite: list[BaseNetworkProperty] = [
             # BaseNetworkProperty.vertex_edge_degree_distribution,
@@ -64,9 +66,9 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.INFINITE
+        mode: Model.Mode = Model.Mode.FINITE
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 10000
+        num_of_infinite_networks: int = 1000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
     set_params_from_data_set: bool = False

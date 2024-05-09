@@ -27,6 +27,8 @@ public:
 private:
     SimplexList calc_neighbors(const Dimension dimension);
     SimplexList calc_simplices(const Dimension dimension) override;
+    Simplex get_typical_vertex_as_simplex() const;
+
     PointId typical_vertex_id_;
     MarkList marks_;
     std::vector<std::optional<SimplexList>> neighbors_;

@@ -10,7 +10,7 @@ class FiniteHypergraphModel : public FiniteModel, public HypergraphModel
 {
 public:
     FiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed);
-    std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> generate_network() const;
+    std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> generate_network(const bool weighted) const;
 
 private:
     bool rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const override;
