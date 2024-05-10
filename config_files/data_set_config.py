@@ -42,10 +42,8 @@ class DataSetConfig(NamedTuple):
         BaseNetworkProperty.betti_numbers,
         # BaseNetworkProperty.betti_numbers_by_component,
         BaseNetworkProperty.num_of_vertices_by_component,
-        # BaseNetworkProperty.persistence,
+        BaseNetworkProperty.persistence_intervals,
         # BaseNetworkProperty.persistence_pairs,
-        BaseNetworkProperty.weighted_persistence_diagram,
-        BaseNetworkProperty.weighted_persistence_pairs,
     ]
 
 
@@ -54,8 +52,9 @@ ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     max_dimension=2,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
-    date_interval=(pd.Timestamp('2015-01-01'), pd.Timestamp('2025-01-01')),
-    fields=[ArxivField.engineering],
+    weighted=True,
+    date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2025-01-01')),
+    fields=[ArxivField.mathematics],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 
@@ -65,6 +64,7 @@ BIANCONI_DATA_SET_PARAMETERS = BianconiDataSet.Parameters(
     max_dimension=3,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
+    weighted=False,
 )
 
 
@@ -73,6 +73,7 @@ NATURE_DATA_SET_PARAMETERS = NatureDataSet.Parameters(
     max_dimension=2,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
+    weighted=False,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2023-12-31')),
 )
 
@@ -82,4 +83,5 @@ TEST_DATA_SET_PARAMETERS = TestDataSet.Parameters(
     max_dimension=3,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
+    weighted=False,
 )

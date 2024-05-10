@@ -9,7 +9,6 @@ from typing import Any, Callable
 
 from gudhi.persistence_graphical_tools import (
     plot_persistence_barcode,
-    plot_persistence_diagram,
 )
 from matplotlib import pyplot as plt
 from matplotlib.offsetbox import AnchoredText
@@ -535,16 +534,29 @@ def plot_qq_plot(distribution_pair: DistributionApproximation, axes: plt.Axes) -
     axes.set_ylim(limits)
 
 
-def plot_persistence_diagram_(persistence, axes: plt.Axes):
-    """Plot the persistence diagram and return the plotted values."""
-    plot_persistence_diagram(persistence, axes=axes)
-    return persistence
+def plot_persistence_diagram_(persistence, axes: plt.Axes) -> None:
+    """Plot the persistence diagram."""
+    colors = ['red', 'blue', 'green', 'orange',]
+    for dimension, intervals in enumerate(persistence):
+        x = [interval[0] for interval in intervals]
+        y = [interval[1] if interval[1] != np.inf else 1.05 for interval in intervals]
+        axes.scatter(x, y, color=colors[dimension], label=f'dimension {dimension}')
+
+    # plot infinite death points
+    axes.hlines(y=1.05, xmin=-0.05, xmax=1.1, color='black', linestyle='--', label='inf')
+    axes.set_yticks([0, 1.05], ['0', 'inf'])
+    axes.set_xlabel('birth')
+    axes.set_ylabel('death')
+    axes.legend()
+    axes.set_aspect('equal')
+    axes.set_xlim([-0.05, 1.1])
+    axes.set_ylim([-0.05, 1.1])
+    axes.plot([-0.05, 1.1], [-0.05, 1.1], color='black')
 
 
 def plot_persistence_barcode_(persistence, axes: plt.Axes):
     """Plot the persistence barcode and return the plotted values."""
     plot_persistence_barcode(persistence, axes=axes)
-    return persistence
 
 
 def print_info(objects_to_print: list[Any], axes: plt.Axes) -> None:

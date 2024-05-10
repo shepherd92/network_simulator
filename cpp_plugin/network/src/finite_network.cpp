@@ -29,7 +29,7 @@ FiniteNetwork::FiniteNetwork(
 
 FiniteNetwork::FiniteNetwork(const FiniteNetwork &other)
     : Network{other},
-      weighted_{weighted_},
+      weighted_{other.weighted()},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
 {
@@ -87,25 +87,6 @@ void FiniteNetwork::expand()
     reset_persistence();
 }
 
-void FiniteNetwork::calc_persistent_cohomology()
-{
-    reset_persistence();
-    assert_simplicial_complex_is_built();
-    std::cout << "\rCompute persistent cohomology" << std::flush;
-    persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
-    persistent_cohomology_->init_coefficients(2);
-    persistent_cohomology_->compute_persistent_cohomology();
-}
-
-const FiniteNetwork::PersistentCohomology &FiniteNetwork::get_persistence()
-{
-    if (!persistent_cohomology_)
-    {
-        calc_persistent_cohomology();
-    }
-    return *persistent_cohomology_;
-}
-
 std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
 {
     const auto &persistent_cohomology{get_persistence()};
@@ -133,6 +114,38 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
     log_progress(counter, total, 1U, "Calc persistence pairs");
 
     return result;
+}
+
+std::vector<std::vector<std::pair<float, float>>> FiniteNetwork::calc_persistence_intervals()
+{
+    auto &persistent_cohomology{get_persistence()};
+    std::vector<std::vector<std::pair<float, float>>> intervals{
+        static_cast<size_t>(max_dimension_),
+        std::vector<std::pair<float, float>>{}};
+    for (Dimension dimension{0}; dimension < max_dimension_; ++dimension)
+    {
+        intervals[dimension] = persistent_cohomology.intervals_in_dimension(dimension);
+    }
+    return intervals;
+}
+
+FiniteNetwork::PersistentCohomology &FiniteNetwork::get_persistence()
+{
+    if (!persistent_cohomology_)
+    {
+        calc_persistent_cohomology();
+    }
+    return *persistent_cohomology_;
+}
+
+void FiniteNetwork::calc_persistent_cohomology()
+{
+    reset_persistence();
+    assert_simplicial_complex_is_built();
+    std::cout << "\rCompute persistent cohomology" << std::flush;
+    persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
+    persistent_cohomology_->init_coefficients(2);
+    persistent_cohomology_->compute_persistent_cohomology();
 }
 
 std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution() const
@@ -231,8 +244,12 @@ void FiniteNetwork::fill_simplicial_complex()
             simplices.end(),
             [&](const auto &simplex)
             {
-                const auto weight{weighted_ ? -interactions_.cofaces(simplex).size() : 0};
-                simplex_tree_->insert_simplex(simplex.vertices(), weight);
+                const auto weight{
+                    weighted()
+                        ? static_cast<SimplexTreeOptions::Filtration_value>(
+                              1. / (interactions_.cofaces(simplex).size()))
+                        : 0.F};
+                simplex_tree_->insert_simplex_and_subfaces(simplex.vertices(), weight);
             });
     }
 
@@ -262,4 +279,9 @@ PointIdList FiniteNetwork::get_simplex_vertices(const SimplexHandle &simplex_han
         }
     }
     return result;
+}
+
+bool FiniteNetwork::weighted() const
+{
+    return weighted_;
 }

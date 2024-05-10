@@ -32,6 +32,7 @@ class DataSet(FiniteNetwork):
         max_dimension: int
         max_simplex_dimension: int
         component_index_from_largest: int
+        weighted: bool
 
     @log_function_name
     def __init__(self, data_set_properties: Parameters) -> None:
@@ -40,7 +41,11 @@ class DataSet(FiniteNetwork):
         self._read_data()
         vertices = self._get_vertices() if self._get_vertices() is not None else []
         interactions = self._get_interactions()
-        cpp_network = CppFiniteNetwork(data_set_properties.max_dimension, vertices, interactions)
+        cpp_network = CppFiniteNetwork(
+            data_set_properties.max_dimension,
+            vertices, interactions,
+            data_set_properties.weighted
+        )
 
         super().__init__(cpp_network)
         self.reduce_to_component(self._data_set_properties.component_index_from_largest)

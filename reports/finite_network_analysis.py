@@ -257,7 +257,7 @@ def report_vertices_by_component(
 
 @check_calculated('Persistence diagram')
 def report_persistence_diagram(
-    persistence: tuple[tuple[int, tuple[int, int]], ...],
+    persistence: list[list[tuple[float, float]]],
     axes: plt.Axes,
     save_directory: Path,
     **_,
@@ -269,7 +269,7 @@ def report_persistence_diagram(
 
 @check_calculated('Persistence barcode')
 def report_persistence_barcode(
-    persistence: tuple[tuple[int, tuple[int, int]], ...],
+    persistence: list[list[tuple[float, float]]],
     axes: plt.Axes,
     save_directory: Path,
     **_,
@@ -279,8 +279,11 @@ def report_persistence_barcode(
     _save_persistence(persistence, save_directory)
 
 
-def _save_persistence(persistence: tuple[tuple[int, tuple[int, int]], ...], save_directory: Path) -> None:
-    pd.DataFrame(
-        [[dimension, birth, death] for dimension, (birth, death) in persistence],
+def _save_persistence(persistence: list[list[tuple[float, float]]], save_directory: Path) -> None:
+    pd.DataFrame([
+            [dimension, birth, death]
+            for dimension, intervals in enumerate(persistence)
+            for birth, death in intervals
+        ],
         columns=['dimension', 'birth', 'death']
     ).to_csv(save_directory / 'persistence.csv', index=False)

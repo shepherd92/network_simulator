@@ -9,9 +9,10 @@
 FiniteHypergraphModel::FiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed)
     : Model{seed}, FiniteModel{seed}, HypergraphModel{parameters_in}
 {
+    weighted_ = parameters_in[6];
 }
 
-std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphModel::generate_network(const bool weighted) const
+std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphModel::generate_network() const
 {
     const auto num_of_vertices{std::poisson_distribution<uint32_t>(lambda() * torus_size())(random_number_generator_)};
     auto vertices{create_points(num_of_vertices)};
@@ -24,9 +25,9 @@ std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphMo
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto connections{generate_connections(vertices, interactions)};
     const auto interaction_simplices{create_simplices_from_connections(connections)};
-    FiniteNetwork network{max_dimension(), vertex_ids, interaction_simplices, weighted};
+    FiniteNetwork network{max_dimension(), vertex_ids, interaction_simplices, weighted()};
 
-    return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
+    return {std::move(network), std::move(vertex_mark_position_pairs), std::move(interaction_mark_position_pairs)};
 }
 
 bool FiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const
@@ -56,4 +57,9 @@ bool FiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &ver
 
     // assumption: no rectangles wrap around the torus boundaries
     return false;
+}
+
+bool FiniteHypergraphModel::weighted() const
+{
+    return weighted_;
 }

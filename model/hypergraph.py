@@ -37,6 +37,7 @@ class HypergraphModel(Model):
         beta: float = 0.1
         gamma: float = 0.5
         gamma_prime: float = 0.5
+        weighted: bool = False
 
         def to_numpy(self) -> npt.NDArray[np.float_]:
             """Return the parameters as a numpy array."""
@@ -47,6 +48,7 @@ class HypergraphModel(Model):
                 self.beta,
                 self.gamma,
                 self.gamma_prime,
+                self.weighted,
             ])
 
     def __init__(self) -> None:
@@ -115,12 +117,12 @@ class HypergraphModel(Model):
 
         print(self)
 
-    def generate_finite_network(self, weighted: bool, seed: int) -> FiniteNetwork:
+    def generate_finite_network(self, seed: int) -> FiniteNetwork:
         """Build a network of the model."""
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = FiniteHypergraphModel(self._parameters.to_numpy(), seed)
-        cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network(weighted)
+        cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network()
         network = FiniteNetwork(cpp_network)
         network.vertex_positions = self._create_point_positions_dict(vertex_positions)
         network.interaction_positions = self._create_point_positions_dict(interaction_positions)

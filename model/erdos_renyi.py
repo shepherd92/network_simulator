@@ -10,6 +10,7 @@ import networkx as nx
 from data_set.data_set import DataSet
 from model.model import Model
 from network.finite_network import FiniteNetwork
+from network.infinite_network import InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 
 
@@ -57,6 +58,9 @@ class ErdosRenyiModel(Model):
         network.interactions = graph.edges
 
         return network
+
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
+        raise NotImplementedError
 
     @property
     def parameters(self) -> ErdosRenyiModel.Parameters:

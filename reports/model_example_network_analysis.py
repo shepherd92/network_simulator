@@ -141,7 +141,7 @@ def analyze_model_example_finite_network(
         save_directory
     )
     report_persistence_diagram(
-        summary.get(BaseNetworkProperty.persistence),
+        summary.get(BaseNetworkProperty.persistence_intervals),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory
     )

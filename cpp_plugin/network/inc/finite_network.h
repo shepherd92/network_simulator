@@ -25,6 +25,7 @@ public:
     ~FiniteNetwork();
     void create_simplicial_complex();
 
+    bool weighted() const;
     FiniteNetwork filter(const PointIdList &vertices) const;
     void expand();
     void reset() override;
@@ -33,6 +34,7 @@ public:
     std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
     std::vector<int32_t> calc_betti_numbers();
     std::vector<ISimplexList> calc_persistence_pairs();
+    std::vector<std::vector<std::pair<float, float>>> calc_persistence_intervals();
 
 private:
     struct SimplexTreeOptions
@@ -42,7 +44,7 @@ private:
         typedef float Filtration_value;
         typedef uint32_t Simplex_key;
         static const bool store_key = true;
-        static const bool store_filtration = false;
+        static const bool store_filtration = true;
         static const bool contiguous_vertices = false;
     };
     using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
@@ -63,7 +65,7 @@ private:
     void fill_simplicial_complex();
     void reset_simplicial_complex();
     void reset_persistence();
-    const PersistentCohomology &get_persistence();
+    PersistentCohomology &get_persistence();
 
     const bool weighted_;
     std::optional<SimplexTree> simplex_tree_;

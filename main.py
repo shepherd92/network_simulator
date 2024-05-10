@@ -29,7 +29,6 @@ from distribution.approximation import DistributionApproximation
 from model.model import Model
 from model.factory import create_model, load_default_parameters
 from network.property import (
-    BaseNetworkProperty,
     DerivedNetworkProperty,
     ScalarNetworkPropertyReport,
 )
@@ -165,11 +164,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_finite'
         model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
 
-        weighted = \
-            BaseNetworkProperty.weighted_persistence_diagram in configuration.model.analysis.properties_to_calculate_finite or \
-            BaseNetworkProperty.weighted_persistence_pairs in configuration.model.analysis.properties_to_calculate_finite
-
-        typical_finite_network = model.generate_finite_network(weighted, seed)
+        typical_finite_network = model.generate_finite_network(seed)
         analyze_model_example_finite_network(
             typical_finite_network,
             configuration.model.analysis.properties_to_calculate_finite,

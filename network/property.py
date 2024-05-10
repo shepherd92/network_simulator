@@ -33,10 +33,8 @@ class BaseNetworkProperty(Enum):
     betti_numbers: int = auto()
     betti_numbers_by_component: int = auto()
     num_of_vertices_by_component: int = auto()
-    persistence: int = auto()
+    persistence_intervals: int = auto()
     persistence_pairs: int = auto()
-    weighted_persistence_diagram: int = auto()
-    weighted_persistence_pairs: int = auto()
 
 
 @dataclass

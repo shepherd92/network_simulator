@@ -8,10 +8,6 @@ from model.model import Model
 from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
 from model.hypergraph import HypergraphModel
 from model.erdos_renyi import ErdosRenyiModel
-from model.network_geometry_with_flavor import NetworkGeometryWithFlavorModel
-from model.preferential_attachment import PreferentialAttachmentModel
-from model.price import PriceModel
-from model.watts_strogatz import WattsStrogatzModel
 from network.property import BaseNetworkProperty
 
 
@@ -47,10 +43,8 @@ class ModelConfig:
             BaseNetworkProperty.betti_numbers,
             # BaseNetworkProperty.betti_numbers_by_component,
             BaseNetworkProperty.num_of_vertices_by_component,
-            # BaseNetworkProperty.persistence,
+            BaseNetworkProperty.persistence_intervals,
             # BaseNetworkProperty.persistence_pairs,
-            BaseNetworkProperty.weighted_persistence_diagram,
-            BaseNetworkProperty.weighted_persistence_pairs,
         ]
         properties_to_calculate_infinite: list[BaseNetworkProperty] = [
             # BaseNetworkProperty.vertex_edge_degree_distribution,
@@ -107,6 +101,7 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     # beta=,
     gamma=GAMMA,
     gamma_prime=GAMMA_PRIME,
+    weighted=True,
 )
 # ==============================================================================
 
@@ -124,35 +119,4 @@ ERDOS_RENYI_MODEL_PARAMETERS = ErdosRenyiModel.Parameters(
     max_dimension=2,
     network_size=1000,
     edge_probability=0.5,
-)
-
-
-NETWORK_GEOMETRY_WITH_FLAVOR_MODEL_PARAMETERS = NetworkGeometryWithFlavorModel.Parameters(
-    max_dimension=2,
-    network_size=1000,
-    simplex_dimension=2,
-    beta=1.,
-    flavor=0,
-)
-
-
-PREFERENTIAL_ATTACHMENT_MODEL_PARAMETERS = PreferentialAttachmentModel.Parameters(
-    max_dimension=2,
-    network_size=1000,
-    edges_of_new_node=2,
-)
-
-
-PRICE_MODEL_PARAMETERS = PriceModel.Parameters(
-    max_dimension=2,
-    network_size=1000,
-    probability_degree_constant=1.0,
-)
-
-
-WATTS_STROGATZ_PARAMETERS = WattsStrogatzModel.Parameters(
-    max_dimension=2,
-    network_size=1000,
-    edges_of_new_node=2,
-    rewiring_probability=0.2,
 )
