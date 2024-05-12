@@ -236,6 +236,16 @@ uint32_t SimplexList::size() const
     return simplices_.size();
 }
 
+const Simplex &SimplexList::operator[](const int32_t index) const
+{
+    return simplices_[index];
+}
+
+Simplex &SimplexList::operator[](const int32_t index)
+{
+    return simplices_[index];
+}
+
 SimplexList SimplexList::operator+(const SimplexList &other) const
 {
     SimplexList result{*this};

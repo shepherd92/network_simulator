@@ -170,6 +170,73 @@ def create_histograms_normal_plots(
             print(r'\end{subfigure}', file=out_file)
 
 
+def create_persistence_diagrams(directories: dict[str, Path], output_dir: Path) -> None:
+    """Create persistence diagrams."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    captions = {
+        'computer_science': 'cs',
+        'engineering': 'eess',
+        'mathematics': 'math',
+        'statistics': 'stat',
+    }
+    for dataset_name, directory in directories.items():
+        persistence_file_name = directory / 'data' / 'persistence.csv'
+        if not persistence_file_name.is_file():
+            continue
+
+        persistence = pd.read_csv(persistence_file_name)
+        persistence_finite_death = persistence.replace([np.inf], np.nan)
+        persistence_finite_death.dropna(subset=['birth', 'death'], how='all', inplace=True)
+
+        inf_value = int(1.05 * max(
+            persistence['birth'].max(),
+            persistence_finite_death['death'].max(),
+        )) + 1
+
+        min_ = -0.05 * inf_value
+        max_ = 1.05 * inf_value
+
+        out_file_name = output_dir / '_'.join([dataset_name, 'persistence_diagram.tex'])
+        out_file_name.parent.mkdir(parents=True, exist_ok=True)
+        with open(out_file_name, 'w') as out_file:
+            print(r'\begin{subfigure}[b]{0.23\textwidth}', file=out_file)
+            print(r'    \resizebox{\textwidth}{!}{', file=out_file)
+            print(r'        \begin{tikzpicture}', file=out_file)
+            print(r'            \begin{axis} [', file=out_file)
+            print(f'                    xmin={min_:.4f}, xmax={max_:.4f}, ymin={min_:.4f}, ymax={max_:.4f},', file=out_file)
+            print(r'                    xlabel={Birth}, ylabel={Death},', file=out_file)
+            print(r'                    xtick=\empty,', file=out_file)
+            print(f'                    ytick={inf_value},', file=out_file)
+            print(r'                    yticklabels={$\infty$},', file=out_file)
+            print(r'                    scatter/classes={0={blue}, 1={red}},', file=out_file)
+            print(r'                    legend style={', file=out_file)
+            print(r'                            at={(0.95,0.05)},', file=out_file)
+            print(r'                            anchor=south east,', file=out_file)
+            print(r'                            legend cell align={left}', file=out_file)
+            print(r'                        }', file=out_file)
+            print(r'                ]', file=out_file)
+            print(r'                \addplot[only marks, scatter, scatter src=explicit symbolic]', file=out_file)
+            print(r'                table[x=birth, y=death, meta=dimension, col sep=comma]{', end='', file=out_file)
+            print(f'data/data/persistence_diagrams/{dataset_name}_persistence.csv', end='', file=out_file)
+            print(r'};', file=out_file)
+            print(r'                \addplot[black, ultra thick, no marks, domain={', end='', file=out_file)
+            print(f'{min_:.4f}:{max_:.4f}', end='', file=out_file)
+            print(r'}] {x};', file=out_file)
+            print(r'                \addplot[black, ultra thick, dashed, no marks, domain={', end='', file=out_file)
+            print(f'{min_:.4f}:{max_:.4f}', end='', file=out_file)
+            print(r'}] {', end='', file=out_file)
+            print(f'{inf_value}', end='', file=out_file)
+            print(r'};', file=out_file)
+            print(r'                \legend{Dimension 0, Dimension 1};', file=out_file)
+            print(r'            \end{axis}', file=out_file)
+            print(r'        \end{tikzpicture}', file=out_file)
+            print(r'    }', file=out_file)
+            print(r'    \caption{', end='', file=out_file)
+            print(f'{captions[dataset_name]}', end='', file=out_file)
+            print(r'}', file=out_file)
+            print(r'\end{subfigure}', file=out_file)
+
+
 def create_value_counts_log_plot(
     in_dir: Path,
     out_file_name: Path,

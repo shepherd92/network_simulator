@@ -41,6 +41,8 @@ public:
     const_iterator end() const;
     const_iterator cend() const;
 
+    const Simplex &operator[](const int32_t index) const;
+    Simplex &operator[](const int32_t index);
     SimplexList operator+(const SimplexList &other) const;
     void operator+=(const SimplexList &other);
 

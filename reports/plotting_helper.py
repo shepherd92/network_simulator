@@ -537,21 +537,32 @@ def plot_qq_plot(distribution_pair: DistributionApproximation, axes: plt.Axes) -
 def plot_persistence_diagram_(persistence, axes: plt.Axes) -> None:
     """Plot the persistence diagram."""
     colors = ['red', 'blue', 'green', 'orange',]
+    max_weight = 0
+    # plot finite death points
     for dimension, intervals in enumerate(persistence):
-        x = [interval[0] for interval in intervals]
-        y = [interval[1] if interval[1] != np.inf else 1.05 for interval in intervals]
+        x = [interval[0] for interval in intervals if interval[1] != np.inf]
+        y = [interval[1] for interval in intervals if interval[1] != np.inf]
+        max_weight = max(max_weight, max(y))
         axes.scatter(x, y, color=colors[dimension], label=f'dimension {dimension}')
 
     # plot infinite death points
-    axes.hlines(y=1.05, xmin=-0.05, xmax=1.1, color='black', linestyle='--', label='inf')
-    axes.set_yticks([0, 1.05], ['0', 'inf'])
+    for dimension, intervals in enumerate(persistence):
+        x = [interval[0] for interval in intervals if interval[1] == np.inf]
+        y = [1.05 * max_weight] * len(x)
+        axes.scatter(x, y, color=colors[dimension])
+
+    min_ = -0.05 * max_weight
+    max_ = 1.1 * max_weight
+
+    axes.hlines(y=1.05 * max_weight, xmin=min_, xmax=max_, color='black', linestyle='--', label='inf')
+    axes.set_yticks([0, 1.05 * max_weight], ['0', 'inf'])
     axes.set_xlabel('birth')
     axes.set_ylabel('death')
     axes.legend()
     axes.set_aspect('equal')
-    axes.set_xlim([-0.05, 1.1])
-    axes.set_ylim([-0.05, 1.1])
-    axes.plot([-0.05, 1.1], [-0.05, 1.1], color='black')
+    axes.set_xlim([min_, max_])
+    axes.set_ylim([min_, max_])
+    axes.plot([min_, max_], [min_, max_], color='black')
 
 
 def plot_persistence_barcode_(persistence, axes: plt.Axes):

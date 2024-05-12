@@ -4,6 +4,7 @@
 from pathlib import Path
 from shutil import copyfile, copytree
 
+import numpy as np
 import pandas as pd
 
 from data_preparation.data_dirs.hypergraph import (
@@ -23,6 +24,7 @@ from data_preparation.latex_interface import (
     create_histograms_normal_plots,
     create_hypothesis_tests_plot,
     create_hypothesis_tests_table,
+    create_persistence_diagrams,
     create_value_counts_log_plot,
 )
 
@@ -57,6 +59,31 @@ def prepare_data_analysis_data(
         hypothesis_testing_dirs,
         output_dir / 'data' / 'latex_tables' / 'parameter_estimates.tex'
     )
+    copy_persistence_data(dataset_dirs, output_dir / 'data' / 'persistence_diagrams')
+    create_persistence_diagrams(dataset_dirs, output_dir / 'data' / 'persistence_diagrams')
+
+
+def copy_persistence_data(directories: dict[str, Path], output_dir: Path) -> None:
+    """Copy persistence data."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    for dataset_name, directory in directories.items():
+        persistence_file_name = directory / 'data' / 'persistence.csv'
+        if not persistence_file_name.is_file():
+            continue
+
+        persistence = pd.read_csv(persistence_file_name)
+        persistence_finite_death = persistence.replace([np.inf], np.nan)
+        persistence_finite_death.dropna(subset=['birth', 'death'], inplace=True)
+        persistence_finite_death = persistence_finite_death.astype('int32')
+        inf_value = int(1.05 * max(
+            persistence['birth'].max(),
+            persistence_finite_death['death'].max(),
+        )) + 1
+        persistence.replace([np.inf], inf_value, inplace=True)
+        persistence = persistence.astype('int32')
+        persistence.drop_duplicates(inplace=True, ignore_index=True)
+        out_file_name = output_dir / '_'.join([dataset_name, 'persistence.csv'])
+        persistence.to_csv(out_file_name, index=False)
 
 
 def prepare_model_sample_for_data_sets_data(directories: dict[str, Path], output_dir: Path) -> None:
