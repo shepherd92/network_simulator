@@ -35,17 +35,17 @@ std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
 InfiniteHypergraphModel::generate_network() const
 {
     const PointId typical_vertex_id{0};
-    std::uniform_real_distribution<Mark> mark_distribution(0., 1.);
+    std::uniform_real_distribution<Mark> mark_distribution(0.F, 1.F);
     const auto u{mark_distribution(random_number_generator_)}; // mark of the typical node
 
-    auto interactions{create_interactions(u)};
+    const auto interactions{create_interactions(u)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
     PointList vertices{Point{u, 0.F, typical_vertex_id}}; // add the typical node
     if (!interactions.empty())
     {
-        transform_interactions(interactions);
-        const auto dominating_neighborhood_parts{create_dominating_neighborhood_parts(interactions)};
+        const auto transformed_interactions{transform_interactions(interactions)};
+        const auto dominating_neighborhood_parts{create_dominating_neighborhood_parts(transformed_interactions)};
         const auto ordinary_vertices{create_vertices(dominating_neighborhood_parts.first, dominating_neighborhood_parts.second)};
         vertices.insert(vertices.end(), ordinary_vertices.begin(), ordinary_vertices.end());
     }
@@ -82,15 +82,18 @@ PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
     return interactions;
 }
 
-void InfiniteHypergraphModel::transform_interactions(PointList &interactions) const
+PointList InfiniteHypergraphModel::transform_interactions(const PointList &interactions) const
 {
+    PointList transformed_interactions{};
+    transformed_interactions.reserve(interactions.size());
     std::for_each(
         execution_policy,
         interactions.begin(), interactions.end(),
-        [&](auto &point)
+        [&](const auto &point)
         {
-            point.set_mark(beta() * std::pow(point.mark(), -gamma_prime()));
+            transformed_interactions.emplace_back(Point{beta() * std::pow(point.mark(), -gamma_prime()), point.position()});
         });
+    return transformed_interactions;
 }
 
 std::pair<std::vector<Center>, std::vector<Hyperbola>>
@@ -301,8 +304,8 @@ PositionList InfiniteHypergraphModel::generate_positions_in_vertex_neighborhood(
         marks.begin(), marks.end(),
         [&](const auto mark)
         {
-            const auto position{uniform_distribution(random_number_generator_) * beta_x_mark_to_gamma * std::pow(mark, -gamma_prime())};
-            positions.push_back(position);
+            const auto relative_position{uniform_distribution(random_number_generator_) * beta_x_mark_to_gamma * std::pow(mark, -gamma_prime())};
+            positions.push_back(vertex.position() + relative_position);
         });
     return positions;
 }

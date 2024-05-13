@@ -51,12 +51,12 @@ INFINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
     'interaction_vertex_degree_exponent',
     # 'triangle_degree_exponent',
     'average_interaction_degree_normal_mle',
-    'num_of_edges_normal_mle',
-    'num_of_edges_normal_match_quantile',
-    'num_of_edges_stable',
-    'num_of_triangles_normal_mle',
-    'num_of_triangles_normal_match_quantile',
-    'num_of_triangles_stable',
+    # 'num_of_edges_normal_mle',
+    # 'num_of_edges_normal_match_quantile',
+    # 'num_of_edges_stable',
+    # 'num_of_triangles_normal_mle',
+    # 'num_of_triangles_normal_match_quantile',
+    # 'num_of_triangles_stable',
 ]
 
 
@@ -67,6 +67,7 @@ def _get_power_law_exponent_model(empirical_distribution: EmpiricalDistribution)
     )
     fitting_params = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_MODEL)
     approximation.fit(fitting_params)
+    # print(approximation.info()['empirical_values_in_theoretical_domain'])
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
 
@@ -101,6 +102,10 @@ def _get_poisson_parameter(empirical_distribution: EmpiricalDistribution) -> flo
 
 def _get_mean(empirical_distribution: EmpiricalDistribution) -> float:
     return empirical_distribution.value_sequence.mean()
+
+
+def _get_mean_infinite(list_of_value_sets: list[list[int]]) -> float:
+    return np.nanmean([value for set_ in list_of_value_sets for value in set_])
 
 
 def get_finite_scalar_property_params(gamma: float) -> list[DerivedNetworkProperty]:
@@ -303,6 +308,12 @@ def get_infinite_scalar_property_params(gamma: float) -> list[DerivedNetworkProp
                                fitting_parameters=create_fitting_parameters_normal(),
                                calculator_default=_get_power_law_exponent_infinite_model_model,
                                calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
+        DerivedNetworkProperty(name='average_interaction_degree_normal_mle',
+                               source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
+                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+                               fitting_parameters=create_fitting_parameters_normal(),
+                               calculator_default=_get_mean_infinite,
+                               calculator_data_set=_get_mean_infinite),
         DerivedNetworkProperty(name='vertex_interaction_degree_exponent',
                                source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
                                theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,

@@ -49,15 +49,15 @@ SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
     std::vector<Simplex> result{};
     for (auto &simplex : cofaces_of_typical_vertex)
     {
-        bool typical_vertex_is_oldest{true};
-        for (const auto &vertex : simplex.vertices())
-        {
-            if (vertex != typical_vertex_id_ && marks_[vertex] < typical_vertex_mark)
-            {
-                typical_vertex_is_oldest = false;
-                break;
-            }
-        }
+        const auto typical_vertex_is_oldest{
+            std::all_of(
+                std::execution::seq,
+                simplex.vertices().begin(),
+                simplex.vertices().end(),
+                [&](const auto &vertex)
+                {
+                    return vertex == typical_vertex_id_ || marks_[vertex] > typical_vertex_mark;
+                })};
         if (typical_vertex_is_oldest)
         {
             result.push_back(simplex);

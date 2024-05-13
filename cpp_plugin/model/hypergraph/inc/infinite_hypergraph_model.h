@@ -20,7 +20,7 @@ public:
 private:
     std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList> generate_network() const;
     PointList create_interactions(const Mark u) const;
-    void transform_interactions(PointList &interactions) const;
+    PointList transform_interactions(const PointList &interactions) const;
 
     std::pair<std::vector<Center>, std::vector<Hyperbola>>
     create_dominating_neighborhood_parts(const PointList &transformed_interactions) const;

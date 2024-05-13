@@ -240,6 +240,8 @@ class DistributionApproximation:
             joint_info[f'empirical_{key}'] = value
         for key, value in theoretical_info.items():
             joint_info[f'theoretical_{key}'] = value
+        joint_info['empirical_values_in_theoretical_domain'] = \
+            len(np.unique(self.empirical.get_value_sequence_in_domain(self.theoretical.domain)))
 
         return joint_info
 

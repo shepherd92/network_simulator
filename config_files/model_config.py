@@ -60,7 +60,7 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.FINITE
+        mode: Model.Mode = Model.Mode.INFINITE
         num_of_simulations: int = 100
         num_of_infinite_networks: int = 1000
 
@@ -72,7 +72,7 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 3
+NETWORK_MAGNITUDE = 5
 
 GAMMA = 0.7276  # computer science
 GAMMA_PRIME = 0.2247  # computer science

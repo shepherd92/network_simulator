@@ -87,25 +87,29 @@ RectangleList HypergraphModel::create_transformed_filled_rectangles(
 RectangleList HypergraphModel::create_rectangles(const PointList &points_in, const float exponent) const
 {
     const auto n_points{points_in.size()};
-    RectangleList rectangles{};
-    const auto points_per_rectangle{std::max(100., std::pow(n_points, 0.5))};
     const auto space_size{std::max(determine_space_size(points_in), 1e-9F)};
-    const auto area{points_per_rectangle / n_points * space_size};
-    const auto sqrt_beta{std::pow(beta(), 0.5)};
-
-    auto bottom{0.0};
-    while (bottom < 1.)
+    RectangleList rectangles{};
+    if (n_points < 1000U)
     {
-        auto width{std::min(1., sqrt_beta * std::pow(bottom, exponent))};
-        const auto height{std::max(std::min(area / width, 1. - bottom), 1e-6)};
-        const auto rectangles_in_row{std::ceil(1. / width)};
+        rectangles.emplace_back(Rectangle{0.F, 1.F, -space_size / 2.F, space_size / 2.F});
+        return rectangles;
+    }
+    const auto points_per_rectangle{std::max(100.F, std::pow(static_cast<float>(n_points), 0.5F))};
+    const auto area{points_per_rectangle / n_points * space_size};
+    const auto sqrt_beta{std::pow(beta(), 0.5F)};
+
+    auto bottom{0.0F};
+    while (bottom < 1.F)
+    {
+        auto width{std::min(space_size, sqrt_beta * std::pow(bottom, exponent))};
+        const auto height{std::max(std::min(area / width, 1.F - bottom), 1e-6F)};
+        const auto rectangles_in_row{std::ceil(1.F / width)};
         width = space_size / rectangles_in_row; // adjust width to match the number of rectangles
 
         for (auto i{0U}; i < rectangles_in_row; ++i)
         {
-            const auto left{i * width - space_size / 2.};
-            auto rectangle{Rectangle(bottom, bottom + height, left, left + width)};
-            rectangles.push_back(std::move(rectangle));
+            const auto left{i * width - space_size / 2.F};
+            rectangles.emplace_back(Rectangle(bottom, bottom + height, left, left + width));
         }
         bottom += height;
     }

@@ -6,6 +6,7 @@ PYTHON_VERSION := 3.12
 # .SILENT :
 
 # set possibe targets
+.DEFAULT_GOAL := release
 TARGETS := __all release debug test callgrind memcheck clean
 
 # do print when directory changes

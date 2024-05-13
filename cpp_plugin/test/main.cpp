@@ -13,7 +13,7 @@ void test_infinite_hypergraph();
 
 int main()
 {
-    test_finite_hypergraph();
+    test_infinite_hypergraph();
     return 0;
 }
 
@@ -76,7 +76,7 @@ void test_infinite_hypergraph()
     std::cout << "\rCreating infinite hypergraph model" << std::endl;
     const InfiniteHypergraphModel model{model_params, seed};
     std::cout << "\rGenerating infinite network" << std::endl;
-    auto network_interface{model.generate_networks(1000)};
+    auto network_interface{model.generate_networks(10000)};
     auto network{std::get<0>(network_interface[0])};
 
     // std::cout << "\rCalculating degree sequence (0, 1)" << std::endl;

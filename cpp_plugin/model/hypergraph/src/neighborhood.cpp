@@ -144,7 +144,8 @@ PointList Hyperbola::create_points(const HypergraphModel::Parameters &parameters
         // transform Z to be the position later
         const auto Z{uniform(rng)};
         const auto vertex_position{position() + transformation_coefficient * std::pow(Z, uniform_exponent)};
-        const auto max_mark{(*this)(vertex_position, g)};
+        // avoid marks larger than 1 due to floating point errors
+        const auto max_mark{std::min((*this)(vertex_position, g), 1.F)};
         const auto mark{max_mark * uniform_01(rng)};
         vertices.emplace_back(Point{mark, vertex_position});
     }
@@ -169,7 +170,7 @@ bool Hyperbola::is_left_tail() const
     return right() < position();
 }
 
-Center::Center(const float left, const float right)
+Center::Center(const Position left, const Position right)
     : NeighborhoodPart{left, right}
 {
 }
