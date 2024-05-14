@@ -22,7 +22,7 @@ public:
 
 protected:
     ConnectionList generate_connections(const PointList &vertices, const PointList &interactions) const;
-    SimplexList create_simplices_from_connections(const ConnectionList &connections) const;
+    SimplexList create_interaction_simplices_from_connections(const ConnectionList &connections) const;
 
     inline Dimension max_dimension() const;
     inline float beta() const;

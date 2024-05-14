@@ -62,7 +62,7 @@ class ModelConfig:
 
         mode: Model.Mode = Model.Mode.INFINITE
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 1000
+        num_of_infinite_networks: int = 10000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
     set_params_from_data_set: bool = False
@@ -89,7 +89,7 @@ GAMMA_PRIME = 0.2089  # statistics
 GAMMA = 0.7
 GAMMA_PRIME = 0.2
 
-EXPECTED_VERTEX_INTERACTION_DEGREE = 3
+EXPECTED_VERTEX_INTERACTION_DEGREE = 3.
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
     network_size=10**NETWORK_MAGNITUDE,  # vertex_intensity: expected number of vertices
@@ -101,7 +101,7 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     # beta=,
     gamma=GAMMA,
     gamma_prime=GAMMA_PRIME,
-    weighted=True,
+    weighted=False,
 )
 # ==============================================================================
 

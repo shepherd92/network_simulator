@@ -115,7 +115,6 @@ class InfiniteNetwork(Network):
 
         return property_value
 
-    @log_function_name
     def num_simplices(self, dimension: int) -> int:
         """Return the number of simplices in the simplicial complex."""
         if dimension == 0:
@@ -129,20 +128,16 @@ class InfiniteNetwork(Network):
         """Return a dict representation based on the network properties."""
         raise NotImplementedError('This method is not implemented.')
 
-    @log_function_name
     def _calculate_interaction_dimension_distribution(self) -> list[int]:
         """Return the number of interactions for each dimension."""
         return self.cpp_network.calc_interaction_dimension_distribution()
 
-    @log_function_name
     def _calc_typical_vertex_interaction_degree(self) -> int:
         """Return the number of interactions for each vertex."""
         return self.cpp_network.calc_vertex_interaction_degree_distribution()
 
-    @log_function_name
     def _calc_typical_in_degree(self) -> list[int]:
         return [self.digraph.in_degree(0)]
 
-    @log_function_name
     def _calc_typical_out_degree(self) -> list[int]:
         return [self.digraph.out_degree(0)]

@@ -21,38 +21,38 @@ std::vector<InfiniteNetwork> InfiniteAdrcmModel::generate_networks(const uint32_
 
 InfiniteNetwork InfiniteAdrcmModel::generate_network() const
 {
-    const auto vertices{create_vertices()};
+    std::uniform_real_distribution<float> uniform_distribution(0., 1.);
+    const auto typical_vertex_mark{uniform_distribution(random_number_generator_)}; // birth time of the typical node
+
+    const auto vertices{create_vertices(typical_vertex_mark)};
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
     const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices)};
     const auto simplices{create_simplices_from_connections(connections)};
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, 0, vertex_marks};
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, 0U, typical_vertex_mark, vertex_marks};
     return network;
 }
 
-PointList InfiniteAdrcmModel::create_vertices() const
+PointList InfiniteAdrcmModel::create_vertices(const Mark typical_vertex_mark) const
 {
     std::uniform_real_distribution<float> uniform_distribution(0., 1.);
-
-    const auto u{uniform_distribution(random_number_generator_)}; // birth time of the typical node
-
     // generate nodes
-    PointList vertices{Point{u, 0.F, 0}};
+    PointList vertices{Point{typical_vertex_mark, 0.F, 0}};
     PointId id{1};
 
     // generate older nodes which (u, 0) connects to
     // w is a random variable that is later transformed to be the birth time
     // there is a x0.5 due to parameter alpha, but there is a x2 as well due to +-
-    const auto w_intensity_older_nodes{alpha() * beta() / (1. - gamma()) * std::pow(u, gamma() - 1.)};
+    const auto w_intensity_older_nodes{alpha() * beta() / (1. - gamma()) * std::pow(typical_vertex_mark, gamma() - 1.)};
     std::exponential_distribution<float> w_interarrival_time_distribution_older_nodes(w_intensity_older_nodes);
     auto w_older{w_interarrival_time_distribution_older_nodes(random_number_generator_)};
-    while (w_older < std::pow(u, 1.F - gamma()))
+    while (w_older < std::pow(typical_vertex_mark, 1.F - gamma()))
     {
         // v: birth time of the neighbor of (u, 0)
         const auto v{std::pow(w_older, 1.F / (1.F - gamma()))};
-        const auto radius{alpha() * beta() * std::pow(v, -gamma()) * std::pow(u, gamma() - 1.F)};
+        const auto radius{alpha() * beta() * std::pow(v, -gamma()) * std::pow(typical_vertex_mark, gamma() - 1.F)};
 
         // generate point uniformly
         Position position{radius * uniform_distribution(random_number_generator_)};
@@ -66,14 +66,14 @@ PointList InfiniteAdrcmModel::create_vertices() const
 
     // generate younger nodes which connect to (u, 0)
     // w is a random variable that is later transformed to be the birth time
-    const auto w_intensity_younger_nodes{alpha() * beta() / gamma() * std::pow(u, -gamma())};
+    const auto w_intensity_younger_nodes{alpha() * beta() / gamma() * std::pow(typical_vertex_mark, -gamma())};
     std::exponential_distribution<float> w_interarrival_time_distribution_younger_nodes{w_intensity_younger_nodes};
-    auto w_younger{std::pow(u, gamma()) + w_interarrival_time_distribution_younger_nodes(random_number_generator_)};
+    auto w_younger{std::pow(typical_vertex_mark, gamma()) + w_interarrival_time_distribution_younger_nodes(random_number_generator_)};
     while (w_younger < 1.F)
     {
         // v: birth time of the neighbor of (u, 0)
         const auto v{std::pow(w_younger, 1.F / gamma())};
-        const auto radius{alpha() * beta() * std::pow(u, -gamma()) * std::pow(v, gamma() - 1.F)};
+        const auto radius{alpha() * beta() * std::pow(typical_vertex_mark, -gamma()) * std::pow(v, gamma() - 1.F)};
 
         // generate point uniformly
         Position position(radius * uniform_distribution(random_number_generator_));

@@ -9,16 +9,21 @@
 #include "tools.h"
 #include "typedefs.h"
 
-Network::Network(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions)
+Network::Network(
+    const Dimension max_dimension,
+    const PointIdList &vertices,
+    const SimplexList &nonempty_interactions,
+    const uint32_t num_of_empty_interactions)
     : max_dimension_{max_dimension},
       vertices_{vertices},
-      interactions_{interactions},
+      nonempty_interactions_{nonempty_interactions},
+      num_of_empty_interactions_{num_of_empty_interactions},
       facets_{std::nullopt},
       simplices_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
 {
     if (vertices_.empty())
     {
-        vertices_ = interactions_.vertices();
+        vertices_ = nonempty_interactions_.vertices();
     }
     std::sort(vertices_.begin(), vertices_.end());
 }
@@ -61,7 +66,7 @@ uint32_t Network::num_vertices()
 
 std::vector<Dimension> Network::calc_interaction_dimension_distribution() const
 {
-    return interactions_.calc_dimension_distribution();
+    return nonempty_interactions_.calc_dimension_distribution();
 }
 
 std::vector<Dimension> Network::calc_facet_dimension_distribution()
@@ -73,7 +78,7 @@ const SimplexList &Network::get_facets()
 {
     if (!facets_.has_value())
     {
-        facets_ = interactions_.facets();
+        facets_ = nonempty_interactions_.facets();
     }
     return *facets_;
 }
@@ -133,12 +138,12 @@ std::vector<uint32_t> Network::calc_degree_sequence(
 
 const SimplexList &Network::get_interactions() const
 {
-    return interactions_;
+    return nonempty_interactions_;
 }
 
 void Network::set_interactions(const ISimplexList &interactions)
 {
-    interactions_ = SimplexList{interactions};
+    nonempty_interactions_ = SimplexList{interactions};
 }
 
 ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
@@ -149,7 +154,7 @@ ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 void Network::keep_only_vertices(const PointIdList &vertices)
 {
     vertices_ = vertices;
-    interactions_ = interactions_.filter(vertices);
+    nonempty_interactions_ = nonempty_interactions_.filter(vertices);
     reset();
 }
 

@@ -43,7 +43,7 @@ degree_distribution_directories = {
     (1000, 10):     input_base_path / '20240405_132526',
     (10000, 10):    input_base_path / '20240405_132536',
     (100000, 10):   input_base_path / '20240405_132544',
-    ('inf', 10):    input_base_path / '20240508_174643',
+    ('inf', 10):    input_base_path / '20240514_113216',
     # (1000000, 10):  input_base_path / '20240323_185549',
     (100, 12):      input_base_path / '20240409_161132',
     (1000, 12):     input_base_path / '20240409_161141',
@@ -53,7 +53,7 @@ degree_distribution_directories = {
     (1000, 15):     input_base_path / '20240409_161658',
     (10000, 15):    input_base_path / '20240509_155804',
     (100000, 15):   input_base_path / '20240409_161718',
-    ('inf', 15):    input_base_path / '20240509_061905',
+    ('inf', 15):    input_base_path / '20240514_113937',
 }
 
 simplex_count_directories = {

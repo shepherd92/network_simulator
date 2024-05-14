@@ -1,4 +1,3 @@
-#include <cassert>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -47,7 +46,6 @@ uint64_t SimplexHash::operator()(const Simplex &simplex) const
 Simplex::Simplex(const PointIdList &vertices)
     : vertices_{vertices}, bloom_filter_{}
 {
-    assert(!vertices_.empty());
     vertices_.shrink_to_fit();
     std::sort(vertices_.begin(), vertices_.end());
 
@@ -131,18 +129,3 @@ std::vector<Simplex> Simplex::faces(const Dimension dimension_param) const
 
     return result;
 }
-
-/*
-SimplexList Simplex::faces(const Dimension dimension_param) const
-{
-    if (dimension() <= dimension_param)
-    {
-        return SimplexList{};
-    }
-
-    PointIdList current_combination(dimension_param + 1U);
-    SimplexList result{};
-    result.reserve(binomial_coefficient(dimension() + 1, dimension_param + 1));
-    combination_util(dimension_param, 0U, result, current_combination, 0U);
-    return result;
-}*/

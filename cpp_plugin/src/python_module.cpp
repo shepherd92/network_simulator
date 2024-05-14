@@ -31,7 +31,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("generate_networks", &InfiniteHypergraphModel::generate_networks);
 
     py::class_<FiniteNetwork>(m, "FiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const bool>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const uint32_t, const bool>())
         .def("create_simplicial_complex", &FiniteNetwork::create_simplicial_complex)
         .def("expand", &FiniteNetwork::expand)
         .def("filter", &FiniteNetwork::filter)
@@ -53,7 +53,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_facets", &FiniteNetwork::get_facets_interface);
 
     py::class_<InfiniteNetwork>(m, "InfiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const PointId, const MarkList &>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const uint32_t, const PointId, const MarkList &>())
         .def("get_skeleton", &InfiniteNetwork::get_skeleton_interface)
         .def("num_vertices", &InfiniteNetwork::num_vertices)
         .def("num_simplices", &Network::num_simplices)
@@ -64,7 +64,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_vertex_interaction_degree_distribution", &InfiniteNetwork::calc_vertex_interaction_degree_distribution)
         .def("calc_interaction_dimension_distribution", &InfiniteNetwork::calc_interaction_dimension_distribution)
         .def("calc_degree_sequence", &InfiniteNetwork::calc_degree_sequence)
-        .def_property("vertices", &InfiniteNetwork::get_vertices, &InfiniteNetwork::set_vertices)
+        .def("typical_mark", &InfiniteNetwork::typical_mark)
         .def_property("max_dimension", &InfiniteNetwork::get_max_dimension, &InfiniteNetwork::set_max_dimension)
         .def_property("interactions", &InfiniteNetwork::get_interactions_interface, &InfiniteNetwork::set_interactions)
         .def("calc_facets", &InfiniteNetwork::get_facets_interface);

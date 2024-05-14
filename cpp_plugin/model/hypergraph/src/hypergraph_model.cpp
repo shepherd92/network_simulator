@@ -168,16 +168,17 @@ bool HypergraphModel::rectangle_points_may_connect(const Rectangle &vertex_recta
                     Point{interaction_rectangle.bottom(), interaction_rectangle.left()});
 }
 
-SimplexList HypergraphModel::create_simplices_from_connections(const ConnectionList &connections) const
+SimplexList HypergraphModel::create_interaction_simplices_from_connections(
+    const ConnectionList &connections) const
 {
-    std::map<PointId, std::vector<PointId>> interactions;
+    std::map<PointId, std::vector<PointId>> interactions_map{};
     for (const auto &pair : connections)
     {
-        interactions[pair.second].push_back(pair.first);
+        interactions_map[pair.second].push_back(pair.first);
     }
 
     std::vector<Simplex> simplices{};
-    for (const auto &interaction : interactions)
+    for (const auto &interaction : interactions_map)
     {
         simplices.push_back(Simplex{interaction.second});
     }

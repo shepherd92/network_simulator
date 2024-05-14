@@ -29,7 +29,6 @@ class Network:
         self._vertex_positions: dict[int, tuple[float, ...]] | None = None
         self._interaction_positions: dict[int, tuple[float, ...]] | None = None
 
-    @log_function_name
     def calc_base_property(self, property_type: BaseNetworkProperty) -> Any:
         """Generate typical properties of the given type."""
         raise NotImplementedError
@@ -46,7 +45,6 @@ class Network:
         self.generate_simplicial_complex_from_graph()
         self.expand()
 
-    @log_function_name
     def create_simplicial_complex(self) -> None:
         """Create a simplicial complex."""
         self.cpp_network.create_simplicial_complex()
@@ -118,22 +116,18 @@ class Network:
         """
         return EmpiricalDistribution(self.cpp_network.calc_simplex_dimension_distribution())
 
-    @log_function_name
     def _calculate_facet_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of facets for each dimension."""
         return EmpiricalDistribution(self.cpp_network.calc_facet_dimension_distribution())
 
-    @log_function_name
     def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each vertex."""
         raise NotImplementedError
 
-    @log_function_name
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each dimension."""
         raise NotImplementedError
 
-    @log_function_name
     def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 
         assert neighbor_dimension > simplex_dimension, \
@@ -151,7 +145,6 @@ class Network:
         """Set the cpp network."""
         self._cpp_network = value
 
-    @log_function_name
     def num_simplices(self, dimension: int) -> int:
         """Return the number of simplices in the simplicial complex."""
         raise NotImplementedError

@@ -6,9 +6,10 @@
 FiniteNetwork::FiniteNetwork(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const ISimplexList &interactions,
+    const ISimplexList &nonempty_interactions,
+    const uint32_t num_of_empty_interactions,
     const bool weighted)
-    : Network{max_dimension, vertices, SimplexList{interactions}},
+    : Network{max_dimension, vertices, SimplexList{nonempty_interactions}, num_of_empty_interactions},
       weighted_{weighted},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
@@ -18,9 +19,10 @@ FiniteNetwork::FiniteNetwork(
 FiniteNetwork::FiniteNetwork(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const SimplexList &interactions,
+    const SimplexList &nonempty_interactions,
+    const uint32_t num_of_empty_interactions,
     const bool weighted)
-    : Network{max_dimension, vertices, interactions},
+    : Network{max_dimension, vertices, nonempty_interactions, num_of_empty_interactions},
       weighted_{weighted},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
@@ -160,8 +162,8 @@ std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution
 
     std::for_each(
         std::execution::seq,
-        interactions_.simplices().begin(),
-        interactions_.simplices().end(),
+        nonempty_interactions_.simplices().begin(),
+        nonempty_interactions_.simplices().end(),
         [&](const auto &interaction)
         {
             std::for_each(
@@ -253,7 +255,7 @@ void FiniteNetwork::fill_simplicial_complex()
                 simplices.end(),
                 [&](const auto &simplex)
                 {
-                    weights.push_back(interactions_.cofaces(simplex).size());
+                    weights.push_back(nonempty_interactions_.cofaces(simplex).size());
                     log_progress(++counter, total, 1000U, "Calc simplex weights");
                 });
             log_progress(counter, total, 1U, "Calc simplex weights");

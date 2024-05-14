@@ -1,4 +1,5 @@
 #include <atomic>
+#include <cassert>
 #include <iostream>
 #include <mutex>
 #include <tuple>
@@ -34,14 +35,13 @@ InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networ
 std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
 InfiniteHypergraphModel::generate_network() const
 {
-    const PointId typical_vertex_id{0};
-    std::uniform_real_distribution<Mark> mark_distribution(0.F, 1.F);
-    const auto u{mark_distribution(random_number_generator_)}; // mark of the typical node
+    std::uniform_real_distribution<Mark> mark_distribution(MIN_MARK, 1.F);
+    const auto typical_vertex_mark{mark_distribution(random_number_generator_)}; // mark of the typical node
 
-    const auto interactions{create_interactions(u)};
+    const auto interactions{create_interactions(typical_vertex_mark)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
-    PointList vertices{Point{u, 0.F, typical_vertex_id}}; // add the typical node
+    PointList vertices{};
     if (!interactions.empty())
     {
         const auto transformed_interactions{transform_interactions(interactions)};
@@ -55,22 +55,23 @@ InfiniteHypergraphModel::generate_network() const
     const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices, interactions)};
-    const auto simplices{create_simplices_from_connections(connections)};
+    const auto simplices{create_interaction_simplices_from_connections(connections)};
 
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_id, vertex_marks};
+    const auto num_of_empty_interactions{static_cast<uint32_t>(interactions.size() - simplices.size())};
+
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, num_of_empty_interactions, typical_vertex_mark, vertex_marks};
 
     return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
 }
 
-PointList InfiniteHypergraphModel::create_interactions(const Mark u) const
+PointList InfiniteHypergraphModel::create_interactions(const Mark typical_vertex_mark) const
 {
-    const PointId typical_vertex_id{0};
     // expected number of connecting interactions: 2 * b * l' * u^(-g) / (1 - g')
     std::poisson_distribution<int32_t> poisson_distribution_interactions(
-        2 * beta() * lambda_prime() * std::pow(u, -gamma()) / (1 - gamma_prime()));
+        2 * beta() * lambda_prime() * std::pow(typical_vertex_mark, -gamma()) / (1 - gamma_prime()));
     const auto num_of_interactions{poisson_distribution_interactions(random_number_generator_)};
     const auto interaction_marks{generate_marks(num_of_interactions, MIN_MARK)};
-    const auto interaction_positions{generate_positions_in_vertex_neighborhood(Point{u, 0.F, typical_vertex_id}, interaction_marks)};
+    const auto interaction_positions{generate_positions_in_vertex_neighborhood(Point{typical_vertex_mark, 0.F}, interaction_marks)};
 
     PointList interactions{};
     interactions.reserve(num_of_interactions);
@@ -87,7 +88,7 @@ PointList InfiniteHypergraphModel::transform_interactions(const PointList &inter
     PointList transformed_interactions{};
     transformed_interactions.reserve(interactions.size());
     std::for_each(
-        execution_policy,
+        std::execution::seq,
         interactions.begin(), interactions.end(),
         [&](const auto &point)
         {

@@ -15,7 +15,7 @@ protected:
     InfiniteNetwork generate_network() const;
 
 private:
-    PointList create_vertices() const;
+    PointList create_vertices(const Mark typical_vertex_mark) const;
 };
 
 #endif

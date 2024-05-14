@@ -10,7 +10,11 @@
 class Network
 {
 public:
-    Network(const Dimension max_dimension, const PointIdList &vertices, const SimplexList &interactions);
+    Network(
+        const Dimension max_dimension,
+        const PointIdList &vertices,
+        const SimplexList &nonempty_interactions,
+        const uint32_t num_of_empty_interactions);
 
     Dimension get_max_dimension() const;
     void set_max_dimension(const Dimension dimension);
@@ -23,12 +27,10 @@ public:
     std::vector<Dimension> calc_facet_dimension_distribution();
     std::vector<Dimension> calc_interaction_dimension_distribution() const;
     virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
-
-    std::vector<uint32_t> calc_degree_sequence(
+    virtual std::vector<uint32_t> calc_degree_sequence(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension);
 
-    virtual PointIdList get_vertices() const = 0;
     ISimplexList get_interactions_interface() const;
     ISimplexList get_facets_interface();
     ISimplexList get_skeleton_interface(const Dimension max_dimension);
@@ -48,7 +50,8 @@ protected:
 
     Dimension max_dimension_;
     PointIdList vertices_;
-    SimplexList interactions_;
+    SimplexList nonempty_interactions_;
+    uint32_t num_of_empty_interactions_;
     std::optional<SimplexList> facets_;
     std::vector<std::optional<SimplexList>> simplices_;
 

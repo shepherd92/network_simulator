@@ -14,12 +14,14 @@ public:
     FiniteNetwork(
         const Dimension max_dimension,
         const PointIdList &vertices,
-        const ISimplexList &interactions,
+        const ISimplexList &nonempty_interactions,
+        const uint32_t num_of_empty_interactions,
         const bool weighted);
     FiniteNetwork(
         const Dimension max_dimension,
         const PointIdList &vertices,
-        const SimplexList &interactions,
+        const SimplexList &nonempty_interactions,
+        const uint32_t num_of_empty_interactions,
         const bool weighted);
     FiniteNetwork(const FiniteNetwork &other);
     ~FiniteNetwork();
@@ -30,7 +32,7 @@ public:
     void expand();
     void reset() override;
 
-    PointIdList get_vertices() const override;
+    PointIdList get_vertices() const;
     std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
     std::vector<int32_t> calc_betti_numbers();
     std::vector<ISimplexList> calc_persistence_pairs();
