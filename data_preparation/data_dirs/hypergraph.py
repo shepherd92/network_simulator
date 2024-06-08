@@ -49,10 +49,10 @@ degree_distribution_directories = {
     (1000, 12):     input_base_path / '20240409_161141',
     (10000, 12):    input_base_path / '20240409_161156',
     (100000, 12):   input_base_path / '20240409_161210',
-    (100, 15):      input_base_path / '20240409_161644',
-    (1000, 15):     input_base_path / '20240409_161658',
-    (10000, 15):    input_base_path / '20240509_155804',
-    (100000, 15):   input_base_path / '20240409_161718',
+    (100, 15):      input_base_path / '20240608_132346',
+    (1000, 15):     input_base_path / '20240608_132408',
+    (10000, 15):    input_base_path / '20240608_132432',
+    (100000, 15):   input_base_path / '20240608_132524',
     ('inf', 15):    input_base_path / '20240514_113937',
 }
 

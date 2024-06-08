@@ -98,6 +98,10 @@ class InfiniteNetwork(Network):
             property_value = self._calc_degree_sequence(0, 1)
         elif property_type == BaseNetworkProperty.vertex_interaction_degree_distribution:
             property_value = self._calc_typical_vertex_interaction_degree()
+        elif property_type == BaseNetworkProperty.edge_interaction_degree_distribution:
+            property_value = self._calc_typical_edge_interaction_degree()
+        elif property_type == BaseNetworkProperty.triangle_interaction_degree_distribution:
+            property_value = self._calc_typical_triangle_interaction_degree()
         elif property_type == BaseNetworkProperty.in_degree_distribution:
             property_value = self._calc_typical_in_degree()
         elif property_type == BaseNetworkProperty.out_degree_distribution:
@@ -132,9 +136,17 @@ class InfiniteNetwork(Network):
         """Return the number of interactions for each dimension."""
         return self.cpp_network.calc_interaction_dimension_distribution()
 
-    def _calc_typical_vertex_interaction_degree(self) -> int:
+    def _calc_typical_vertex_interaction_degree(self) -> list[int]:
         """Return the number of interactions for each vertex."""
-        return self.cpp_network.calc_vertex_interaction_degree_distribution()
+        return self.cpp_network.calc_simplex_interaction_degree_sequence(0)
+
+    def _calc_typical_edge_interaction_degree(self) -> list[int]:
+        """Return the number of interactions for each vertex."""
+        return self.cpp_network.calc_simplex_interaction_degree_sequence(1)
+
+    def _calc_typical_triangle_interaction_degree(self) -> list[int]:
+        """Return the number of interactions for each vertex."""
+        return self.cpp_network.calc_simplex_interaction_degree_sequence(2)
 
     def _calc_typical_in_degree(self) -> list[int]:
         return [self.digraph.in_degree(0)]

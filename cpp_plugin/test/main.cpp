@@ -13,7 +13,7 @@ void test_infinite_hypergraph();
 
 int main()
 {
-    test_finite_hypergraph();
+    test_infinite_hypergraph();
     return 0;
 }
 

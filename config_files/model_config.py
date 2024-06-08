@@ -60,7 +60,7 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.FINITE
+        mode: Model.Mode = Model.Mode.INFINITE
         num_of_simulations: int = 100
         num_of_infinite_networks: int = 100000
 

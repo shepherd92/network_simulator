@@ -101,14 +101,15 @@ std::vector<uint32_t> Network::calc_simplex_interaction_degree_sequence(
         return calc_vertex_interaction_degree_distribution();
     }
 
-    const auto simplex_degree_map{nonempty_interactions_.calc_degree_sequence(simplex_dimension)};
+    auto simplex_degree_map{nonempty_interactions_.calc_degree_sequence(simplex_dimension)};
 
     // order of the degree values does not matter
     std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
     result.reserve(simplex_degree_map.size());
-    for (const auto &simplex_degree_pair : simplex_degree_map)
+    for (const auto &simplex : simplices)
     {
-        result.emplace_back(simplex_degree_pair.second);
+        result.emplace_back(simplex_degree_map[simplex]);
     }
 
     return result;
@@ -121,14 +122,15 @@ std::vector<uint32_t> Network::calc_coface_degree_sequence(
     assert(neighbor_dimension > simplex_dimension);
 
     const auto &cofaces{get_neighbors(neighbor_dimension)};
-    const auto simplex_degree_map{cofaces.calc_degree_sequence(simplex_dimension)};
+    auto simplex_degree_map{cofaces.calc_degree_sequence(simplex_dimension)};
 
     // order of the degree values does not matter
     std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
     result.reserve(simplex_degree_map.size());
-    for (const auto &simplex_degree_pair : simplex_degree_map)
+    for (const auto &simplex : simplices)
     {
-        result.emplace_back(simplex_degree_pair.second);
+        result.emplace_back(simplex_degree_map[simplex]);
     }
 
     return result;
