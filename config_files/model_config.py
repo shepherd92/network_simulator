@@ -60,9 +60,9 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.INFINITE
+        mode: Model.Mode = Model.Mode.FINITE
         num_of_simulations: int = 100
-        num_of_infinite_networks: int = 10000
+        num_of_infinite_networks: int = 100000
 
     type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
     set_params_from_data_set: bool = False
@@ -73,18 +73,6 @@ class ModelConfig:
 
 # ==============================================================================
 NETWORK_MAGNITUDE = 5
-
-GAMMA = 0.7276  # computer science
-GAMMA_PRIME = 0.2247  # computer science
-
-GAMMA = 0.5650  # engineering
-GAMMA_PRIME = 0.2218  # engineering
-
-GAMMA = 0.6915  # mathematics
-GAMMA_PRIME = 0.1846  # mathematics
-
-GAMMA = 0.5285  # statistics
-GAMMA_PRIME = 0.2089  # statistics
 
 GAMMA = 0.7
 GAMMA_PRIME = 0.2

@@ -65,7 +65,6 @@ ConnectionList AdrcmModel::generate_connections(const PointList &vertices) const
         }
         log_progress(++counter, num_of_nodes, 10000U, "Generating connections");
     }
-    log_progress(counter, num_of_nodes, 1U, "Generating connections");
     return connections;
 }
 

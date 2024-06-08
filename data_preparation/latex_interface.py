@@ -76,11 +76,12 @@ def create_boxplots(
             print(f'upper whisker={quantiles[column_name][100]}, ', end='', file=out_file)
             print(f'sample size={100}', end='', file=out_file)
             print(r'}] coordinates {};', file=out_file)
-        print(r'            \addplot', end='', file=out_file)
-        print(f'[red, thick, domain=0:{len(directories) + 1}] ', end='', file=out_file)
-        print(r'{', end='', file=out_file)
-        print(f'{theoretical_value:.4f}', end='', file=out_file)
-        print(r'};', file=out_file)
+        if not np.isnan(theoretical_value):
+            print(r'            \addplot', end='', file=out_file)
+            print(f'[red, thick, domain=0:{len(directories) + 1}] ', end='', file=out_file)
+            print(r'{', end='', file=out_file)
+            print(f'{theoretical_value:.4f}', end='', file=out_file)
+            print(r'};', file=out_file)
         print(r'      \end{axis}', file=out_file)
         print(r'  \end{tikzpicture}}', file=out_file)
         # print(r'\caption{', end='', file=out_file)
@@ -356,7 +357,7 @@ def create_dataset_parameter_estimates_table(
     with open(out_file_name, 'w') as out_file:
         print(r"\begin{table} [h] \centering \caption{Fitted power-law exponents and the inferred model parameters} \label{tab:dataset_parameter_estimates}", file=out_file)
         print(r'    \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline', file=out_file)
-        print(r"        \multirow{2}{*}{dataset} & \multicolumn{2}{|c|}{vertex--interaction degree} & \multicolumn{2}{|c|}{interaction--vertex degree} & \multirow{2}{*}{$\b$} & \multirow{2}{*}{$\la$} & \multirow{2}{*}{$\la'$} \\", file=out_file)
+        print(r"        \multirow{2}{*}{dataset} & \multicolumn{2}{|c|}{$\PP$-vertex degree} & \multicolumn{2}{|c|}{$\PP'$-vertex degree} & \multirow{2}{*}{$\b$} & \multirow{2}{*}{$\la$} & \multirow{2}{*}{$\la'$} \\", file=out_file)
         print(r"            & exponent & $\g$ & exponent & $\g'$ & & & \\ \hline", file=out_file)
         for name_in_table, name_to_print in dataset_name_translation.items():
             vertex_interaction_exponent = \

@@ -21,8 +21,9 @@ public:
         const uint32_t num_of_empty_interactions,
         const Mark typical_vertex_mark_,
         const MarkList &marks);
-    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
-    std::vector<uint32_t> calc_degree_sequence(
+    std::vector<Dimension> calc_facet_dimension_distribution() override;
+    std::vector<Dimension> calc_interaction_dimension_distribution() const override;
+    std::vector<uint32_t> calc_coface_degree_sequence(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension) override;
     InfiniteNetwork filter(const PointIdList &vertices) const;
@@ -32,6 +33,7 @@ public:
 private:
     SimplexList calc_neighbors(const Dimension dimension);
     SimplexList calc_simplices(const Dimension dimension) override;
+    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
 
     Mark typical_vertex_mark_;
     MarkList marks_;

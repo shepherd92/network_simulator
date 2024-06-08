@@ -133,7 +133,7 @@ class Network:
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
 
-        return self.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+        return self.cpp_network.calc_coface_degree_sequence(simplex_dimension, neighbor_dimension)
 
     @property
     def cpp_network(self) -> CppFiniteNetwork | CppInfiniteNetwork | None:

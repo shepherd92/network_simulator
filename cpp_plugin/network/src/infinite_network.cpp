@@ -73,6 +73,42 @@ std::vector<uint32_t> InfiniteNetwork::calc_vertex_interaction_degree_distributi
     return {nonempty_interactions_.size() + num_of_empty_interactions_};
 }
 
+std::vector<Dimension> InfiniteNetwork::calc_facet_dimension_distribution()
+{
+    // first calculate the distribution where the typical vertex is not included
+    auto result{Network::calc_facet_dimension_distribution()};
+    // add dimension 0 by shifting the vector (there are no facets of dimension 0)
+    result.insert(result.begin(), 0U);
+    return result;
+}
+
+std::vector<Dimension> InfiniteNetwork::calc_interaction_dimension_distribution() const
+{
+    // first calculate the distribution where the typical vertex is not included
+    auto result{Network::calc_interaction_dimension_distribution()};
+    // add dimension 0 by shifting the vector
+    result.insert(result.begin(), num_of_empty_interactions_);
+    return result;
+}
+
+std::vector<uint32_t> InfiniteNetwork::calc_coface_degree_sequence(
+    const Dimension simplex_dimension,
+    const Dimension neighbor_dimension)
+{
+    assert(neighbor_dimension > simplex_dimension);
+    if (simplex_dimension == 0U && neighbor_dimension == 1U)
+    {
+        return {num_vertices()};
+    }
+
+    const auto &possible_cofaces{get_neighbors(neighbor_dimension)};
+    if (simplex_dimension == 0U)
+    {
+        return {possible_cofaces.size()};
+    }
+    return Network::calc_coface_degree_sequence(simplex_dimension, neighbor_dimension);
+}
+
 const SimplexList &InfiniteNetwork::get_neighbors(const Dimension dimension)
 {
     assert(dimension <= max_dimension_);
@@ -92,24 +128,6 @@ SimplexList InfiniteNetwork::calc_neighbors(const Dimension dimension)
     // -1 because the typical vertex is implicitly included in the neighbors
     const auto neighbors{get_facets().faces(dimension - 1U)};
     return neighbors;
-}
-
-std::vector<uint32_t> InfiniteNetwork::calc_degree_sequence(
-    const Dimension simplex_dimension,
-    const Dimension neighbor_dimension)
-{
-    assert(neighbor_dimension > simplex_dimension);
-    if (simplex_dimension == 0U && neighbor_dimension == 1U)
-    {
-        return {num_vertices()};
-    }
-
-    const auto &possible_cofaces{get_neighbors(neighbor_dimension)};
-    if (simplex_dimension == 0U)
-    {
-        return {possible_cofaces.size()};
-    }
-    return Network::calc_degree_sequence(simplex_dimension, neighbor_dimension);
 }
 
 InfiniteNetwork InfiniteNetwork::filter(const PointIdList &vertices) const

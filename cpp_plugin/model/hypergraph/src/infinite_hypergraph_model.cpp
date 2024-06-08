@@ -37,7 +37,6 @@ InfiniteHypergraphModel::generate_network() const
 {
     std::uniform_real_distribution<Mark> mark_distribution(MIN_MARK, 1.F);
     const auto typical_vertex_mark{mark_distribution(random_number_generator_)}; // mark of the typical node
-
     const auto interactions{create_interactions(typical_vertex_mark)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 

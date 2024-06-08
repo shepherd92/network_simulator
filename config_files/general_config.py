@@ -14,6 +14,6 @@ class GeneralConfig:
     runtime_profiling = False
     memory_profiling = False
     tracing = False
-    seed = 714116697
+    seed = 0
     root_dir = Path('/home/au725389/save/research/higher_order_adrcm/code/')
     output_dir = Path('../output')

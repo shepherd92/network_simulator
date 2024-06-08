@@ -24,12 +24,12 @@ public:
     virtual void reset();
 
     std::vector<Dimension> calc_simplex_dimension_distribution();
-    std::vector<Dimension> calc_facet_dimension_distribution();
-    std::vector<Dimension> calc_interaction_dimension_distribution() const;
-    virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
-    virtual std::vector<uint32_t> calc_degree_sequence(
+    virtual std::vector<Dimension> calc_facet_dimension_distribution();
+    virtual std::vector<Dimension> calc_interaction_dimension_distribution() const;
+    virtual std::vector<uint32_t> calc_coface_degree_sequence(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension);
+    std::vector<uint32_t> calc_simplex_interaction_degree_sequence(const Dimension simplex_dimension);
 
     ISimplexList get_interactions_interface() const;
     ISimplexList get_facets_interface();
@@ -57,6 +57,7 @@ protected:
 
 private:
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
+    virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
     std::map<PointId, std::vector<int32_t>> create_vertex_simplex_map(const SimplexList &simplices) const;
     void filter_facets(const PointIdList &vertices);
 };

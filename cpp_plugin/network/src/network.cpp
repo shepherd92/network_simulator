@@ -93,47 +93,45 @@ const SimplexList &Network::get_simplices(const Dimension dimension)
     return *simplices_[dimension];
 }
 
-std::vector<uint32_t> Network::calc_degree_sequence(
+std::vector<uint32_t> Network::calc_simplex_interaction_degree_sequence(
+    const Dimension simplex_dimension)
+{
+    if (simplex_dimension == 0)
+    {
+        return calc_vertex_interaction_degree_distribution();
+    }
+
+    const auto simplex_degree_map{nonempty_interactions_.calc_degree_sequence(simplex_dimension)};
+
+    // order of the degree values does not matter
+    std::vector<uint32_t> result{};
+    result.reserve(simplex_degree_map.size());
+    for (const auto &simplex_degree_pair : simplex_degree_map)
+    {
+        result.emplace_back(simplex_degree_pair.second);
+    }
+
+    return result;
+}
+
+std::vector<uint32_t> Network::calc_coface_degree_sequence(
     const Dimension simplex_dimension,
     const Dimension neighbor_dimension)
 {
     assert(neighbor_dimension > simplex_dimension);
-    const auto &simplices{get_simplices(simplex_dimension)};
-    const auto &possible_cofaces{get_neighbors(neighbor_dimension)};
-    std::vector<uint32_t> degree_sequence{};
-    degree_sequence.reserve(simplices.size());
 
-    std::mutex mutex{};
-    const auto total{simplices.size()};
-    std::atomic<uint32_t> counter{0U};
+    const auto &cofaces{get_neighbors(neighbor_dimension)};
+    const auto simplex_degree_map{cofaces.calc_degree_sequence(simplex_dimension)};
 
-    std::for_each(
-        std::execution::seq,
-        simplices.begin(),
-        simplices.end(),
-        [&](auto &&simplex)
-        {
-            std::atomic<uint32_t> degree{0U};
+    // order of the degree values does not matter
+    std::vector<uint32_t> result{};
+    result.reserve(simplex_degree_map.size());
+    for (const auto &simplex_degree_pair : simplex_degree_map)
+    {
+        result.emplace_back(simplex_degree_pair.second);
+    }
 
-            std::for_each(
-                execution_policy,
-                possible_cofaces.begin(),
-                possible_cofaces.end(),
-                [&](const auto &neighbor)
-                {
-                    if (simplex.is_face(neighbor))
-                    {
-                        ++degree;
-                    }
-                });
-
-            std::lock_guard<std::mutex> lock_guard(mutex);
-            degree_sequence.push_back(degree);
-            log_progress(++counter, total, 1000U, "Calc degree sequence");
-        });
-    log_progress(counter, total, 1U, "Calc degree sequence");
-
-    return degree_sequence;
+    return result;
 }
 
 const SimplexList &Network::get_interactions() const

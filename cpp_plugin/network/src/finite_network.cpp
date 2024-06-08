@@ -112,9 +112,6 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
             result.push_back({birth_simplex, death_simplex});
             log_progress(++counter, total, 1000U, "Calc persistence pairs");
         });
-
-    log_progress(counter, total, 1U, "Calc persistence pairs");
-
     return result;
 }
 
@@ -242,44 +239,35 @@ void FiniteNetwork::fill_simplicial_complex()
     for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
     {
         const auto &simplices{get_simplices(dimension)};
-        const auto total{simplices.size()};
         std::atomic<uint32_t> counter{0U};
         std::vector<uint32_t> weights{};
+        weights.reserve(simplices.size());
         if (weighted())
         {
-            // calculate weight for each simplex
-            weights.reserve(simplices.size());
-            std::for_each(
-                std::execution::seq,
-                simplices.begin(),
-                simplices.end(),
-                [&](const auto &simplex)
-                {
-                    weights.push_back(nonempty_interactions_.cofaces(simplex).size());
-                    log_progress(++counter, total, 1000U, "Calc simplex weights");
-                });
-            log_progress(counter, total, 1U, "Calc simplex weights");
+            auto simplex_weight_map{nonempty_interactions_.calc_degree_sequence(dimension)};
+
+            for (const auto &simplex : simplices)
+            {
+                weights.emplace_back(simplex_weight_map[simplex]);
+            }
+
             const auto max_weight{*std::max_element(weights.begin(), weights.end())};
-            std::for_each(
-                std::execution::seq,
-                weights.begin(),
-                weights.end(),
-                [&](auto &weight)
-                {
-                    weight = max_weight - weight;
-                });
+            for (auto &weight : weights)
+            {
+                weight = max_weight - weight;
+            }
         }
         else
         {
             weights = std::vector<uint32_t>{simplices.size(), 0U};
         }
 
+        const auto total{simplices.size()};
         for (size_t i = 0; i < simplices.size(); ++i)
         {
             simplex_tree_->insert_simplex_and_subfaces(simplices[i].vertices(), weights[i]);
             log_progress(counter, total, 1000U, "Insert simplices");
         }
-        log_progress(counter, total, 1U, "Insert simplices");
     }
 
     reset_persistence();

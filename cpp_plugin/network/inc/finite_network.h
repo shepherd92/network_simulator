@@ -33,7 +33,6 @@ public:
     void reset() override;
 
     PointIdList get_vertices() const;
-    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
     std::vector<int32_t> calc_betti_numbers();
     std::vector<ISimplexList> calc_persistence_pairs();
     std::vector<std::vector<std::pair<float, float>>> calc_persistence_intervals();
@@ -68,6 +67,7 @@ private:
     void reset_simplicial_complex();
     void reset_persistence();
     PersistentCohomology &get_persistence();
+    std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
 
     const bool weighted_;
     std::optional<SimplexTree> simplex_tree_;

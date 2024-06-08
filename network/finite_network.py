@@ -110,7 +110,11 @@ class FiniteNetwork(Network):
         elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
             property_value = self._calculate_degree_distribution()
         elif property_type == BaseNetworkProperty.vertex_interaction_degree_distribution:
-            property_value = self._calculate_vertex_interaction_degree_distribution()
+            property_value = self._calculate_interaction_degree_distribution(0)
+        elif property_type == BaseNetworkProperty.edge_interaction_degree_distribution:
+            property_value = self._calculate_edge_interaction_degree_distribution()
+        elif property_type == BaseNetworkProperty.triangle_interaction_degree_distribution:
+            property_value = self._calculate_triangle_interaction_degree_distribution()
         elif property_type == BaseNetworkProperty.in_degree_distribution:
             property_value = self._calculate_in_degree_distribution()
         elif property_type == BaseNetworkProperty.out_degree_distribution:
@@ -183,9 +187,17 @@ class FiniteNetwork(Network):
     @log_function_name
     def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each vertex."""
-        interaction_degree_distribution = EmpiricalDistribution(
-            self.cpp_network.calc_vertex_interaction_degree_distribution())
-        return interaction_degree_distribution
+        return EmpiricalDistribution(self.cpp_network.calc_simplex_interaction_degree_sequence(0))
+
+    @log_function_name
+    def _calculate_edge_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        return EmpiricalDistribution(self.cpp_network.calc_simplex_interaction_degree_sequence(1))
+
+    @log_function_name
+    def _calculate_triangle_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        return EmpiricalDistribution(self.cpp_network.calc_simplex_interaction_degree_sequence(2))
 
     @log_function_name
     def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
@@ -208,10 +220,22 @@ class FiniteNetwork(Network):
 
         degree_sequence: list[int] = []
         for part in self.get_partition(10000):
-            degree_sequence_of_part = part.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+            degree_sequence_of_part = part.cpp_network.calc_coface_degree_sequence(
+                simplex_dimension, neighbor_dimension)
             degree_sequence.extend(degree_sequence_of_part)
 
         return EmpiricalDistribution(degree_sequence)
+
+    @log_function_name
+    def _calculate_interaction_degree_distribution(self, simplex_dimension: int) -> EmpiricalDistribution:
+
+        interaction_degree_sequence: list[int] = []
+        for part in self.get_partition(10000):
+            interaction_degree_sequence_of_part = \
+                part.cpp_network.calc_simplex_interaction_degree_sequence(simplex_dimension)
+            interaction_degree_sequence.extend(interaction_degree_sequence_of_part)
+
+        return EmpiricalDistribution(interaction_degree_sequence)
 
     @log_function_name
     def _calculate_betti_numbers_in_components(self) -> list[list[int]]:
@@ -260,7 +284,7 @@ class FiniteNetwork(Network):
         return [list(element) for element in vertices_in_components]
 
     @log_function_name
-    def _calc_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
+    def _calc_coface_degree_sequence(self, simplex_dimension: int, neighbor_dimension: int) -> list[int]:
 
         assert neighbor_dimension > simplex_dimension, \
             f'Neighbor dimension {neighbor_dimension} must be greater than simplex dimension {simplex_dimension}.'
@@ -271,12 +295,12 @@ class FiniteNetwork(Network):
             num_simplices = self.num_simplices(simplex_dimension)
             for part in self.get_partition(10000):
                 degree_sequence_of_part = \
-                    part.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+                    part.cpp_network.calc_coface_degree_sequence(simplex_dimension, neighbor_dimension)
                 degree_sequence.extend(degree_sequence_of_part)
             remaining_simplices = num_simplices - len(degree_sequence)
             degree_sequence.extend([0] * remaining_simplices)
         else:
-            degree_sequence = self.cpp_network.calc_degree_sequence(simplex_dimension, neighbor_dimension)
+            degree_sequence = self.cpp_network.calc_coface_degree_sequence(simplex_dimension, neighbor_dimension)
 
         return sorted(degree_sequence)
 

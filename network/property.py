@@ -28,6 +28,8 @@ class BaseNetworkProperty(Enum):
     in_degree_distribution: int = auto()
     out_degree_distribution: int = auto()
     vertex_interaction_degree_distribution: int = auto()
+    edge_interaction_degree_distribution: int = auto()
+    triangle_interaction_degree_distribution: int = auto()
     edge_triangle_degree_distribution: int = auto()
     triangle_tetrahedra_degree_distribution: int = auto()
     betti_numbers: int = auto()

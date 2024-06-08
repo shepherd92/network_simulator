@@ -28,6 +28,10 @@ public:
     std::vector<uint32_t> calc_degree_sequence(
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension) const;
+
+    std::unordered_map<Simplex, uint32_t, SimplexHash>
+    calc_degree_sequence(const Dimension face_dimension) const;
+
     std::vector<Dimension> calc_dimension_distribution() const;
     SimplexList simplices_by_dimension(const Dimension dimension) const;
     SimplexList select_higher_dimensional_simplices(const Dimension min_dimension) const;
@@ -45,6 +49,8 @@ public:
     Simplex &operator[](const int32_t index);
     SimplexList operator+(const SimplexList &other) const;
     void operator+=(const SimplexList &other);
+    bool operator<(const SimplexList &other) const;
+    bool operator==(const SimplexList &other) const;
 
 private:
     void sort(const bool ascending);

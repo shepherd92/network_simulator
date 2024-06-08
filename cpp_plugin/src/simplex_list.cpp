@@ -73,8 +73,6 @@ std::vector<Dimension> SimplexList::calc_dimension_distribution() const
             result.push_back(dimension);
             log_progress(++counter, total, 1000U, "Calc simplex dimension distribution");
         });
-    log_progress(counter, total, 1U, "Calc simplex dimension distribution");
-
     std::sort(result.begin(), result.end());
     return result;
 }
@@ -201,8 +199,6 @@ SimplexList SimplexList::facets() const
             }
             log_progress(++counter, total, 1000U, "Calc facets");
         });
-
-    log_progress(counter, total, 1U, "Calc facets");
     return SimplexList{facets};
 }
 
@@ -267,10 +263,14 @@ std::vector<PointId> SimplexList::vertices() const
         simplices_.end(),
         [&](const auto &interaction)
         {
-            for (const auto &vertex : interaction.vertices())
-            {
-                unique_vertices.insert(vertex);
-            }
+            std::for_each(
+                std::execution::seq,
+                interaction.vertices().begin(),
+                interaction.vertices().end(),
+                [&](const auto &vertex)
+                {
+                    unique_vertices.insert(vertex);
+                });
         });
     PointIdList vertices{unique_vertices.begin(), unique_vertices.end()};
     std::sort(vertices.begin(), vertices.end());
@@ -306,42 +306,58 @@ std::vector<uint32_t> SimplexList::calc_degree_sequence(
     const Dimension neighbor_dimension) const
 {
     assert(neighbor_dimension > simplex_dimension);
-    const auto &simplices{simplices_by_dimension(simplex_dimension).simplices()};
-    const auto &possible_cofaces{simplices_by_dimension(neighbor_dimension).simplices()};
+
+    const auto &cofaces{simplices_by_dimension(neighbor_dimension)};
+    const auto face_degree_map{cofaces.calc_degree_sequence(simplex_dimension)};
+
     std::vector<uint32_t> degree_sequence{};
-    degree_sequence.reserve(simplices.size());
-
-    std::mutex mutex{};
-    const auto total{simplices.size()};
-    std::atomic<uint32_t> counter{0U};
-
+    degree_sequence.reserve(face_degree_map.size());
     std::for_each(
-        std::execution::seq,
-        simplices.begin(),
-        simplices.end(),
-        [&](auto &&simplex)
+        std::execution::seq, face_degree_map.begin(), face_degree_map.end(),
+        [&](const auto &face_degree_pair)
         {
-            std::atomic<uint32_t> degree{0U};
-
-            std::for_each(
-                execution_policy,
-                possible_cofaces.begin(),
-                possible_cofaces.end(),
-                [&](const auto &neighbor)
-                {
-                    if (simplex.is_face(neighbor))
-                    {
-                        ++degree;
-                    }
-                });
-
-            std::lock_guard<std::mutex> lock_guard(mutex);
-            degree_sequence.push_back(degree);
-            log_progress(++counter, total, 1000U, "Calc degree sequence");
+            degree_sequence.push_back(face_degree_pair.second);
         });
-    log_progress(counter, total, 1U, "Calc degree sequence");
 
     return degree_sequence;
+}
+
+std::unordered_map<Simplex, uint32_t, SimplexHash>
+SimplexList::calc_degree_sequence(const Dimension face_dimension) const
+{
+    std::mutex mutex{};
+    const auto total{size()};
+    std::atomic<uint32_t> counter{0U};
+
+    // initialize the degree sequence with zeros
+    const auto &faces{simplices_by_dimension(face_dimension)};
+    std::unordered_map<Simplex, std::atomic<uint32_t>, SimplexHash> face_degree_map{};
+
+    for (const Simplex &face : faces)
+    {
+        face_degree_map.emplace(face, 0U);
+    }
+
+    std::for_each(
+        std::execution::seq, begin(), end(),
+        [&](const auto &coface)
+        {
+            const auto faces{coface.faces(face_dimension)};
+            std::for_each(
+                std::execution::seq, faces.begin(), faces.end(),
+                [&](const auto &face)
+                {
+                    ++face_degree_map[face];
+                });
+            log_progress(++counter, total, 1000U, "Calc simplex-interaction sequence");
+        });
+
+    std::unordered_map<Simplex, uint32_t, SimplexHash> result{};
+    for (const auto &face_degree_pair : face_degree_map)
+    {
+        result[face_degree_pair.first] = face_degree_pair.second.load();
+    }
+    return result;
 }
 
 SimplexList::iterator SimplexList::begin()
@@ -372,4 +388,14 @@ SimplexList::const_iterator SimplexList::end() const
 SimplexList::const_iterator SimplexList::cend() const
 {
     return simplices_.cend();
+}
+
+bool SimplexList::operator<(const SimplexList &other) const
+{
+    return std::lexicographical_compare(begin(), end(), other.begin(), other.end());
+}
+
+bool SimplexList::operator==(const SimplexList &other) const
+{
+    return std::equal(begin(), end(), other.begin(), other.end());
 }
