@@ -73,16 +73,7 @@ class Network:
     @log_function_name
     def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
         """Set graph to represent the simplicial complex."""
-        # assert self.simplicial_complex.num_vertices() != 0, 'Simplicial complex is not built.'
-
-        graph = nx.Graph()
-        graph.add_nodes_from(self.vertices)
-        graph.add_edges_from([
-            [*simplex]
-            for simplex in self.cpp_network.get_skeleton(1)
-            if len(simplex) == 2
-        ])
-        return graph
+        raise NotImplementedError
 
     @log_function_name
     def num_of_vertices_in_component(self, component_index: int) -> int:
@@ -145,9 +136,10 @@ class Network:
         """Set the cpp network."""
         self._cpp_network = value
 
+    @log_function_name
     def num_simplices(self, dimension: int) -> int:
         """Return the number of simplices in the simplicial complex."""
-        raise NotImplementedError
+        return self.cpp_network.num_simplices(dimension)
 
     @property
     def max_dimension(self) -> int:

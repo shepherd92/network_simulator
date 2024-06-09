@@ -31,7 +31,7 @@ InfiniteNetwork InfiniteAdrcmModel::generate_network() const
 
     const auto connections{generate_connections(vertices)};
     const auto simplices{create_simplices_from_connections(connections)};
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, 0U, typical_vertex_mark, vertex_marks};
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
     return network;
 }
 

@@ -25,16 +25,15 @@ from reports.finite_network_analysis import (
     report_persistence_diagram,
 )
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetworkSet
+from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
-    plot_giant_component,
-    plot_hypergraph_determined_positions,
-    plot_network_determined_positions,
+    plot_hypergraph,
+    plot_network,
 )
 
 
-PLOT_HYPERGRAPH_DETERMINED_POSITIONS = False
+PLOT_HYPERGRAPH_DETERMINED_POSITIONS = True
 
 
 def analyze_model_example_finite_network(
@@ -49,10 +48,10 @@ def analyze_model_example_finite_network(
     plt.rcParams["text.usetex"] = False
 
     if plot:
-        plot_giant_component(network, save_directory / 'network.png')
-        plot_network_determined_positions(network, save_directory / 'network_fixed_vertex_positions.png')
+        plot_network(network, False, save_directory / 'network.png')
+        plot_network(network, True, save_directory / 'network_fixed_vertex_positions.png')
         if PLOT_HYPERGRAPH_DETERMINED_POSITIONS:
-            plot_hypergraph_determined_positions(network, save_directory / 'hypergraph_fixed_positions.png')
+            plot_hypergraph(network, True, save_directory / 'hypergraph_fixed_positions.png')
 
     summary = network.calc_network_summary(calculated_properties)
 
@@ -171,10 +170,6 @@ def analyze_model_example_infinite_network_set(
     plt.rcParams["text.usetex"] = False
 
     summary = network_set.calc_network_summary(calculated_properties)
-    network_with_most_nodes = network_set.get_largest_network()
-    assert network_with_most_nodes is not None, \
-        'Infinite network set to be analyzed has no networks.'
-    plot_giant_component(network_with_most_nodes, save_directory / 'largest_infinite_network.png')
 
     axes_grid_height = 4
     axes_grid_width = 3
@@ -193,9 +188,9 @@ def analyze_model_example_infinite_network_set(
     )
     report_in_degree_distribution(
         summary.get(BaseNetworkProperty.in_degree_distribution),
-        POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
-        save_directory
+        save_directory,
+        power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
     )
     report_out_degree_distribution(
         summary.get(BaseNetworkProperty.out_degree_distribution),
@@ -226,3 +221,9 @@ def analyze_model_example_infinite_network_set(
     figure.clf()
 
     info('Infinite network analysis finished.')
+
+
+def create_infinite_network_plots(network: InfiniteNetwork, save_path: Path) -> None:
+    plot_network(network, False, save_path / 'infinite_network.png')
+    plot_network(network, True, save_path / 'infinite_network_fixed_vertex_positions.png')
+    plot_hypergraph(network, True, save_path / 'infinite_hypergraph_fixed_positions.png')

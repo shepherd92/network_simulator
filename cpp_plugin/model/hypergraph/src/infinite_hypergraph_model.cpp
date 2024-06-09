@@ -20,12 +20,15 @@ InfiniteHypergraphModel::InfiniteHypergraphModel(const std::vector<double> &para
 std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
 InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networks) const
 {
+    std::uniform_real_distribution<Mark> mark_distribution(MIN_MARK, 1.F);
+
     std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>> result{};
     result.reserve(num_of_infinite_networks);
 
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
     {
-        const auto network_interface{generate_network()};
+        const auto typical_vertex_mark{mark_distribution(random_number_generator_)}; // mark of the typical node
+        const auto network_interface{generate_network(typical_vertex_mark)};
         result.push_back(network_interface);
         log_progress(network_index, num_of_infinite_networks, 1U, "Generating infinite networks");
     }
@@ -33,11 +36,10 @@ InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networ
 }
 
 std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
-InfiniteHypergraphModel::generate_network() const
+InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
 {
-    std::uniform_real_distribution<Mark> mark_distribution(MIN_MARK, 1.F);
-    const auto typical_vertex_mark{mark_distribution(random_number_generator_)}; // mark of the typical node
     const auto interactions{create_interactions(typical_vertex_mark)};
+    const auto interaction_ids{convert_to_id_list(interactions)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
     PointList vertices{};
@@ -46,21 +48,35 @@ InfiniteHypergraphModel::generate_network() const
         const auto transformed_interactions{transform_interactions(interactions)};
         const auto dominating_neighborhood_parts{create_dominating_neighborhood_parts(transformed_interactions)};
         const auto ordinary_vertices{create_vertices(dominating_neighborhood_parts.first, dominating_neighborhood_parts.second)};
-        vertices.insert(vertices.end(), ordinary_vertices.begin(), ordinary_vertices.end());
+        vertices = std::move(ordinary_vertices);
     }
 
     const auto vertex_ids{convert_to_id_list(vertices)};
-    const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
     const auto vertex_marks{convert_to_mark_list(vertices)};
+    const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
     const auto connections{generate_connections(vertices, interactions)};
-    const auto simplices{create_interaction_simplices_from_connections(connections)};
+    const auto simplices{create_interaction_simplices_from_connections(interaction_ids, connections)};
 
-    const auto num_of_empty_interactions{static_cast<uint32_t>(interactions.size() - simplices.size())};
-
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, num_of_empty_interactions, typical_vertex_mark, vertex_marks};
+    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
 
     return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
+
+    // check if the connections are correct
+    // for (const auto &vertex : vertices)
+    // {
+    //     for (const auto &interaction : interactions)
+    //     {
+    //         const bool should_connect{
+    //             std::abs(vertex.position() - interaction.position()) < beta() * std::pow(vertex.mark(), -gamma()) * std::pow(interaction.mark(), -gamma_prime())};
+    //         const bool in_connections{
+    //             std::find_if(
+    //                 connections.begin(), connections.end(),
+    //                 [&](const auto &connection)
+    //                 { return connection.first == vertex.id() && connection.second == interaction.id(); }) != connections.end()};
+    //         assert(should_connect == in_connections);
+    //     }
+    // }
 }
 
 PointList InfiniteHypergraphModel::create_interactions(const Mark typical_vertex_mark) const
@@ -259,7 +275,7 @@ PointList InfiniteHypergraphModel::create_vertices(
     PointList vertices_under_tails{create_vertices_under_tails(hyperbolas)};
     vertices.insert(vertices.end(), vertices_under_tails.begin(), vertices_under_tails.end());
 
-    PointId vertex_id{1U}; // 0 is reserved for the typical vertex
+    PointId vertex_id{0U};
     for (auto &vertex : vertices)
     {
         vertex.set_id(vertex_id);

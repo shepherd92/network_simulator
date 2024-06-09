@@ -38,7 +38,7 @@ def create_boxplots(
     y_max = min(max(quantiles.to_numpy().max(), theoretical_value) + 0.05 * y_range, 2 * theoretical_value)
 
     with open(out_file_name, 'w') as out_file:
-        print(r'\begin{subfigure}[t]{0.2\textwidth} \resizebox{\textwidth}{!}{', file=out_file)
+        print(r'\begin{subfigure}[t]{0.28\textwidth} \resizebox{\textwidth}{!}{', file=out_file)
         print(r'    \begin{tikzpicture}', file=out_file)
         print(r'        \begin{axis}[', file=out_file)
         print(f'                xmin=0, xmax={len(directories) + 1}, ymin={y_min:.6f}, ymax={y_max:.6f},', file=out_file)
@@ -357,7 +357,7 @@ def create_dataset_parameter_estimates_table(
     with open(out_file_name, 'w') as out_file:
         print(r"\begin{table} [h] \centering \caption{Fitted power-law exponents and the inferred model parameters} \label{tab:dataset_parameter_estimates}", file=out_file)
         print(r'    \begin{tabular}{|l|r|r|r|r|r|r|r|} \hline', file=out_file)
-        print(r"        \multirow{2}{*}{dataset} & \multicolumn{2}{|c|}{$\PP$-vertex degree} & \multicolumn{2}{|c|}{$\PP'$-vertex degree} & \multirow{2}{*}{$\b$} & \multirow{2}{*}{$\la$} & \multirow{2}{*}{$\la'$} \\", file=out_file)
+        print(r"        \multirow{2}{*}{dataset} & \multicolumn{2}{|c|}{$\De_0$-degree} & \multicolumn{2}{|c|}{$\PP'$-vertex degree} & \multirow{2}{*}{$\b$} & \multirow{2}{*}{$\la$} & \multirow{2}{*}{$\la'$} \\", file=out_file)
         print(r"            & exponent & $\g$ & exponent & $\g'$ & & & \\ \hline", file=out_file)
         for name_in_table, name_to_print in dataset_name_translation.items():
             vertex_interaction_exponent = \

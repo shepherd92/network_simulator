@@ -18,41 +18,63 @@ class ModelConfig:
     class Analysis(NamedTuple):
         """Model analysis configuration."""
 
-        component_index_from_largest: int = -1
-        plot: bool = True
-        num_of_infinite_networks: int = 0
-        properties_to_calculate_finite: list[BaseNetworkProperty] = [
-            BaseNetworkProperty.num_of_vertices,
-            BaseNetworkProperty.num_of_edges,
-            BaseNetworkProperty.num_of_triangles,
-            # BaseNetworkProperty.num_of_interactions,
-            # BaseNetworkProperty.edges,
-            BaseNetworkProperty.mean_degree,
-            BaseNetworkProperty.max_degree,
-            # BaseNetworkProperty.mean_clustering,
-            BaseNetworkProperty.num_of_connected_components,
-            BaseNetworkProperty.interaction_vertex_degree_distribution,
-            BaseNetworkProperty.simplex_dimension_distribution,
-            # BaseNetworkProperty.facet_dimension_distribution,
-            BaseNetworkProperty.vertex_edge_degree_distribution,
-            # BaseNetworkProperty.in_degree_distribution,
-            # BaseNetworkProperty.out_degree_distribution,
-            BaseNetworkProperty.vertex_interaction_degree_distribution,
-            BaseNetworkProperty.edge_triangle_degree_distribution,
-            # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-            BaseNetworkProperty.betti_numbers,
-            # BaseNetworkProperty.betti_numbers_by_component,
-            BaseNetworkProperty.num_of_vertices_by_component,
-            BaseNetworkProperty.persistence_intervals,
-            # BaseNetworkProperty.persistence_pairs,
-        ]
-        properties_to_calculate_infinite: list[BaseNetworkProperty] = [
-            # BaseNetworkProperty.vertex_edge_degree_distribution,
-            # BaseNetworkProperty.in_degree_distribution,
-            # BaseNetworkProperty.out_degree_distribution,
-            # BaseNetworkProperty.edge_triangle_degree_distribution,
-            # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-        ]
+        class Finite(NamedTuple):
+            """Finite network analysis configuration."""
+            enable: bool = False
+            plot: bool = True
+            component_index_from_largest: int = -1
+            properties_to_calculate: list[BaseNetworkProperty] = [
+                BaseNetworkProperty.num_of_vertices,
+                BaseNetworkProperty.num_of_edges,
+                BaseNetworkProperty.num_of_triangles,
+                # BaseNetworkProperty.num_of_interactions,
+                # BaseNetworkProperty.edges,
+                BaseNetworkProperty.mean_degree,
+                BaseNetworkProperty.max_degree,
+                # BaseNetworkProperty.mean_clustering,
+                BaseNetworkProperty.num_of_connected_components,
+                BaseNetworkProperty.interaction_vertex_degree_distribution,
+                BaseNetworkProperty.simplex_dimension_distribution,
+                # BaseNetworkProperty.facet_dimension_distribution,
+                BaseNetworkProperty.vertex_edge_degree_distribution,
+                # BaseNetworkProperty.in_degree_distribution,
+                # BaseNetworkProperty.out_degree_distribution,
+                BaseNetworkProperty.vertex_interaction_degree_distribution,
+                BaseNetworkProperty.edge_interaction_degree_distribution,
+                # BaseNetworkProperty.triangle_interaction_degree_distribution,
+                BaseNetworkProperty.edge_triangle_degree_distribution,
+                # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+                BaseNetworkProperty.betti_numbers,
+                # BaseNetworkProperty.betti_numbers_by_component,
+                BaseNetworkProperty.num_of_vertices_by_component,
+                BaseNetworkProperty.persistence_intervals,
+                # BaseNetworkProperty.persistence_pairs,
+            ]
+
+        class InfiniteSet(NamedTuple):
+            """Infinite network set analysis configuration."""
+            enable: bool = False
+            num_of_infinite_networks: int = 100
+            properties_to_calculate: list[BaseNetworkProperty] = [
+                # BaseNetworkProperty.vertex_edge_degree_distribution,
+                # BaseNetworkProperty.in_degree_distribution,
+                # BaseNetworkProperty.out_degree_distribution,
+                # BaseNetworkProperty.edge_triangle_degree_distribution,
+                BaseNetworkProperty.vertex_interaction_degree_distribution,
+                BaseNetworkProperty.edge_interaction_degree_distribution,
+                # BaseNetworkProperty.triangle_interaction_degree_distribution,
+                # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+            ]
+
+        class Infinite(NamedTuple):
+            """Infinite network analysis configuration."""
+            enable: bool = True
+            plot: bool = True
+            typical_mark: float = 0.1
+
+        finite: Finite = Finite()
+        infinite: Infinite = Infinite()
+        infinite_set: InfiniteSet = InfiniteSet()
 
     class Fitting(NamedTuple):
         """Model fitting configuration."""
@@ -60,7 +82,7 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.INFINITE
+        mode: Model.Mode = Model.Mode.FINITE
         num_of_simulations: int = 100
         num_of_infinite_networks: int = 100000
 
@@ -72,7 +94,7 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 5
+NETWORK_MAGNITUDE = 4
 
 GAMMA = 0.7
 GAMMA_PRIME = 0.2

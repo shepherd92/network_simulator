@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -48,14 +47,13 @@ def report_in_degree_distribution(
     empirical_distribution: EmpiricalDistribution,
     axes: plt.Axes,
     save_directory: Path,
-    power_law_fitting_minimum_value: float,
+    **kwargs,
 ) -> None:
-
     approximation = DistributionApproximation(
         empirical_distribution,
-        TheoreticalDistribution.Type.POWER_LAW
+        TheoreticalDistribution.Type.POWER_LAW,
     )
-    fitting_parameters = create_power_law_fitting_parameters(power_law_fitting_minimum_value)
+    fitting_parameters = create_power_law_fitting_parameters(kwargs['power_law_fitting_minimum_value'])
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'in_degree_distribution')
@@ -71,7 +69,7 @@ def report_out_degree_distribution(
 ) -> None:
     approximation = DistributionApproximation(
         empirical_distribution,
-        TheoreticalDistribution.Type.POISSON
+        TheoreticalDistribution.Type.POISSON,
     )
     fitting_parameters = create_fitting_parameters_poisson()
     approximation.fit(fitting_parameters)

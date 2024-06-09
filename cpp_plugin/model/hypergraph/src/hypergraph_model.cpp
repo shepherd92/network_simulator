@@ -169,14 +169,23 @@ bool HypergraphModel::rectangle_points_may_connect(const Rectangle &vertex_recta
 }
 
 SimplexList HypergraphModel::create_interaction_simplices_from_connections(
+    const PointIdList &interactions,
     const ConnectionList &connections) const
 {
+    // initialize the map with empty vectors
     std::map<PointId, std::vector<PointId>> interactions_map{};
+    for (const auto &interaction : interactions)
+    {
+        interactions_map[interaction];
+    }
+
+    // fill the map with the connected vertices
     for (const auto &pair : connections)
     {
         interactions_map[pair.second].push_back(pair.first);
     }
 
+    // create simplices from the map
     std::vector<Simplex> simplices{};
     for (const auto &interaction : interactions_map)
     {

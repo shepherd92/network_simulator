@@ -17,8 +17,10 @@ public:
     std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
     generate_networks(const uint32_t num_of_infinite_networks) const;
 
+    std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
+    generate_network(const Mark typical_vertex_mark) const;
+
 private:
-    std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList> generate_network() const;
     PointList create_interactions(const Mark u) const;
     PointList transform_interactions(const PointList &interactions) const;
 

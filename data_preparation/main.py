@@ -97,7 +97,8 @@ def prepare_model_sample_data(directory: Path, output_dir: Path) -> None:
 
     captions = {
         'total_degree_distribution': '$0$-coface degree distribution',
-        'interaction_degree_distribution': r'$\PP$-vertex degree distribution',
+        'interaction_degree_distribution': r'$\De_0$-degree distribution',
+        'edge_interaction_degree_distribution': r'$\De_1$-degree distribution',
         'interaction_dimension_distribution': r"$\PP'$-vertex distribution",
         'ho_degree_distribution_1': '$1$-coface degree distribution',
         # 'ho_degree_distribution_2': 'Triangle--tetrahedron degree distribution',
@@ -275,8 +276,8 @@ def _create_boxplots_degree_distributions(directories: dict[str, Path], output_d
     GAMMA_PRIME = 0.2
 
     for property_name in [
-        'vertex_degree_exponent',
-        'edge_degree_exponent',
+        # 'vertex_degree_exponent',
+        # 'edge_degree_exponent',
         # 'triangle_degree_exponent',
         'interaction_vertex_degree_exponent',
         'vertex_interaction_degree_exponent',
@@ -298,13 +299,13 @@ def _create_boxplots_degree_distributions(directories: dict[str, Path], output_d
             caption = r"$\PP'$-vertex degree exponent distribution"
             theoretical_value = 1. + 1. / GAMMA_PRIME
         elif property_name == 'vertex_interaction_degree_exponent':
-            caption = r'$\PP$-vertex degree exponent distribution'
+            caption = r'$\De_0$-degree exponent distribution'
             theoretical_value = 1. + 1. / GAMMA
         elif property_name == 'edge_interaction_degree_exponent':
-            caption = r'$1$-coface degree exponent distribution'
+            caption = r'$\De_1$-degree exponent distribution'
             theoretical_value = 2. / GAMMA
         elif property_name == 'triangle_interaction_degree_exponent':
-            caption = r'$2$-coface degree exponent distribution'
+            caption = r'$\De_2$-degree exponent distribution'
             theoretical_value = 3. / GAMMA - 1.
 
         minimum_degrees = set([key[1] for key in directories.keys()])

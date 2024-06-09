@@ -118,7 +118,7 @@ class HypergraphModel(Model):
         print(self)
 
     def generate_finite_network(self, seed: int) -> FiniteNetwork:
-        """Build a network of the model."""
+        """Build a finite network of the model."""
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = FiniteHypergraphModel(self._parameters.to_numpy(), seed)
@@ -128,6 +128,19 @@ class HypergraphModel(Model):
         network.interaction_positions = self._create_point_positions_dict(interaction_positions)
 
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
+        return network
+
+    def generate_infinite_network(self, typical_mark: float, seed: int) -> InfiniteNetwork:
+        """Build an infinite network of the model."""
+        info(f'Generating infinite network ({self.__class__.__name__}) with seed {seed}.')
+
+        cpp_model = InfiniteHypergraphModel(self._parameters.to_numpy(), seed)
+        cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network(typical_mark)
+        network = InfiniteNetwork(cpp_network)
+        network.vertex_positions = self._create_point_positions_dict(vertex_positions)
+        network.interaction_positions = self._create_point_positions_dict(interaction_positions)
+
+        info(f'Generating infinite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
     def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
@@ -142,7 +155,7 @@ class HypergraphModel(Model):
             infinite_network = InfiniteNetwork(cpp_network)
             infinite_network.vertex_positions = self._create_point_positions_dict(vertex_positions)
             infinite_network.interaction_positions = self._create_point_positions_dict(interaction_positions)
-            infinite_networks.append(InfiniteNetwork(cpp_network))
+            infinite_networks.append(infinite_network)
         return InfiniteNetworkSet(infinite_networks)
 
     def _create_point_positions_dict(self, vertex_positions: list[tuple[float, float]]) -> dict[int, tuple[float, ...]]:

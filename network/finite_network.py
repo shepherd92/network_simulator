@@ -163,6 +163,18 @@ class FiniteNetwork(Network):
         }
 
     @log_function_name
+    def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
+        """Set graph to represent the simplicial complex."""
+        graph = nx.Graph()
+        graph.add_nodes_from(self.vertices)
+        graph.add_edges_from([
+            [*simplex]
+            for simplex in self.cpp_network.get_skeleton(1)
+            if len(simplex) == 2
+        ])
+        return graph
+
+    @log_function_name
     def _calculate_average_degree(self) -> float:
         num_of_nodes = self.graph.number_of_nodes()
         num_of_edges = self.graph.number_of_edges()
@@ -342,19 +354,6 @@ class FiniteNetwork(Network):
 
     def _calc_components(self) -> None:
         self._components = self.get_partition(1)
-
-    @log_function_name
-    def num_simplices(self, dimension: int) -> int:
-        """Return the number of simplices in the simplicial complex."""
-        if dimension == 0:
-            return self.cpp_network.num_vertices()
-        elif dimension == 1:
-            return self.graph.number_of_edges()
-        else:
-            return sum(
-                part.cpp_network.num_simplices(dimension)
-                for part in self.get_partition(10000)
-            )
 
     def __copy__(self):
         """Shallow copy of self."""

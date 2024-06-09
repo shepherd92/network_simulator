@@ -14,14 +14,12 @@ public:
     FiniteNetwork(
         const Dimension max_dimension,
         const PointIdList &vertices,
-        const ISimplexList &nonempty_interactions,
-        const uint32_t num_of_empty_interactions,
+        const ISimplexList &interactions,
         const bool weighted);
     FiniteNetwork(
         const Dimension max_dimension,
         const PointIdList &vertices,
-        const SimplexList &nonempty_interactions,
-        const uint32_t num_of_empty_interactions,
+        const SimplexList &interactions,
         const bool weighted);
     FiniteNetwork(const FiniteNetwork &other);
     ~FiniteNetwork();
@@ -32,6 +30,11 @@ public:
     void expand();
     void reset() override;
 
+    std::vector<uint32_t> calc_coface_degree_sequence(
+        const Dimension simplex_dimension,
+        const Dimension neighbor_dimension) override;
+    std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
+        const Dimension simplex_dimension) override;
     PointIdList get_vertices() const;
     std::vector<int32_t> calc_betti_numbers();
     std::vector<ISimplexList> calc_persistence_pairs();
@@ -54,8 +57,8 @@ private:
     using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
     using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
-    const SimplexList &get_neighbors(const Dimension dimension) override;
     SimplexList calc_simplices(const Dimension dimension) override;
+    SimplexList get_skeleton(const Dimension max_dimension) override;
 
     void calc_persistent_cohomology();
     bool is_valid() const;

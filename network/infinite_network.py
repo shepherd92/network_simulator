@@ -7,6 +7,7 @@ from logging import info
 from pathlib import Path
 from typing import Any
 
+import networkx as nx
 import pandas as pd
 
 # pylint: disable=no-name-in-module
@@ -33,7 +34,7 @@ class InfiniteNetworkSet:
 
         largest_network = max(
             self._infinite_networks,
-            key=lambda network: network.num_simplices(0)
+            key=lambda network: network.num_all_vertices()
         )
         return largest_network
 
@@ -119,18 +120,23 @@ class InfiniteNetwork(Network):
 
         return property_value
 
-    def num_simplices(self, dimension: int) -> int:
-        """Return the number of simplices in the simplicial complex."""
-        if dimension == 0:
-            return 1
-        elif dimension == 1:
-            return self.graph.degree(0)
-        else:
-            return self.cpp_network.num_simplices(dimension)
+    def num_all_vertices(self) -> int:
+        """Return the number of all vertices."""
+        return len(self.cpp_network.get_skeleton(1))
 
     def info(self) -> dict[str, Any]:
         """Return a dict representation based on the network properties."""
         raise NotImplementedError('This method is not implemented.')
+
+    @log_function_name
+    def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
+        """Set graph to represent the simplicial complex."""
+        # assert self.simplicial_complex.num_vertices() != 0, 'Simplicial complex is not built.'
+        skeleton = self.cpp_network.get_skeleton(2)
+        graph = nx.Graph()
+        graph.add_nodes_from([simplex[0] for simplex in skeleton if len(simplex) == 1])
+        graph.add_edges_from([[*simplex] for simplex in skeleton if len(simplex) == 2])
+        return graph
 
     def _calculate_interaction_dimension_distribution(self) -> list[int]:
         """Return the number of interactions for each dimension."""

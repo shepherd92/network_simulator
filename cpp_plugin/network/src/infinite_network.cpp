@@ -9,11 +9,10 @@
 InfiniteNetwork::InfiniteNetwork(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const ISimplexList &nonempty_interactions,
-    const uint32_t num_of_empty_interactions,
+    const ISimplexList &interactions,
     const Mark typical_vertex_mark_,
     const MarkList &marks)
-    : Network{max_dimension, vertices, SimplexList{nonempty_interactions}, num_of_empty_interactions},
+    : Network{max_dimension, vertices, SimplexList{interactions}},
       typical_vertex_mark_{typical_vertex_mark_},
       marks_{marks},
       neighbors_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
@@ -23,11 +22,10 @@ InfiniteNetwork::InfiniteNetwork(
 InfiniteNetwork::InfiniteNetwork(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const SimplexList &nonempty_interactions,
-    const uint32_t num_of_empty_interactions,
+    const SimplexList &interactions,
     const Mark typical_vertex_mark_,
     const MarkList &marks)
-    : Network{max_dimension, vertices, nonempty_interactions, num_of_empty_interactions},
+    : Network{max_dimension, vertices, interactions},
       typical_vertex_mark_{typical_vertex_mark_},
       marks_{marks},
       neighbors_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
@@ -37,6 +35,16 @@ InfiniteNetwork::InfiniteNetwork(
 Mark InfiniteNetwork::typical_mark() const
 {
     return typical_vertex_mark_;
+}
+
+SimplexList InfiniteNetwork::get_skeleton(const Dimension max_dimension)
+{
+    SimplexList result{};
+    for (auto dimension{0}; dimension <= max_dimension; ++dimension)
+    {
+        result += get_neighbors(dimension);
+    }
+    return result;
 }
 
 SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
@@ -67,10 +75,34 @@ SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
     return result;
 }
 
+std::vector<uint32_t> InfiniteNetwork::calc_simplex_interaction_degree_sequence(
+    const Dimension simplex_dimension)
+{
+    if (simplex_dimension == 0)
+    {
+        // assumption: all interactions are connected to the typical vertex
+        return {interactions_.size()};
+    }
+
+    auto simplex_degree_map{interactions_.calc_degree_sequence(simplex_dimension - 1)};
+
+    // order of the degree values does not matter
+    std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
+    result.reserve(simplex_degree_map.size());
+    for (const auto &simplex : simplices)
+    {
+        // simplex has typical vertex, simplex_degree_map is for simplices without typical vertex
+        result.emplace_back(simplex_degree_map[simplex]);
+    }
+
+    return result;
+}
+
 std::vector<uint32_t> InfiniteNetwork::calc_vertex_interaction_degree_distribution() const
 {
     // assumption: all interactions are connected to the typical vertex
-    return {nonempty_interactions_.size() + num_of_empty_interactions_};
+    return {};
 }
 
 std::vector<Dimension> InfiniteNetwork::calc_facet_dimension_distribution()
@@ -84,10 +116,8 @@ std::vector<Dimension> InfiniteNetwork::calc_facet_dimension_distribution()
 
 std::vector<Dimension> InfiniteNetwork::calc_interaction_dimension_distribution() const
 {
-    // first calculate the distribution where the typical vertex is not included
+    // calculate the distribution where the typical vertex is not included
     auto result{Network::calc_interaction_dimension_distribution()};
-    // add dimension 0 by shifting the vector
-    result.insert(result.begin(), num_of_empty_interactions_);
     return result;
 }
 
@@ -106,7 +136,16 @@ std::vector<uint32_t> InfiniteNetwork::calc_coface_degree_sequence(
     {
         return {possible_cofaces.size()};
     }
-    return Network::calc_coface_degree_sequence(simplex_dimension, neighbor_dimension);
+
+    // -1 because the typical vertex is implicitly included
+    auto simplex_degree_map{possible_cofaces.calc_degree_sequence(simplex_dimension - 1U)};
+    std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
+    for (const auto &simplex : simplices)
+    {
+        result.emplace_back(simplex_degree_map[simplex]);
+    }
+    return result;
 }
 
 const SimplexList &InfiniteNetwork::get_neighbors(const Dimension dimension)

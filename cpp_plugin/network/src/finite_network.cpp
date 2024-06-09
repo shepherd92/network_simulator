@@ -6,10 +6,9 @@
 FiniteNetwork::FiniteNetwork(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const ISimplexList &nonempty_interactions,
-    const uint32_t num_of_empty_interactions,
+    const ISimplexList &interactions,
     const bool weighted)
-    : Network{max_dimension, vertices, SimplexList{nonempty_interactions}, num_of_empty_interactions},
+    : Network{max_dimension, vertices, SimplexList{interactions}},
       weighted_{weighted},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
@@ -19,10 +18,9 @@ FiniteNetwork::FiniteNetwork(
 FiniteNetwork::FiniteNetwork(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const SimplexList &nonempty_interactions,
-    const uint32_t num_of_empty_interactions,
+    const SimplexList &interactions,
     const bool weighted)
-    : Network{max_dimension, vertices, nonempty_interactions, num_of_empty_interactions},
+    : Network{max_dimension, vertices, interactions},
       weighted_{weighted},
       simplex_tree_{std::nullopt},
       persistent_cohomology_{nullptr}
@@ -47,9 +45,14 @@ PointIdList FiniteNetwork::get_vertices() const
     return vertices_;
 }
 
-const SimplexList &FiniteNetwork::get_neighbors(const Dimension dimension)
+SimplexList FiniteNetwork::get_skeleton(const Dimension max_dimension)
 {
-    return get_simplices(dimension);
+    SimplexList result{};
+    for (auto dimension{0}; dimension <= max_dimension; ++dimension)
+    {
+        result += get_simplices(dimension);
+    }
+    return result;
 }
 
 SimplexList FiniteNetwork::calc_simplices(const Dimension dimension)
@@ -148,6 +151,29 @@ void FiniteNetwork::calc_persistent_cohomology()
     std::cout << "done" << std::flush;
 }
 
+std::vector<uint32_t> FiniteNetwork::calc_simplex_interaction_degree_sequence(
+    const Dimension simplex_dimension)
+{
+    if (simplex_dimension == 0)
+    {
+        return calc_vertex_interaction_degree_distribution();
+    }
+
+    auto simplex_degree_map{interactions_.calc_degree_sequence(simplex_dimension)};
+
+    // order of the degree values does not matter
+    std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
+    result.reserve(simplex_degree_map.size());
+    for (const auto &simplex : simplices)
+    {
+        // simplex has typical vertex, simplex_degree_map is for simplices without typical vertex
+        result.emplace_back(simplex_degree_map[simplex]);
+    }
+
+    return result;
+}
+
 std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution() const
 {
     // initialize result with zeros
@@ -159,8 +185,8 @@ std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution
 
     std::for_each(
         std::execution::seq,
-        nonempty_interactions_.simplices().begin(),
-        nonempty_interactions_.simplices().end(),
+        interactions_.simplices().begin(),
+        interactions_.simplices().end(),
         [&](const auto &interaction)
         {
             std::for_each(
@@ -181,6 +207,27 @@ std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution
     }
 
     return counts;
+}
+
+std::vector<uint32_t> FiniteNetwork::calc_coface_degree_sequence(
+    const Dimension simplex_dimension,
+    const Dimension neighbor_dimension)
+{
+    assert(neighbor_dimension > simplex_dimension);
+
+    const auto &cofaces{get_simplices(neighbor_dimension)};
+    auto simplex_degree_map{cofaces.calc_degree_sequence(simplex_dimension)};
+
+    // order of the degree values does not matter
+    std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
+    result.reserve(simplex_degree_map.size());
+    for (const auto &simplex : simplices)
+    {
+        result.emplace_back(simplex_degree_map[simplex]);
+    }
+
+    return result;
 }
 
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
@@ -244,7 +291,7 @@ void FiniteNetwork::fill_simplicial_complex()
         weights.reserve(simplices.size());
         if (weighted())
         {
-            auto simplex_weight_map{nonempty_interactions_.calc_degree_sequence(dimension)};
+            auto simplex_weight_map{interactions_.calc_degree_sequence(dimension)};
 
             for (const auto &simplex : simplices)
             {

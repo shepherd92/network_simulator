@@ -63,12 +63,13 @@ void test_finite_hypergraph()
 
 void test_infinite_hypergraph()
 {
-    constexpr auto seed{714116716};
+    constexpr auto seed{1};
     constexpr auto gamma{0.7};
     constexpr auto gamma_prime{0.2};
     constexpr auto network_magnitude{5.};
     constexpr auto expected_vertex_interaction_degree{3.0};
     constexpr auto beta{expected_vertex_interaction_degree * 0.5 * (1. - gamma) * (1. - gamma_prime) * std::pow(10., -network_magnitude)};
+    constexpr Mark typical_vertex_mark{1e-1};
 
     const std::vector<double> model_params{
         2U,                               // max_dimension
@@ -80,26 +81,31 @@ void test_infinite_hypergraph()
 
     std::cout << "\rCreating infinite hypergraph model" << std::endl;
     const InfiniteHypergraphModel model{model_params, seed};
-    std::cout << "\rGenerating infinite network" << std::endl;
-    auto network_interfaces{model.generate_networks(1000000)};
 
+    std::cout << "\rGenerating infinite network" << std::endl;
+    auto network_interface{model.generate_network(typical_vertex_mark)};
+
+    std::cout << "\rGenerating infinite network set" << std::endl;
+    auto network_interfaces{model.generate_networks(1000)};
     for (const auto &network_interface : network_interfaces)
     {
         auto network{std::get<0>(network_interface)};
         // std::cout << "\rCalculating degree sequence (0, 1)" << std::endl;
-        network.calc_coface_degree_sequence(0, 1);
+        // network.calc_coface_degree_sequence(0, 1);
         // std::cout << "\rCalculating degree sequence (1, 2)" << std::endl;
-        network.calc_coface_degree_sequence(1, 2);
+        // network.calc_coface_degree_sequence(1, 2);
         // std::cout << "\rCalculating facet dimension distribution" << std::endl;
-        network.calc_facet_dimension_distribution();
-        // std::cout << "\rCalculating interaction dimension distribution" << std::endl;
+        // network.calc_facet_dimension_distribution();
+        std::cout << "\rCalculating interaction dimension distribution" << std::endl;
         network.calc_interaction_dimension_distribution();
         // std::cout << "\rCalculating simplex dimension distribution" << std::endl;
-        network.calc_simplex_dimension_distribution();
-        // std::cout << "\rCalculating vertex interaction degree distribution" << std::endl;
+        // network.calc_simplex_dimension_distribution();
+        std::cout << "\rCalculating skeleton" << std::endl;
+        network.get_skeleton(2);
+        std::cout << "\rCalculating vertex interaction degree distribution" << std::endl;
         network.calc_simplex_interaction_degree_sequence(1);
-        // std::cout << "\rCalculating number of triangles" << std::endl;
+        std::cout << "\rCalculating number of triangles" << std::endl;
         network.num_simplices(2);
-        // std::cout << "\rDone" << std::endl;
+        std::cout << "\rDone" << std::endl;
     }
 }

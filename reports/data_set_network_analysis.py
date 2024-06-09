@@ -25,9 +25,7 @@ from reports.finite_network_analysis import (
     report_persistence_diagram,
     report_betti_number_1_by_component,
 )
-from reports.plotting_helper import (
-    plot_giant_component,
-)
+from reports.plotting_helper import plot_network
 from tools.logging_helper import log_function_name
 
 
@@ -44,7 +42,7 @@ def analyze_data_set_network(
     plt.rcParams["text.usetex"] = False
 
     if plot:
-        plot_giant_component(network, save_directory / 'network.png')
+        plot_network(network.get_component(0), False, save_directory / 'network.png')
 
     summary = network.calc_network_summary(calculated_properties)
 

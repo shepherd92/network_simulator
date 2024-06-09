@@ -28,10 +28,11 @@ PYBIND11_MODULE(cpp_plugin, m)
 
     py::class_<InfiniteHypergraphModel>(m, "InfiniteHypergraphModel")
         .def(py::init<const std::vector<double> &, const uint32_t>())
-        .def("generate_networks", &InfiniteHypergraphModel::generate_networks);
+        .def("generate_networks", &InfiniteHypergraphModel::generate_networks)
+        .def("generate_network", &InfiniteHypergraphModel::generate_network);
 
     py::class_<FiniteNetwork>(m, "FiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const uint32_t, const bool>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const bool>())
         .def("create_simplicial_complex", &FiniteNetwork::create_simplicial_complex)
         .def("expand", &FiniteNetwork::expand)
         .def("filter", &FiniteNetwork::filter)
@@ -53,7 +54,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_facets", &FiniteNetwork::get_facets_interface);
 
     py::class_<InfiniteNetwork>(m, "InfiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const uint32_t, const PointId, const MarkList &>())
+        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const Mark, const MarkList &>())
         .def("get_skeleton", &InfiniteNetwork::get_skeleton_interface)
         .def("num_vertices", &InfiniteNetwork::num_vertices)
         .def("num_simplices", &InfiniteNetwork::num_simplices)

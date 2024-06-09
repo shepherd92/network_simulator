@@ -22,7 +22,8 @@ from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-from network.finite_network import FiniteNetwork
+from network.infinite_network import InfiniteNetwork
+from network.network import Network
 from tools.logging_helper import log_function_name
 
 
@@ -48,12 +49,19 @@ def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
 
 
 @log_function_name
-def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: bool, axes: plt.Axes) -> None:
+def plot_network(network: Network, determined_vertex_positions: bool, save_path: Path) -> None:
     """Plot a simplicial complex on the given axis."""
+    plt.rcParams["text.usetex"] = False
+
     color_map_name = 'plasma_r'  # viridis, plasma, inferno, magma, cividis
     if determined_vertex_positions:
+        debug('Plotting simplicial complex with fixed positions started.')
+        print('\rPlot network fixed positions...', end='')
         assert network.vertex_positions is not None
-        vertex_positions = network.vertex_positions
+        vertex_positions = {
+            key: (position, mark)
+            for key, (mark, position) in network.vertex_positions.items()
+        }
     else:
         vertex_positions = _determine_node_positions(network.graph)
     interactions_to_plot = _determine_interactions_to_plot(network.interactions)
@@ -85,6 +93,8 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
         for convex_hull, node_positions in zip(convex_hulls, interaction_vertex_positions)
     ]
 
+    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
+
     if len(interactions_to_plot) > 0:
         face_colors = _get_simplex_colors(interactions_to_plot, color_map_name)
 
@@ -110,6 +120,83 @@ def plot_finite_network(network: FiniteNetwork, determined_vertex_positions: boo
     nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.0001, alpha=1e-6)
 
     axes.set_axis_off()
+    figure.savefig(save_path, dpi=PLOT_DPI)
+    figure.clf()
+
+    if determined_vertex_positions:
+        debug('Plotting simplicial complex with fixed positions finished.')
+    else:
+        debug('Plotting simplicial complex finished.')
+
+
+@log_function_name
+def plot_hypergraph(network: Network, determined_positions: bool, save_path: Path) -> None:
+    """Plot a hypergraph complex on the given axis."""
+    plt.rcParams["text.usetex"] = False
+    if determined_positions:
+        debug('Plotting hypergraph fixed positions started.')
+        print('\rPlot hypergraph fixed positions...', end='')
+        assert network.vertex_positions is not None
+        assert network.interaction_positions is not None
+        vertex_positions = network.vertex_positions
+        interaction_positions = network.interaction_positions
+    else:
+        raise NotImplementedError('Determining positions is not implemented yet.')
+
+    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
+
+    # create the hypergraph network
+    interactions = network.interactions
+    num_of_interactions = len(interactions)
+    hypergraph_edges = []
+    for interaction_id, interaction in enumerate(network.interactions):
+        hypergraph_edges.extend(list(zip(
+            [interaction_id] * len(interaction),
+            [vertex_id + num_of_interactions for vertex_id in interaction]
+        )))
+
+    # increment the vertex id-s by the number of interactions
+    vertex_positions_shifted_id = {key + len(interactions): value for key, value in vertex_positions.items()}
+    hypergraph_vertex_positions = interaction_positions | vertex_positions_shifted_id
+    hypergraph = nx.Graph()
+    hypergraph.add_nodes_from(hypergraph_vertex_positions.keys())
+    hypergraph.add_edges_from(hypergraph_edges)
+
+    nx.draw_networkx_edges(hypergraph, hypergraph_vertex_positions, ax=axes,
+                           edge_color='black', width=0.2, alpha=1)
+    axes.scatter(
+        [position[0] for position in vertex_positions.values()],
+        [position[1] for position in vertex_positions.values()],
+        c='blue', s=1
+    )
+    axes.scatter(
+        [position[0] for position in interaction_positions.values()],
+        [position[1] for position in interaction_positions.values()],
+        c='red', s=1
+    )
+    axes.axhline(y=0., color='black', linestyle='-', linewidth=0.3)
+    axes.axhline(y=1., color='black', linestyle='-', linewidth=0.3)
+    # axes.axvline(x=0., color='black', linestyle='-', linewidth=0.3)
+
+    if isinstance(network, InfiniteNetwork):
+        axes.scatter(
+            [0],
+            [network.cpp_network.typical_mark()],
+            c='green', s=5
+        )
+
+    width_of_torus = 1.05 * max(
+        [np.abs(position[0]) for position in interaction_positions.values()] +
+        [np.abs(position[0]) for position in vertex_positions.values()]
+    )
+    axes.set_xlim(-width_of_torus, +width_of_torus)
+    axes.set_ylim(-0.05, 1.05)
+
+    figure.savefig(save_path, dpi=PLOT_DPI)
+    figure.clf()
+
+    if determined_positions:
+        debug('Plotting hypergraph fixed positions finished.')
 
 
 @log_function_name
@@ -722,90 +809,3 @@ def _calc_linear_scale_plot_limits(values_single_axis: npt.NDArray[np.float_ | n
     assert not np.isnan(lower_limit) and not np.isnan(upper_limit)
 
     return lower_limit, upper_limit
-
-
-def plot_giant_component(network: FiniteNetwork, save_path: Path):
-    """Plot the giant component of the network."""
-    plt.rcParams["text.usetex"] = False
-
-    debug('Plotting simplicial complex of giant component started.')
-    print('\rPlot giant component...', end='')
-    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
-    network_to_plot = network.get_component(0)
-    plot_finite_network(network_to_plot, False, axes)
-    figure.savefig(save_path, dpi=PLOT_DPI)
-    figure.clf()
-    debug('Plotting simplicial complex of giant component finished.')
-
-
-def plot_network_determined_positions(network: FiniteNetwork, save_path: Path):
-    """Plot the entire network with predetermined vertex positions."""
-    plt.rcParams["text.usetex"] = False
-
-    debug('Plotting simplicial complex with fixed positions started.')
-    print('\rPlot network fixed positions...', end='')
-    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
-    plot_finite_network(network, True, axes)
-    figure.savefig(save_path, dpi=PLOT_DPI)
-    figure.clf()
-    debug('Plotting simplicial complex with fixed positions finished.')
-
-
-def plot_hypergraph_determined_positions(network: FiniteNetwork, save_path: Path):
-    """Plot the entire network with predetermined vertex positions."""
-    plt.rcParams["text.usetex"] = False
-
-    debug('Plotting hypergraph fixed positions started.')
-    print('\rPlot hypergraph fixed positions...', end='')
-    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
-    plot_hypergraph(network, True, axes)
-    figure.savefig(save_path, dpi=PLOT_DPI)
-    figure.clf()
-    debug('Plotting hypergraph fixed positions finished.')
-
-
-@log_function_name
-def plot_hypergraph(network: FiniteNetwork, determined_positions: bool, axes: plt.Axes) -> None:
-    """Plot a hypergraph complex on the given axis."""
-    if determined_positions:
-        assert network.vertex_positions is not None
-        assert network.interaction_positions is not None
-        vertex_positions = network.vertex_positions
-        interaction_positions = network.interaction_positions
-    else:
-        raise NotImplementedError('Determining positions is not implemented yet.')
-
-    axes.scatter(
-        [position[0] for position in vertex_positions.values()],
-        [position[1] for position in vertex_positions.values()],
-        c='blue', s=100
-    )
-    axes.scatter(
-        [position[0] for position in interaction_positions.values()],
-        [position[1] for position in interaction_positions.values()],
-        c='red', s=100
-    )
-
-    # create the hypergraph network
-    interactions = network.interactions
-    num_of_interactions = len(interactions)
-    hypergraph_edges = []
-    for interaction_id, interaction in enumerate(network.interactions):
-        hypergraph_edges.extend(list(zip(
-            [interaction_id] * len(interaction),
-            [vertex_id + num_of_interactions for vertex_id in interaction]
-        )))
-
-    # increment the vertex id-s by the number of interactions
-    vertex_positions_shifted_id = {key + len(interactions): value for key, value in vertex_positions.items()}
-    hypergraph_vertex_positions = interaction_positions | vertex_positions_shifted_id
-    hypergraph = nx.Graph()
-    hypergraph.add_nodes_from(hypergraph_vertex_positions.keys())
-    hypergraph.add_edges_from(hypergraph_edges)
-
-    nx.draw_networkx_edges(hypergraph, hypergraph_vertex_positions, ax=axes,
-                           edge_color='black', width=1, alpha=1)
-    axes.axhline(y=0., color='black', linestyle='-')
-    axes.axhline(y=1., color='black', linestyle='-')
-    axes.axvline(x=0., color='black', linestyle='-')
-    axes.set_ylim(0., 1.)
