@@ -96,17 +96,18 @@ def prepare_model_sample_data(directory: Path, output_dir: Path) -> None:
     (output_dir / 'model_sample').mkdir(parents=True, exist_ok=True)
 
     captions = {
-        'total_degree_distribution': '$0$-coface degree distribution',
-        'interaction_degree_distribution': r'$\De_0$-degree distribution',
+        'vertex_interaction_degree_distribution': r'$\De_0$-degree distribution',
         'edge_interaction_degree_distribution': r'$\De_1$-degree distribution',
         'interaction_dimension_distribution': r"$\PP'$-vertex distribution",
+        'total_degree_distribution': '$0$-coface degree distribution',
         'ho_degree_distribution_1': '$1$-coface degree distribution',
         # 'ho_degree_distribution_2': 'Triangle--tetrahedron degree distribution',
     }
 
     for property_name in [
         'total_degree_distribution',
-        'interaction_degree_distribution',
+        'vertex_interaction_degree_distribution',
+        'edge_interaction_degree_distribution',
         'interaction_dimension_distribution',
         'ho_degree_distribution_1',
         # 'ho_degree_distribution_2',
@@ -120,6 +121,7 @@ def prepare_model_sample_data(directory: Path, output_dir: Path) -> None:
                 csv_file_name=Path('data/model_sample') / property_name / 'value_counts.csv',
                 x_column=0,
                 y_column=1,
+                width=0.28,
                 caption=captions[property_name]
             )
 
@@ -276,8 +278,8 @@ def _create_boxplots_degree_distributions(directories: dict[str, Path], output_d
     GAMMA_PRIME = 0.2
 
     for property_name in [
-        # 'vertex_degree_exponent',
-        # 'edge_degree_exponent',
+        'vertex_degree_exponent',
+        'edge_degree_exponent',
         # 'triangle_degree_exponent',
         'interaction_vertex_degree_exponent',
         'vertex_interaction_degree_exponent',
@@ -352,6 +354,7 @@ def create_data_degree_distributions(directories: dict[str, Path], output_dir: P
                 csv_file_name=Path('data/data') / property_name / 'value_counts.csv',
                 x_column='value',
                 y_column=dataset_name,
+                width=0.2,
                 caption='',
             )
 

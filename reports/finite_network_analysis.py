@@ -169,7 +169,26 @@ def report_vertex_interaction_degree_distribution(
     fitting_parameters = create_power_law_fitting_parameters(power_law_fitting_minimum_value)
     approximation.fit(fitting_parameters)
 
-    approximation.save(save_directory / 'interaction_degree_distribution')
+    approximation.save(save_directory / 'vertex_interaction_degree_distribution')
+    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
+
+
+@check_calculated('Edge--interaction degree distribution')
+def report_edge_interaction_degree_distribution(
+    empirical_distribution: EmpiricalDistribution,
+    axes: plt.Axes,
+    save_directory: Path,
+    power_law_fitting_minimum_value: float,
+) -> None:
+    """Report edge--interaction degree distribution."""
+    approximation = DistributionApproximation(
+        empirical_distribution,
+        TheoreticalDistribution.Type.POWER_LAW
+    )
+    fitting_parameters = create_power_law_fitting_parameters(power_law_fitting_minimum_value)
+    approximation.fit(fitting_parameters)
+
+    approximation.save(save_directory / 'edge_interaction_degree_distribution')
     plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
 
 

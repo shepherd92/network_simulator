@@ -244,6 +244,7 @@ def create_value_counts_log_plot(
     csv_file_name: Path,
     x_column: str | int,
     y_column: str | int,
+    width: float,
     caption: str,
 ) -> None:
     """Create value counts log plots."""
@@ -278,7 +279,9 @@ def create_value_counts_log_plot(
 
     out_file_name.parent.mkdir(parents=True, exist_ok=True)
     with open(out_file_name, 'w') as out_file:
-        print(r'\begin{subfigure}[b]{0.2\textwidth}', file=out_file)
+        print(r'\begin{subfigure}[t]{', end='', file=out_file)
+        print(f'{width}', end='', file=out_file)
+        print(r'\textwidth}', file=out_file)
         print(r'    \resizebox{\textwidth}{!}{', file=out_file)
         print(r'        \begin{tikzpicture}', file=out_file)
         print(r'            \begin{axis} [', file=out_file)
