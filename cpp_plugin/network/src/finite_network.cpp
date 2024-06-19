@@ -57,7 +57,8 @@ SimplexList FiniteNetwork::get_skeleton(const Dimension max_dimension)
 
 SimplexList FiniteNetwork::calc_simplices(const Dimension dimension)
 {
-    return get_facets().faces(dimension);
+    // return get_facets().faces(dimension);
+    return interactions_.faces(dimension);
 }
 
 FiniteNetwork FiniteNetwork::filter(const PointIdList &vertices) const

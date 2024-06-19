@@ -5,7 +5,7 @@
 
 class InfiniteNetwork;
 
-constexpr Mark MIN_MARK{1e-7};
+constexpr Mark MIN_MARK{1e-10};
 constexpr Mark MAX_MARK{1.};
 
 class InfiniteModel : virtual public Model

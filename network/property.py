@@ -53,6 +53,7 @@ class DerivedNetworkProperty:
     fitting_parameters: TheoreticalDistribution.FittingParameters
     calculator_default: Callable[[Any], float | int] = lambda property_value: property_value
     calculator_data_set: Callable[[Any], float | int] | None = None
+    directly_calculated_from_model: bool = False
 
 
 @dataclass

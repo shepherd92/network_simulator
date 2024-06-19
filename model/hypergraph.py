@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from logging import info
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -172,6 +173,30 @@ class HypergraphModel(Model):
     def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
         """Convert a tuple to ModelParamters. Used for model optimization."""
         self.parameters = HypergraphModel.Parameters(*parameters_tuple)
+
+    def calc_base_property(
+        self,
+        property_type: BaseNetworkProperty,
+        num_of_networks: int,
+        seed: int
+    ) -> Any:
+        """Calculate the base property of the model."""
+        cpp_model = InfiniteHypergraphModel(self._parameters.to_numpy(), seed)
+        if property_type == BaseNetworkProperty.num_of_vertices:
+            return self.parameters.network_size
+        elif property_type == BaseNetworkProperty.vertex_interaction_degree_distribution:
+            return self.calc_vertex_interaction_distribution_directly_from_model(cpp_model, num_of_networks)
+        raise NotImplementedError
+
+    def calc_vertex_interaction_distribution_directly_from_model(
+        self,
+        cpp_model: InfiniteHypergraphModel | FiniteHypergraphModel,
+        num_of_networks: int,
+    ) -> list[int]:
+        """Calculate the properties of the model directly."""
+        raw_result = cpp_model.calc_vertex_interaction_degree_sequence_directly(num_of_networks)
+        # put every element into a singleton list
+        return [[value] for value in raw_result]
 
     def info(self) -> dict[str, int | float]:
         """Return a dict representation based on the model properties."""

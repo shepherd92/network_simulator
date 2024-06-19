@@ -24,9 +24,9 @@ class ModelConfig:
             plot: bool = False
             component_index_from_largest: int = -1
             properties_to_calculate: list[BaseNetworkProperty] = [
-                BaseNetworkProperty.num_of_vertices,
-                # BaseNetworkProperty.num_of_edges,
-                # BaseNetworkProperty.num_of_triangles,
+                # BaseNetworkProperty.num_of_vertices,
+                BaseNetworkProperty.num_of_edges,
+                BaseNetworkProperty.num_of_triangles,
                 # BaseNetworkProperty.num_of_interactions,
                 # BaseNetworkProperty.edges,
                 # BaseNetworkProperty.mean_degree,
@@ -39,12 +39,12 @@ class ModelConfig:
                 # BaseNetworkProperty.vertex_edge_degree_distribution,
                 # BaseNetworkProperty.in_degree_distribution,
                 # BaseNetworkProperty.out_degree_distribution,
-                BaseNetworkProperty.vertex_interaction_degree_distribution,
+                # BaseNetworkProperty.vertex_interaction_degree_distribution,
                 # BaseNetworkProperty.edge_interaction_degree_distribution,
                 # BaseNetworkProperty.triangle_interaction_degree_distribution,
                 # BaseNetworkProperty.edge_triangle_degree_distribution,
                 # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-                # BaseNetworkProperty.betti_numbers,
+                BaseNetworkProperty.betti_numbers,
                 # BaseNetworkProperty.betti_numbers_by_component,
                 # BaseNetworkProperty.num_of_vertices_by_component,
                 # BaseNetworkProperty.persistence_intervals,

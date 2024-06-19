@@ -53,9 +53,9 @@ ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     max_dimension=2,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
-    weighted=True,
+    weighted=False,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2025-01-01')),
-    fields=[ArxivField.mathematics],
+    fields=[ArxivField.computer_science],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
 )
 

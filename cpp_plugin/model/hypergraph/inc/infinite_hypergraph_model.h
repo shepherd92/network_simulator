@@ -20,6 +20,8 @@ public:
     std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
     generate_network(const Mark typical_vertex_mark) const;
 
+    std::vector<uint32_t> calc_vertex_interaction_degree_sequence_directly(const uint32_t num_of_networks);
+
 private:
     PointList create_interactions(const Mark u) const;
     PointList transform_interactions(const PointList &interactions) const;

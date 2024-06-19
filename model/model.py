@@ -59,10 +59,11 @@ class Model:
         initial_seed: int,
         num_of_infinite_networks_per_simulation: int = 0,
     ) -> dict[str, EmpiricalDistribution]:
-        base_property_types: set[BaseNetworkProperty] = {
-            scalar_property_params.source_base_property
+        network_simulation_needed = any([
+            not scalar_property_params.directly_calculated_from_model
             for scalar_property_params in scalar_property_params_to_calculate
-        }
+        ])
+
         scalar_properties: dict[str, list[int | float]] = {
             property_type.name: []
             for property_type in scalar_property_params_to_calculate
@@ -72,14 +73,25 @@ class Model:
             range(initial_seed, initial_seed + num_of_simulations),
             desc='Simulation'
         ):
-            network = self.generate_finite_network(seed) \
-                if mode == Model.Mode.FINITE \
-                else self.generate_infinite_network_set(num_of_infinite_networks_per_simulation, seed)
+            if network_simulation_needed:
+                network = self.generate_finite_network(seed) \
+                    if mode == Model.Mode.FINITE \
+                    else self.generate_infinite_network_set(num_of_infinite_networks_per_simulation, seed)
 
-            base_properties: dict[BaseNetworkProperty, Any] = {
-                property_type: network.calc_base_property(property_type)
-                for property_type in base_property_types
+            network_base_properties: dict[BaseNetworkProperty, Any] = {
+                scalar_property_params.source_base_property: network.calc_base_property(scalar_property_params.source_base_property)
+                for scalar_property_params in scalar_property_params_to_calculate
+                if not scalar_property_params.directly_calculated_from_model
             }
+
+            model_base_properties: dict[BaseNetworkProperty, Any] = {
+                scalar_property_params.source_base_property: self.calc_base_property(
+                    scalar_property_params.source_base_property, num_of_infinite_networks_per_simulation, seed)
+                for scalar_property_params in scalar_property_params_to_calculate
+                if scalar_property_params.directly_calculated_from_model
+            }
+
+            base_properties = {**network_base_properties, **model_base_properties}
 
             for scalar_property_params in scalar_property_params_to_calculate:
                 scalar_properties[scalar_property_params.name].append(
@@ -96,6 +108,15 @@ class Model:
 
     def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Generate a set of "infinite" networks."""
+        raise NotImplementedError
+
+    def calc_base_property(
+        self,
+        property_type: BaseNetworkProperty,
+        num_of_networks: int,
+        seed: int
+    ) -> Any:
+        """Calculate the base property of the model."""
         raise NotImplementedError
 
     def info(self) -> dict[str, int | float]:

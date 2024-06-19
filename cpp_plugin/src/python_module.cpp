@@ -29,7 +29,8 @@ PYBIND11_MODULE(cpp_plugin, m)
     py::class_<InfiniteHypergraphModel>(m, "InfiniteHypergraphModel")
         .def(py::init<const std::vector<double> &, const uint32_t>())
         .def("generate_networks", &InfiniteHypergraphModel::generate_networks)
-        .def("generate_network", &InfiniteHypergraphModel::generate_network);
+        .def("generate_network", &InfiniteHypergraphModel::generate_network)
+        .def("calc_vertex_interaction_degree_sequence_directly", &InfiniteHypergraphModel::calc_vertex_interaction_degree_sequence_directly);
 
     py::class_<FiniteNetwork>(m, "FiniteNetwork")
         .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const bool>())
