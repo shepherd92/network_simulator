@@ -15,7 +15,7 @@ public:
 private:
     bool rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const override;
     bool weighted() const;
-    bool weighted_;
+    const bool weighted_;
 };
 
 #endif

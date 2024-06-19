@@ -330,7 +330,8 @@ def create_data_degree_distributions(directories: dict[str, Path], output_dir: P
     """Create higher order degree distributions."""
     for property_name in [
         'total_degree_distribution',
-        'interaction_degree_distribution',
+        'vertex_interaction_degree_distribution',
+        'edge_interaction_degree_distribution',
         'ho_degree_distribution_1',
         # 'ho_degree_distribution_2',
         # 'ho_degree_distribution_3',
@@ -354,7 +355,7 @@ def create_data_degree_distributions(directories: dict[str, Path], output_dir: P
                 csv_file_name=Path('data/data') / property_name / 'value_counts.csv',
                 x_column='value',
                 y_column=dataset_name,
-                width=0.2,
+                width=0.21,
                 caption='',
             )
 
@@ -408,9 +409,9 @@ def _copy_data_network_plots(directories: dict[str, Path], output_path: Path) ->
     (output_path / 'data').mkdir(parents=True, exist_ok=True)
     for dataset_name, directory in directories.items():
 
-        file_name = directory / 'data' / 'network.png'
+        file_name = directory / 'data' / 'network.jpg'
         if file_name.is_file():
-            copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.png')
+            copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.jpg')
 
 
 def _copy_model_samples_for_data_sets_network_plots(

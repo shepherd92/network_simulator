@@ -72,7 +72,7 @@ class ArxivDataSet(DataSet):
         )
         debug('Reading data file done')
         all_documents['categories'] = all_documents['categories'].apply(eval)
-        all_documents['authors'] = all_documents['authors'].apply(eval)
+        all_documents['authors'] = all_documents['authors'].apply(eval).apply(set).apply(list)
 
         # filtering
         filtered_documents = all_documents[

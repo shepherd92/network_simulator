@@ -297,10 +297,14 @@ def report_persistence_barcode(
 
 
 def _save_persistence(persistence: list[list[tuple[float, float]]], save_directory: Path) -> None:
-    pd.DataFrame([
+    persistence_df = pd.DataFrame([
             [dimension, birth, death]
             for dimension, intervals in enumerate(persistence)
             for birth, death in intervals
         ],
         columns=['dimension', 'birth', 'death']
-    ).to_csv(save_directory / 'persistence.csv', index=False)
+    ).astype(int)
+
+    persistence_df = persistence_df.groupby(persistence_df.columns.tolist(), as_index=False).size()
+
+    persistence_df.to_csv(save_directory / 'persistence.csv', index=False)

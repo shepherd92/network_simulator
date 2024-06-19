@@ -13,21 +13,21 @@
 #include "typedefs.h"
 
 InfiniteHypergraphModel::InfiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed)
-    : Model{seed}, InfiniteModel{seed}, HypergraphModel{parameters_in}
+    : Model{seed}, InfiniteModel{seed}, HypergraphModel{parameters_in}, interactions_only_{parameters_in[7] > 0.5}
 {
 }
 
 std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
 InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networks) const
 {
-    std::uniform_real_distribution<Mark> mark_distribution(MIN_MARK, 1.F);
+    std::uniform_real_distribution<Mark> mark_distribution(0.F, MAX_MARK);
 
     std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>> result{};
     result.reserve(num_of_infinite_networks);
 
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
     {
-        const auto typical_vertex_mark{mark_distribution(random_number_generator_)}; // mark of the typical node
+        const auto typical_vertex_mark{std::max(mark_distribution(random_number_generator_), MIN_MARK)}; // mark of the typical node
         const auto network_interface{generate_network(typical_vertex_mark)};
         result.push_back(network_interface);
         log_progress(network_index, num_of_infinite_networks, 1U, "Generating infinite networks");
@@ -41,6 +41,12 @@ InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
     const auto interactions{create_interactions(typical_vertex_mark)};
     const auto interaction_ids{convert_to_id_list(interactions)};
     const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
+
+    if (interactions_only())
+    {
+        std::vector<Simplex> simplices{interactions.size(), PointIdList{}};
+        return {InfiniteNetwork{max_dimension(), {}, SimplexList{simplices}, typical_vertex_mark, {}}, {}, interaction_mark_position_pairs};
+    }
 
     PointList vertices{};
     if (!interactions.empty())
@@ -367,4 +373,9 @@ bool InfiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &v
     }
 
     return false;
+}
+
+bool InfiniteHypergraphModel::interactions_only() const
+{
+    return interactions_only_;
 }

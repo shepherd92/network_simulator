@@ -109,8 +109,8 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
         persistent_pairs.end(),
         [&](const auto &persistent_interval)
         {
-            PointIdList birth_simplex{get_simplex_vertices(std::get<0>(persistent_interval))};
-            PointIdList death_simplex{get_simplex_vertices(std::get<1>(persistent_interval))};
+            const PointIdList birth_simplex{get_simplex_vertices(std::get<0>(persistent_interval))};
+            const PointIdList death_simplex{get_simplex_vertices(std::get<1>(persistent_interval))};
             std::lock_guard<std::mutex> lock{mutex};
             result.push_back({birth_simplex, death_simplex});
             log_progress(++counter, total, 1000U, "Calc persistence pairs");
@@ -120,14 +120,50 @@ std::vector<ISimplexList> FiniteNetwork::calc_persistence_pairs()
 
 std::vector<std::vector<std::pair<float, float>>> FiniteNetwork::calc_persistence_intervals()
 {
+    // assumption: filtration is decreasing, i.e. the weight of the simplices is decreasing
+    // we use this custom function istead of Gudhi since we want to have the weights of the vertices as well
     auto &persistent_cohomology{get_persistence()};
+    const auto &persistent_pairs{persistent_cohomology.get_persistent_pairs()};
     std::vector<std::vector<std::pair<float, float>>> intervals{
         static_cast<size_t>(max_dimension_),
         std::vector<std::pair<float, float>>{}};
-    for (Dimension dimension{0}; dimension < max_dimension_; ++dimension)
+
+    std::mutex mutex{};
+    const auto total{persistent_pairs.size()};
+    std::atomic<uint32_t> counter{0U};
+
+    std::unordered_map<Simplex, uint32_t, SimplexHash> simplex_interaction_map{};
+
+    for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
     {
-        intervals[dimension] = persistent_cohomology.intervals_in_dimension(dimension);
+        const auto interaction_degree_map_for_dimension{interactions_.calc_degree_sequence(dimension)};
+        simplex_interaction_map.insert(interaction_degree_map_for_dimension.begin(), interaction_degree_map_for_dimension.end());
     }
+
+    std::for_each(
+        execution_policy,
+        persistent_pairs.begin(),
+        persistent_pairs.end(),
+        [&](const auto &persistent_interval)
+        {
+            const Simplex birth_simplex{get_simplex_vertices(std::get<0>(persistent_interval))};
+            const Simplex death_simplex{get_simplex_vertices(std::get<1>(persistent_interval))};
+            assert(simplex_interaction_map.contains(birth_simplex.vertices()));
+            const auto birth_weight{simplex_interaction_map[birth_simplex]};
+            const auto death_weight{
+                simplex_interaction_map.contains(death_simplex.vertices())
+                    ? simplex_interaction_map[death_simplex.vertices()]
+                    : 0U};
+            log_progress(++counter, total, 1000U, "Calc persistence pairs");
+            if (birth_weight == death_weight)
+            {
+                return;
+            }
+
+            std::lock_guard<std::mutex> lock{mutex};
+            intervals[birth_simplex.dimension()].push_back({birth_weight, death_weight});
+        });
+
     return intervals;
 }
 
@@ -177,10 +213,10 @@ std::vector<uint32_t> FiniteNetwork::calc_simplex_interaction_degree_sequence(
 std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution() const
 {
     // initialize result with zeros
-    std::map<PointId, uint32_t> result{};
+    std::map<PointId, uint32_t> point_id_interaction_count_map{};
     for (const auto vertex_id : get_vertices())
     {
-        result.emplace(vertex_id, 0U);
+        point_id_interaction_count_map.emplace(vertex_id, 0U);
     }
 
     std::for_each(
@@ -195,15 +231,15 @@ std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution
                 interaction.vertices().end(),
                 [&](const auto vertex_id)
                 {
-                    ++result[vertex_id];
+                    ++point_id_interaction_count_map[vertex_id];
                 });
         });
 
     std::vector<uint32_t> counts{};
-    counts.reserve(result.size());
-    for (std::map<PointId, uint32_t>::iterator it = result.begin(); it != result.end(); ++it)
+    counts.reserve(get_vertices().size());
+    for (const auto vertex_id : get_vertices())
     {
-        counts.push_back(it->second);
+        counts.emplace_back(point_id_interaction_count_map[vertex_id]);
     }
 
     return counts;
@@ -281,42 +317,25 @@ void FiniteNetwork::fill_simplicial_complex()
     assert_simplicial_complex_is_initialized();
 
     std::cout << "\rInsert simplices" << std::flush;
-    std::mutex mutex{};
 
+    // insert simplices
     for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
     {
         const auto &simplices{get_simplices(dimension)};
-        std::atomic<uint32_t> counter{0U};
-        std::vector<uint32_t> weights{};
-        weights.reserve(simplices.size());
-        if (weighted())
-        {
-            auto simplex_weight_map{interactions_.calc_degree_sequence(dimension)};
-
-            for (const auto &simplex : simplices)
-            {
-                weights.emplace_back(simplex_weight_map[simplex]);
-            }
-
-            const auto max_weight{*std::max_element(weights.begin(), weights.end())};
-            for (auto &weight : weights)
-            {
-                weight = max_weight - weight;
-            }
-        }
-        else
-        {
-            weights = std::vector<uint32_t>{simplices.size(), 0U};
-        }
-
         const auto total{simplices.size()};
-        for (size_t i = 0; i < simplices.size(); ++i)
+        std::atomic<uint32_t> counter{0U};
+        const auto degrees{
+            weighted()
+                ? calc_simplex_interaction_degree_sequence(dimension)
+                : std::vector<uint32_t>{}};
+        for (auto i{0U}; i < simplices.size(); ++i)
         {
-            simplex_tree_->insert_simplex_and_subfaces(simplices[i].vertices(), weights[i]);
-            log_progress(counter, total, 1000U, "Insert simplices");
+            simplex_tree_->insert_simplex_and_subfaces(
+                simplices[i].vertices(),
+                weighted() ? 1. / degrees[i] : 0.);
+            log_progress(++counter, total, 1000U, "Insert simplices");
         }
     }
-
     reset_persistence();
 }
 

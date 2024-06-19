@@ -19,30 +19,31 @@ class DataSetConfig(NamedTuple):
     """Data set configuration."""
 
     type_: DataSet.Type = DataSet.Type.ARXIV
-    plot: bool = False
+    plot: bool = True
     properties_to_calculate: list[BaseNetworkProperty] = [
-        # BaseNetworkProperty.num_of_vertices,
-        # BaseNetworkProperty.num_of_edges,
-        # BaseNetworkProperty.num_of_triangles,
-        # BaseNetworkProperty.num_of_interactions,
-        # # BaseNetworkProperty.edges,
-        # BaseNetworkProperty.mean_degree,
-        # BaseNetworkProperty.max_degree,
-        # BaseNetworkProperty.mean_clustering,
-        # BaseNetworkProperty.num_of_connected_components,
-        # BaseNetworkProperty.interaction_vertex_degree_distribution,
-        # BaseNetworkProperty.simplex_dimension_distribution,
-        # # BaseNetworkProperty.facet_dimension_distribution,
-        # BaseNetworkProperty.vertex_edge_degree_distribution,
-        # # BaseNetworkProperty.in_degree_distribution,
-        # # BaseNetworkProperty.out_degree_distribution,
+        BaseNetworkProperty.num_of_vertices,
+        BaseNetworkProperty.num_of_edges,
+        BaseNetworkProperty.num_of_triangles,
+        BaseNetworkProperty.num_of_interactions,
+        # BaseNetworkProperty.edges,
+        BaseNetworkProperty.mean_degree,
+        BaseNetworkProperty.max_degree,
+        BaseNetworkProperty.mean_clustering,
+        BaseNetworkProperty.num_of_connected_components,
+        BaseNetworkProperty.interaction_vertex_degree_distribution,
+        BaseNetworkProperty.simplex_dimension_distribution,
+        # BaseNetworkProperty.facet_dimension_distribution,
+        # BaseNetworkProperty.in_degree_distribution,
+        # BaseNetworkProperty.out_degree_distribution,
         BaseNetworkProperty.vertex_interaction_degree_distribution,
-        # BaseNetworkProperty.edge_triangle_degree_distribution,
-        # # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-        # BaseNetworkProperty.betti_numbers,
-        # # BaseNetworkProperty.betti_numbers_by_component,
-        # BaseNetworkProperty.num_of_vertices_by_component,
-        # BaseNetworkProperty.persistence_intervals,
+        BaseNetworkProperty.edge_interaction_degree_distribution,
+        BaseNetworkProperty.vertex_edge_degree_distribution,
+        BaseNetworkProperty.edge_triangle_degree_distribution,
+        # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+        BaseNetworkProperty.betti_numbers,
+        # BaseNetworkProperty.betti_numbers_by_component,
+        BaseNetworkProperty.num_of_vertices_by_component,
+        BaseNetworkProperty.persistence_intervals,
         # BaseNetworkProperty.persistence_pairs,
     ]
 
@@ -52,10 +53,19 @@ ARXIV_DATA_SET_PARAMETERS = ArxivDataSet.Parameters(
     max_dimension=2,
     max_simplex_dimension=20,
     component_index_from_largest=-1,
-    weighted=False,
+    weighted=True,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2025-01-01')),
-    fields=[ArxivField.engineering],
+    fields=[ArxivField.mathematics],
     primary_categories=[ArxivSubCategory.INVALID],  # stat_TH is an alias for math_ST
+)
+
+
+TEST_DATA_SET_PARAMETERS = TestDataSet.Parameters(
+    location=Path(),
+    max_dimension=3,
+    max_simplex_dimension=20,
+    component_index_from_largest=-1,
+    weighted=True,
 )
 
 
@@ -75,13 +85,4 @@ NATURE_DATA_SET_PARAMETERS = NatureDataSet.Parameters(
     component_index_from_largest=-1,
     weighted=False,
     date_interval=(pd.Timestamp('1900-01-01'), pd.Timestamp('2023-12-31')),
-)
-
-
-TEST_DATA_SET_PARAMETERS = TestDataSet.Parameters(
-    location=Path(),
-    max_dimension=3,
-    max_simplex_dimension=20,
-    component_index_from_largest=-1,
-    weighted=False,
 )

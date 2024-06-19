@@ -51,6 +51,9 @@ private:
     bool rectangle_points_surely_connect(
         const Rectangle &vertex_rectangle,
         const Rectangle &interaction_rectangle) const override;
+
+    bool interactions_only() const;
+    const bool interactions_only_;
 };
 
 #endif

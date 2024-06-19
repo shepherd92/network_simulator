@@ -10,7 +10,7 @@ import numpy as np
 from config_files.distribution_fitting_params import POWER_LAW_FITTING_MINIMUM_VALUE_MODEL
 
 from reports.finite_network_analysis import (
-    report_betti_number_1_by_component,
+    # report_betti_number_1_by_component,
     report_betti_numbers,
     report_edge_interaction_degree_distribution,
     report_edge_triangle_degree_distribution,

@@ -38,6 +38,7 @@ class HypergraphModel(Model):
         gamma: float = 0.5
         gamma_prime: float = 0.5
         weighted: bool = False
+        interactions_enough: bool = False
 
         def to_numpy(self) -> npt.NDArray[np.float_]:
             """Return the parameters as a numpy array."""
@@ -49,6 +50,7 @@ class HypergraphModel(Model):
                 self.gamma,
                 self.gamma_prime,
                 self.weighted,
+                self.interactions_enough,
             ])
 
     def __init__(self) -> None:

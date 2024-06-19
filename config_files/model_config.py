@@ -40,7 +40,7 @@ class ModelConfig:
                 # BaseNetworkProperty.in_degree_distribution,
                 # BaseNetworkProperty.out_degree_distribution,
                 BaseNetworkProperty.vertex_interaction_degree_distribution,
-                BaseNetworkProperty.edge_interaction_degree_distribution,
+                # BaseNetworkProperty.edge_interaction_degree_distribution,
                 # BaseNetworkProperty.triangle_interaction_degree_distribution,
                 # BaseNetworkProperty.edge_triangle_degree_distribution,
                 # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
@@ -61,7 +61,7 @@ class ModelConfig:
                 # BaseNetworkProperty.out_degree_distribution,
                 # BaseNetworkProperty.edge_triangle_degree_distribution,
                 BaseNetworkProperty.vertex_interaction_degree_distribution,
-                BaseNetworkProperty.edge_interaction_degree_distribution,
+                # BaseNetworkProperty.edge_interaction_degree_distribution,
                 # BaseNetworkProperty.triangle_interaction_degree_distribution,
                 # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
             ]
@@ -82,7 +82,7 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.FINITE
+        mode: Model.Mode = Model.Mode.INFINITE
         num_of_simulations: int = 100
         num_of_infinite_networks: int = 100000
 
@@ -94,10 +94,10 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 5
+NETWORK_MAGNITUDE = 3
 
-GAMMA = 0.7
-GAMMA_PRIME = 0.2
+GAMMA = 0.2
+GAMMA_PRIME = 0.7
 
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3.
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
@@ -112,6 +112,7 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     gamma=GAMMA,
     gamma_prime=GAMMA_PRIME,
     weighted=False,
+    interactions_enough=True,
 )
 # ==============================================================================
 

@@ -67,6 +67,8 @@ void test_infinite_hypergraph()
     constexpr auto gamma{0.7};
     constexpr auto gamma_prime{0.2};
     constexpr auto network_magnitude{5.};
+    constexpr auto weighted{false};
+    constexpr auto interactions_only{true};
     constexpr auto expected_vertex_interaction_degree{3.0};
     constexpr auto beta{expected_vertex_interaction_degree * 0.5 * (1. - gamma) * (1. - gamma_prime) * std::pow(10., -network_magnitude)};
     constexpr Mark typical_vertex_mark{1e-1};
@@ -77,7 +79,9 @@ void test_infinite_hypergraph()
         std::pow(10., network_magnitude), // interaction_intensity
         beta,                             // beta
         gamma,                            // gamma
-        gamma_prime};                     // gamma_prime
+        gamma_prime,                      // gamma_prime
+        weighted,
+        interactions_only};
 
     std::cout << "\rCreating infinite hypergraph model" << std::endl;
     const InfiniteHypergraphModel model{model_params, seed};
@@ -86,7 +90,7 @@ void test_infinite_hypergraph()
     auto network_interface{model.generate_network(typical_vertex_mark)};
 
     std::cout << "\rGenerating infinite network set" << std::endl;
-    auto network_interfaces{model.generate_networks(1000)};
+    auto network_interfaces{model.generate_networks(100000)};
     for (const auto &network_interface : network_interfaces)
     {
         auto network{std::get<0>(network_interface)};

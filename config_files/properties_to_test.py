@@ -47,14 +47,14 @@ FINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
 
 
 INFINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
-    'vertex_degree_exponent',
-    'edge_degree_exponent',
+    # 'vertex_degree_exponent',
+    # 'edge_degree_exponent',
     'vertex_interaction_degree_exponent',
-    'edge_interaction_degree_exponent',
+    # 'edge_interaction_degree_exponent',
     # 'triangle_interaction_degree_exponent',
-    'interaction_vertex_degree_exponent',
+    # 'interaction_vertex_degree_exponent',
     # 'triangle_degree_exponent',
-    'average_interaction_degree_normal_mle',
+    # 'average_interaction_degree_normal_mle',
     # 'num_of_edges_normal_mle',
     # 'num_of_edges_normal_match_quantile',
     # 'num_of_edges_stable',

@@ -6,9 +6,9 @@ Model::Model(const uint32_t seed)
 {
 }
 
-MarkList Model::generate_marks(const size_t num_nodes, const Mark min_mark) const
+MarkList Model::generate_marks(const size_t num_nodes, const Mark min_mark, const Mark max_mark) const
 {
-    std::uniform_real_distribution<Mark> uniform_distribution(0., 1.);
+    std::uniform_real_distribution<Mark> uniform_distribution(0., max_mark);
     MarkList marks(num_nodes, 0.0);
 
     for (auto i{0U}; i < num_nodes; ++i)

@@ -189,13 +189,15 @@ def create_persistence_diagrams(directories: dict[str, Path], output_dir: Path) 
         persistence_finite_death = persistence.replace([np.inf], np.nan)
         persistence_finite_death.dropna(subset=['birth', 'death'], how='all', inplace=True)
 
-        inf_value = int(1.05 * max(
-            persistence['birth'].max(),
-            persistence_finite_death['death'].max(),
-        )) + 1
+        min_ = -0.001
+        max_ = 1.05 * persistence['birth'].max()
 
-        min_ = -0.05 * inf_value
-        max_ = 1.05 * inf_value
+        digits_to_round_xticks = int(np.log10(persistence['birth'].max())) - 1
+        num_of_ticks = 2
+        ticks = [0] + [
+            int(round((i + 1) / (num_of_ticks + 1) * persistence['birth'].max(), -digits_to_round_xticks))
+            for i in range(num_of_ticks)
+        ]
 
         out_file_name = output_dir / '_'.join([dataset_name, 'persistence_diagram.tex'])
         out_file_name.parent.mkdir(parents=True, exist_ok=True)
@@ -206,13 +208,35 @@ def create_persistence_diagrams(directories: dict[str, Path], output_dir: Path) 
             print(r'            \begin{axis} [', file=out_file)
             print(f'                    xmin={min_:.4f}, xmax={max_:.4f}, ymin={min_:.4f}, ymax={max_:.4f},', file=out_file)
             print(r'                    xlabel={Birth}, ylabel={Death},', file=out_file)
-            print(r'                    xtick=\empty,', file=out_file)
-            print(f'                    ytick={inf_value},', file=out_file)
-            print(r'                    yticklabels={$\infty$},', file=out_file)
+
+            print(r'                    xtick={', end='', file=out_file)
+            for tick in ticks[:-1]:
+                print(f'{tick}, ', end='', file=out_file)
+            print(f'{ticks[-1]}', end='', file=out_file)
+            print(r'},', file=out_file)
+            print(r'                    xticklabels={', end='', file=out_file)
+            for tick in ticks[:-1]:
+                print(f'${tick:,}$'.replace(',', r'\,'), end='', file=out_file)
+                print(', ', end='', file=out_file)
+            print(f'${ticks[-1]:,}$'.replace(',', r'\,'), end='', file=out_file)
+            print(r'},', file=out_file)
+
+            print(r'                    ytick={', end='', file=out_file)
+            for tick in ticks[:-1]:
+                print(f'{tick}, ', end='', file=out_file)
+            print(f'{ticks[-1]}', end='', file=out_file)
+            print(r'},', file=out_file)
+            print(r'                    yticklabels={', end='', file=out_file)
+            for tick in ticks[:-1]:
+                print(f'${tick:,}$'.replace(',', r'\,'), end='', file=out_file)
+                print(', ', end='', file=out_file)
+            print(f'${ticks[-1]:,}$'.replace(',', r'\,'), end='', file=out_file)
+            print(r'},', file=out_file)
+
             print(r'                    scatter/classes={0={blue}, 1={red}},', file=out_file)
             print(r'                    legend style={', file=out_file)
-            print(r'                            at={(0.95,0.05)},', file=out_file)
-            print(r'                            anchor=south east,', file=out_file)
+            print(r'                            at={(0.05,0.95)},', file=out_file)
+            print(r'                            anchor=north west,', file=out_file)
             print(r'                            legend cell align={left}', file=out_file)
             print(r'                        }', file=out_file)
             print(r'                ]', file=out_file)
@@ -223,11 +247,6 @@ def create_persistence_diagrams(directories: dict[str, Path], output_dir: Path) 
             print(r'                \addplot[black, ultra thick, no marks, domain={', end='', file=out_file)
             print(f'{min_:.4f}:{max_:.4f}', end='', file=out_file)
             print(r'}] {x};', file=out_file)
-            print(r'                \addplot[black, ultra thick, dashed, no marks, domain={', end='', file=out_file)
-            print(f'{min_:.4f}:{max_:.4f}', end='', file=out_file)
-            print(r'}] {', end='', file=out_file)
-            print(f'{inf_value}', end='', file=out_file)
-            print(r'};', file=out_file)
             print(r'                \legend{Dimension 0, Dimension 1};', file=out_file)
             print(r'            \end{axis}', file=out_file)
             print(r'        \end{tikzpicture}', file=out_file)
@@ -364,7 +383,7 @@ def create_dataset_parameter_estimates_table(
         print(r"            & exponent & $\g$ & exponent & $\g'$ & & & \\ \hline", file=out_file)
         for name_in_table, name_to_print in dataset_name_translation.items():
             vertex_interaction_exponent = \
-                pd.read_csv(dataset_directories[name_in_table] / 'data' / 'interaction_degree_distribution' / 'distribution_info.csv')['theoretical_exponent'][0]
+                pd.read_csv(dataset_directories[name_in_table] / 'data' / 'vertex_interaction_degree_distribution' / 'distribution_info.csv')['theoretical_exponent'][0]
             interaction_vertex_exponent = \
                 pd.read_csv(dataset_directories[name_in_table] / 'data' / 'interaction_dimension_distribution' / 'distribution_info.csv')['theoretical_exponent'][0]
 
@@ -419,7 +438,7 @@ def create_hypothesis_tests_table(
             print(f'${info['theoretical_beta'][0]:.1f}$ & ', end='', file=out_file)
             print(f'${info['theoretical_location'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
             print(f'${info['theoretical_scale'][0]:,.0f}$ & '.replace(',', r'\,'), end='', file=out_file)
-            print(f'${test['point_p_value'][0]:.4f}$', end='', file=out_file)
+            print(f'${test['point_p_value'][0]:.2E}$', end='', file=out_file)
             print(r'\\', file=out_file)
         print(r'        \hline', file=out_file)
         print(r'    \end{tabular}', file=out_file)

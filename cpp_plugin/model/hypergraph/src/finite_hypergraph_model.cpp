@@ -7,9 +7,8 @@
 #include "rectangle.h"
 
 FiniteHypergraphModel::FiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed)
-    : Model{seed}, FiniteModel{seed}, HypergraphModel{parameters_in}
+    : Model{seed}, FiniteModel{seed}, HypergraphModel{parameters_in}, weighted_{parameters_in[6] > 0.5}
 {
-    weighted_ = parameters_in[6];
 }
 
 std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphModel::generate_network() const

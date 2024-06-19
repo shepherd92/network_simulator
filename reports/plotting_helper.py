@@ -629,6 +629,9 @@ def plot_persistence_diagram_(persistence, axes: plt.Axes) -> None:
     for dimension, intervals in enumerate(persistence):
         x = [interval[0] for interval in intervals if interval[1] != np.inf]
         y = [interval[1] for interval in intervals if interval[1] != np.inf]
+        if len(x) == 0:
+            continue
+
         max_weight = max(max_weight, max(y))
         axes.scatter(x, y, color=colors[dimension], label=f'dimension {dimension}')
 
