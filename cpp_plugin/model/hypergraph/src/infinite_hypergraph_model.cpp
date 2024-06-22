@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <mutex>
+#include <thread>
 #include <tuple>
 
 #include "infinite_hypergraph_model.h"
@@ -383,14 +384,18 @@ bool InfiniteHypergraphModel::interactions_only() const
 std::vector<uint32_t> InfiniteHypergraphModel::calc_vertex_interaction_degree_sequence_directly(const uint32_t num_of_networks)
 {
     const float constant_term{2.F * beta() * lambda_prime() / (1.F - gamma_prime())};
-    std::uniform_real_distribution<Mark> mark_distribution(0.F, 1.F);
+    // std::uniform_real_distribution<Mark> mark_distribution(0.F, 1.F);
+    // std::poisson_distribution<uint32_t> poisson_distribution(0.F);
 
     std::vector<uint32_t> result{};
+    result.reserve(num_of_networks);
+    std::uniform_real_distribution<Mark> mark_distribution(0.F, 1.F);
+
     for (auto i{0U}; i < num_of_networks; ++i)
     {
         const Mark typical_mark{mark_distribution(random_number_generator_)};
-        const float poisson_parameter{constant_term * std::pow(typical_mark, -gamma())};
-        std::poisson_distribution<uint32_t> poisson_distribution(poisson_parameter);
+        const auto poisson_lambda{constant_term * fast_power(typical_mark, -gamma())};
+        std::poisson_distribution<uint32_t> poisson_distribution(poisson_lambda);
         result.push_back(poisson_distribution(random_number_generator_));
     }
     return result;

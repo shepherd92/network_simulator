@@ -56,9 +56,6 @@ def create_power_law_fitting_parameters(minimum_value: float) -> PowerLawDistrib
             min_=minimum_value,
             max_=np.inf,
         ),
-        # PowerLawDistribution.MaximumLikelihoodDomain(
-        #     PowerLawDistribution.DomainCalculation.Method.MAXIMUM_LIKELIHOOD,
-        # ),
         PowerLawDistribution.ParameterFitting(
             PowerLawDistribution.ParameterFitting.Method.MAXIMUM_LIKELIHOOD,
             PowerLawDistribution.DistributionParameters(),

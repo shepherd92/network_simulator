@@ -75,17 +75,9 @@ class ArxivDataSet(DataSet):
         all_documents['authors'] = all_documents['authors'].apply(eval).apply(set).apply(list)
 
         # filtering
-        filtered_documents = all_documents[
-            (all_documents['publish_time'] >=
-                pd.Timestamp(self._data_set_properties.date_interval[0], tz='UTC')) &
-            (all_documents['publish_time'] <
-                pd.Timestamp(self._data_set_properties.date_interval[1], tz='UTC')) &
-            (all_documents['authors'].map(len) <= self._data_set_properties.max_simplex_dimension)
-        ]
-
         if ArxivField.INVALID not in self._data_set_properties.fields:
-            filtered_documents = filtered_documents[
-                filtered_documents['field'].isin([field.value for field in self._data_set_properties.fields])
+            filtered_documents = all_documents[
+                all_documents['field'].isin([field.value for field in self._data_set_properties.fields])
             ]
 
         if ArxivSubCategory.INVALID not in self._data_set_properties.primary_categories:
@@ -95,10 +87,24 @@ class ArxivDataSet(DataSet):
                 ])
             ]
 
+        print(f'{len(filtered_documents)} / ', end='')
+
+        filtered_documents = filtered_documents[
+            (filtered_documents['publish_time'] >=
+                pd.Timestamp(self._data_set_properties.date_interval[0], tz='UTC')) &
+            (filtered_documents['publish_time'] <
+                pd.Timestamp(self._data_set_properties.date_interval[1], tz='UTC')) &
+            (filtered_documents['authors'].map(len) <= self._data_set_properties.max_simplex_dimension)
+        ]
+
         assert len(filtered_documents) > 0, 'No data is available with the specified properties.'
 
         self._documents = filtered_documents
         # self._fill_authors_table()
+
+        print(len(filtered_documents))
+
+        exit()
 
     @log_function_name
     def _get_interactions(self) -> list[list[int]]:

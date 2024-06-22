@@ -101,8 +101,14 @@ betti_number_directories = {
 }
 
 hypothesis_testing_directories = {
-    'computer_science': input_base_path / '20240426_193430',
-    'engineering':      input_base_path / '20240427_104657',
-    'mathematics':      input_base_path / '20240427_071927',
-    'statistics':       input_base_path / '20240427_163556',
+    # xmin = 10
+    'computer_science': input_base_path / '20240619_215236',
+    'engineering':      input_base_path / '20240620_072258',
+    'mathematics':      input_base_path / '20240620_053400',
+    'statistics':       input_base_path / '20240620_073207',
+    # xmin = 15
+    # 'computer_science': input_base_path / '20240619_205955',
+    # 'engineering':      input_base_path / '20240619_205325',
+    # 'mathematics':      input_base_path / '20240619_195337',
+    # 'statistics':       input_base_path / '20240619_194906',
 }

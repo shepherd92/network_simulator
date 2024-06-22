@@ -51,4 +51,16 @@ inline int32_t binomial_coefficient(int32_t n, int32_t k)
     return binomial_coefficient(n - 1, k - 1) + binomial_coefficient(n - 1, k);
 }
 
+inline double fast_power(double a, double b)
+{
+    union
+    {
+        double d;
+        int x[2];
+    } u = {a};
+    u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
+    u.x[0] = 0;
+    return u.d;
+}
+
 #endif

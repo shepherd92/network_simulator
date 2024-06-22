@@ -96,7 +96,7 @@ class ModelConfig:
 # ==============================================================================
 NETWORK_MAGNITUDE = 3
 
-GAMMA = 0.2
+GAMMA = 0.25
 GAMMA_PRIME = 0.7
 
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3.
