@@ -94,20 +94,20 @@ class ModelConfig:
 
 
 # ==============================================================================
-NETWORK_MAGNITUDE = 3
+NETWORK_MAGNITUDE = 3.5
 
-GAMMA = 0.5421430589878034
-GAMMA_PRIME = 0.1349919921383522
+GAMMA = 0.7
+GAMMA_PRIME = 0.2
 
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3.
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    # network_size=10**NETWORK_MAGNITUDE,  # vertex_intensity: expected number of vertices
-    # interaction_intensity=10**NETWORK_MAGNITUDE,  # interaction_intensity: expected number of interactions
-    # beta=EXPECTED_VERTEX_INTERACTION_DEGREE * 0.5 * (1. - GAMMA) * (1. - GAMMA_PRIME) * 10**(-NETWORK_MAGNITUDE),
-    beta=9.031582768540854e-06,
-    network_size=50000,
-    interaction_intensity=43200,
+    network_size=10**NETWORK_MAGNITUDE,  # vertex_intensity: expected number of vertices
+    interaction_intensity=10**NETWORK_MAGNITUDE,  # interaction_intensity: expected number of interactions
+    beta=EXPECTED_VERTEX_INTERACTION_DEGREE * 0.5 * (1. - GAMMA) * (1. - GAMMA_PRIME) * 10**(-NETWORK_MAGNITUDE),
+    # beta=1e-04,
+    # network_size=50000,
+    # interaction_intensity=43200,
     # gamma=GAMMA,
     # gamma_prime=GAMMA_PRIME,
     weighted=False,

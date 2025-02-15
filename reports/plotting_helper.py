@@ -28,7 +28,7 @@ from tools.logging_helper import log_function_name
 
 
 PLOT_SIZE = (20, 20)  # inches
-PLOT_DPI = 600
+PLOT_DPI = 1200
 
 
 class PaddingSide(Enum):
@@ -53,14 +53,14 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
     """Plot a simplicial complex on the given axis."""
     plt.rcParams["text.usetex"] = False
 
-    color_map_name = 'viridis'  # viridis, plasma, inferno, magma, cividis
+    color_map_name = 'Blues'  # viridis_r, plasma, inferno, magma, cividis
     if determined_vertex_positions:
         debug('Plotting simplicial complex with fixed positions started.')
         print('\rPlot network fixed positions...', end='')
         assert network.vertex_positions is not None
         vertex_positions = {
             key: (position, mark)
-            for key, (mark, position) in network.vertex_positions.items()
+            for key, (position, mark) in network.vertex_positions.items()
         }
     else:
         vertex_positions = _determine_node_positions(network.graph)
