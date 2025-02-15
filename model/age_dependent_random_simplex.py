@@ -34,7 +34,7 @@ class AgeDependentRandomSimplexModel(Model):
         beta: float = 0.1  # edge density is beta / (1 - gamma)
         gamma: float = 0.5  # power law exponent is 1 + 1 / gamma
 
-        def to_numpy(self) -> npt.NDArray[np.float_]:
+        def to_numpy(self) -> npt.NDArray[np.float64]:
             """Return the parameters as a numpy array."""
             return np.array([
                 self.max_dimension,

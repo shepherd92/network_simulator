@@ -53,7 +53,7 @@ class StableDistribution(TheoreticalDistribution):
         super().__init__()
         self._parameters = StableDistribution.DistributionParameters()
 
-    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
@@ -110,7 +110,7 @@ class StableDistribution(TheoreticalDistribution):
     ) -> DistributionParameters:
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
 
-        kwargs: dict[str, np.float_] = {}
+        kwargs: dict[str, np.float64] = {}
         if not np.isnan(fixed_parameters.alpha):
             kwargs['f0'] = fixed_parameters.alpha
         if not np.isnan(fixed_parameters.beta):
@@ -204,7 +204,7 @@ class StableDistribution(TheoreticalDistribution):
 
     @staticmethod
     def _objective_function_for_fitting(
-        guess: npt.NDArray[np.float_],
+        guess: npt.NDArray[np.float64],
         theoretical_distribution: StableDistribution,
         empirical_distribution: EmpiricalDistribution
     ) -> float:
@@ -222,12 +222,12 @@ class StableDistribution(TheoreticalDistribution):
 
         return kolmogorov_smirnov_statistic
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the PDF of the distribution evaluted at the given x_values."""
         pdf_values = levy_stable.pdf(x_values, *astuple(self._parameters))
         return pdf_values
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         cdf_values = levy_stable.cdf(x_values, *astuple(self._parameters))
         return cdf_values

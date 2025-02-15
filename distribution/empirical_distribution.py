@@ -46,7 +46,7 @@ class EmpiricalDistribution(Distribution):
 
         self._valid = True
 
-    def get_value_sequence_in_domain(self, domain: Distribution.Domain) -> npt.NDArray[np.int_ | np.float_]:
+    def get_value_sequence_in_domain(self, domain: Distribution.Domain) -> npt.NDArray[np.int_ | np.float64]:
         """Return the distribution values."""
         value_sequence_in_domain = self.value_sequence[
             (self.value_sequence >= domain.min_) &
@@ -54,7 +54,7 @@ class EmpiricalDistribution(Distribution):
         ]
         return value_sequence_in_domain
 
-    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Calculate the inverse CDF at the given values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
@@ -73,7 +73,7 @@ class EmpiricalDistribution(Distribution):
         standardized_distribution = EmpiricalDistribution(standardized_value_sequence)
         return standardized_distribution
 
-    def calc_histogram(self, type_: HistogramType) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+    def calc_histogram(self, type_: HistogramType) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Return the histogram of the value sequence."""
         if type_ == EmpiricalDistribution.HistogramType.LINEAR:
             return self._calc_histogram_lin()
@@ -117,7 +117,7 @@ class EmpiricalDistribution(Distribution):
             file_name, index=False
         )
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the pdf values at x values provided that they are in the domain of the distribution."""
         if self.empty:
             return np.zeros_like(x_values)
@@ -125,7 +125,7 @@ class EmpiricalDistribution(Distribution):
         pdf_values = self._density_estimator(x_values)
         return pdf_values
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the cdf values at x values provided that they are in the domain of the distribution."""
         if self.empty:
             return np.full(x_values.shape, np.nan)
@@ -134,23 +134,23 @@ class EmpiricalDistribution(Distribution):
 
         return cdf_values
 
-    def _dirac_density_estimator(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
-        result = np.zeros_like(x_values, dtype=np.float_)
+    def _dirac_density_estimator(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        result = np.zeros_like(x_values, dtype=np.float64)
         result[np.isclose(self.value_sequence[0], x_values)] = np.inf
         return result
 
-    def _calc_histogram_lin(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+    def _calc_histogram_lin(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Return the histogram of the value sequence."""
         return np.histogram(self.value_sequence, bins=self._auto_bins(), density=True)
 
-    def _calc_histogram_integers(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+    def _calc_histogram_integers(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Return the histogram of the value sequence."""
         min_value = int(np.floor(self.value_sequence.min()))
         max_value = int(np.ceil(self.value_sequence.max()))
         bins = np.arange(min_value, max_value + 2) - 0.5
         return np.histogram(self.value_sequence, bins=bins, density=True)
 
-    def _calc_histogram_log(self) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+    def _calc_histogram_log(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Return the histogram of the value sequence."""
         # truncate values so that the minimum is at least 1
         values = self.value_sequence[self.value_sequence >= 1.]
@@ -162,7 +162,7 @@ class EmpiricalDistribution(Distribution):
 
         return np.histogram(values, bins=bins, density=True)
 
-    def _auto_bins(self) -> npt.NDArray[np.float_]:
+    def _auto_bins(self) -> npt.NDArray[np.float64]:
         """Calculate the bins of the histogram.
 
         This function is implemented due to a bug in the numpy histogram auto_bin method.
@@ -178,7 +178,7 @@ class EmpiricalDistribution(Distribution):
         return np.append(new_bins, maximum_value + fd)
 
     @property
-    def natural_x_values(self) -> npt.NDArray[np.float_ | np.int_]:
+    def natural_x_values(self) -> npt.NDArray[np.float64 | np.int_]:
         """Return some natural x values of the domain."""
         if self.empty:
             return np.empty((1))
@@ -202,17 +202,17 @@ class EmpiricalDistribution(Distribution):
         return bin_centers_in_domain
 
     @property
-    def mean(self) -> np.float_:
+    def mean(self) -> np.float64:
         """Return the mean of the distribution."""
         return self.value_sequence.mean()
 
     @property
-    def std_dev(self) -> np.float_:
+    def std_dev(self) -> np.float64:
         """Return the standard deviation of the distribution."""
         return self.value_sequence.std()
 
     @property
-    def value_sequence(self) -> npt.NDArray[np.int_ | np.float_]:
+    def value_sequence(self) -> npt.NDArray[np.int_ | np.float64]:
         """Return the value sequence of the distribution."""
         value_sequence_in_domain = self._value_sequence[
             (self._value_sequence >= self.domain.min_) &
@@ -221,7 +221,7 @@ class EmpiricalDistribution(Distribution):
         return value_sequence_in_domain
 
     @value_sequence.setter
-    def value_sequence(self, value_sequence: npt.NDArray[np.int_ | np.float_]) -> None:
+    def value_sequence(self, value_sequence: npt.NDArray[np.int_ | np.float64]) -> None:
         self._value_sequence = value_sequence
 
     @property

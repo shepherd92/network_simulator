@@ -53,7 +53,7 @@ class NormalDistribution(TheoreticalDistribution):
         super().__init__()
         self._parameters = NormalDistribution.DistributionParameters()
 
-    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
@@ -131,12 +131,12 @@ class NormalDistribution(TheoreticalDistribution):
 
         return NormalDistribution.DistributionParameters(mean, std)
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the PDF of the distribution evaluted at the given x_values."""
         pdf_values = norm.pdf(x_values, *astuple(self._parameters))
         return pdf_values
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         cdf_values = norm.cdf(x_values, *astuple(self._parameters))
         return cdf_values

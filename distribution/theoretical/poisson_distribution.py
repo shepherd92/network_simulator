@@ -44,7 +44,7 @@ class PoissonDistribution(TheoreticalDistribution):
         super().__init__()
         self._parameters = PoissonDistribution.DistributionParameters()
 
-    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
@@ -85,14 +85,14 @@ class PoissonDistribution(TheoreticalDistribution):
         else:
             assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the PDF of the distribution evaluted at the given x_values."""
         integers = np.array(list(range(int(x_values.min()), int(x_values.max()) + 1)))
         pmf_values = poisson.pmf(integers, *astuple(self._parameters))
         pdf_values = np.interp(x_values, integers, pmf_values)
         return pdf_values
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         cdf_values = poisson.cdf(x_values, *astuple(self._parameters))
         return cdf_values

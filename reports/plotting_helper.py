@@ -27,7 +27,7 @@ from network.network import Network
 from tools.logging_helper import log_function_name
 
 
-PLOT_SIZE = (3, 3)  # inches
+PLOT_SIZE = (20, 20)  # inches
 PLOT_DPI = 600
 
 
@@ -53,7 +53,7 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
     """Plot a simplicial complex on the given axis."""
     plt.rcParams["text.usetex"] = False
 
-    color_map_name = 'plasma_r'  # viridis, plasma, inferno, magma, cividis
+    color_map_name = 'viridis'  # viridis, plasma, inferno, magma, cividis
     if determined_vertex_positions:
         debug('Plotting simplicial complex with fixed positions started.')
         print('\rPlot network fixed positions...', end='')
@@ -317,7 +317,7 @@ def plot_approximation_histogram_standardized(
     data_set_value: float,
     padding: PaddingSide,
     axes: plt.Axes
-) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | None:
 
     if distribution_pair.empirical.valid:
         mu = distribution_pair.empirical.mean
@@ -388,7 +388,7 @@ def plot_approximation_value_counts_log(
     data_set_value: float,
     padding: PaddingSide,
     axes: plt.Axes
-) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | None:
 
     if distribution_pair.empirical.valid:
         value_counts = distribution_pair.empirical.calc_value_counts()
@@ -450,7 +450,7 @@ def plot_approximation_histogram_log(
     data_set_value: float,
     padding: PaddingSide,
     axes: plt.Axes
-) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]] | None:
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | None:
 
     if distribution_pair.empirical.valid:
         histogram, bins = distribution_pair.empirical.calc_histogram(histogram_type)
@@ -498,11 +498,11 @@ def plot_approximation_histogram_log(
 
 
 def _standardize_coordinates(
-    x_values: npt.NDArray[np.float_],
-    pdf: npt.NDArray[np.float_],
-    location: np.float_,
-    scale: np.float_
-) -> tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]]:
+    x_values: npt.NDArray[np.float64],
+    pdf: npt.NDArray[np.float64],
+    location: np.float64,
+    scale: np.float64
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
 
     standardized_x_values = (x_values - location) / scale
     standardized_pdf = pdf * scale  # if the domain is rescaled, the values of the pdf also change
@@ -514,7 +514,7 @@ def plot_empirical_distribution_histogram_with_info(
     distribution: EmpiricalDistribution,
     histogram_type: EmpiricalDistribution.HistogramType,
     axes: plt.Axes,
-) -> npt.NDArray[np.float_]:
+) -> npt.NDArray[np.float64]:
     """Plot the empirical density with histogram estimation on the given axes with information."""
     histogram, bins = distribution.calc_histogram(histogram_type)
     _plot_histogram(histogram, bins, axes)
@@ -525,13 +525,13 @@ def plot_empirical_distribution_histogram_with_info(
     return values_plotted
 
 
-def _plot_pdf(x_values: npt.NDArray[np.float_], pdf: npt.NDArray[np.float_], axes: plt.Axes) -> None:
+def _plot_pdf(x_values: npt.NDArray[np.float64], pdf: npt.NDArray[np.float64], axes: plt.Axes) -> None:
     axes.plot(x_values, pdf, color='red')
 
 
 def _plot_histogram(
-    histogram: npt.NDArray[np.float_],
-    bins: npt.NDArray[np.float_],
+    histogram: npt.NDArray[np.float64],
+    bins: npt.NDArray[np.float64],
     axes: plt.Axes
 ) -> None:
     """Plot the empirical density with histogram estimation on the given axes."""
@@ -566,9 +566,9 @@ def plot_empirical_distribution_value_counts(
 
 
 def plot_value_counts(
-    value_counts: npt.NDArray[np.float_ | np.int_],
+    value_counts: npt.NDArray[np.float64 | np.int_],
     axes: plt.Axes
-) -> npt.NDArray[np.float_]:
+) -> npt.NDArray[np.float64]:
     """Plot a list of values on a given axes."""
     # markerline, _, _ = axes.stem(value_counts[:, 0], value_counts[:, 1])
     # plt.setp(markerline, markersize=5)
@@ -695,7 +695,7 @@ def _print_not_calculated(axes: plt.Axes) -> None:
 def _get_theoretical_x_values(
     plot_domain: Distribution.Domain,
     padding_sides: PaddingSide
-) -> npt.NDArray[np.float_]:
+) -> npt.NDArray[np.float64]:
 
     NUM_OF_POINTS = 100
     PADDING = 0.2
@@ -737,8 +737,8 @@ def _get_theoretical_x_values(
 
 
 def _set_linear_scale_limits(
-    x_values: npt.NDArray[np.float_ | np.int_],
-    y_values: npt.NDArray[np.float_ | np.int_],
+    x_values: npt.NDArray[np.float64 | np.int_],
+    y_values: npt.NDArray[np.float64 | np.int_],
     axes: plt.Axes
 ) -> None:
     x_min, x_max = _calc_linear_scale_plot_limits(x_values)
@@ -749,8 +749,8 @@ def _set_linear_scale_limits(
 
 
 def _set_logarithmic_scale_limits(
-    x_values: npt.NDArray[np.float_ | np.int_],
-    y_values: npt.NDArray[np.float_ | np.int_],
+    x_values: npt.NDArray[np.float64 | np.int_],
+    y_values: npt.NDArray[np.float64 | np.int_],
     axes: plt.Axes
 ) -> None:
     axes.set_xlabel(axes.xaxis.get_label().get_text() + ' (log)')
@@ -764,12 +764,12 @@ def _set_logarithmic_scale_limits(
     axes.set_ylim([y_min, y_max])
 
 
-def _calc_log_scale_plot_limits(values_single_axis: npt.NDArray[np.float_ | np.int_]) -> tuple[float, float]:
+def _calc_log_scale_plot_limits(values_single_axis: npt.NDArray[np.float64 | np.int_]) -> tuple[float, float]:
 
     padding = 0.1
 
     finite_values = values_single_axis[np.isfinite(values_single_axis)]
-    positive_finite_values: npt.NDArray[np.float_] = finite_values[finite_values > 0.]
+    positive_finite_values: npt.NDArray[np.float64] = finite_values[finite_values > 0.]
 
     if len(positive_finite_values) == 0:
         # no finite values
@@ -790,11 +790,11 @@ def _calc_log_scale_plot_limits(values_single_axis: npt.NDArray[np.float_ | np.i
     return lower_limit, upper_limit
 
 
-def _calc_linear_scale_plot_limits(values_single_axis: npt.NDArray[np.float_ | np.int_]) -> tuple[float, float]:
+def _calc_linear_scale_plot_limits(values_single_axis: npt.NDArray[np.float64 | np.int_]) -> tuple[float, float]:
 
     padding = 0.1
 
-    finite_values: npt.NDArray[np.float_] = values_single_axis[np.isfinite(values_single_axis)]
+    finite_values: npt.NDArray[np.float64] = values_single_axis[np.isfinite(values_single_axis)]
     if len(finite_values) == 0:
         # no finite values
         lower_limit = 0.

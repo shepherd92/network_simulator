@@ -87,7 +87,7 @@ class ArxivDataSet(DataSet):
                 ])
             ]
 
-        print(f'{len(filtered_documents)} / ', end='')
+        print(f'Filtered documents: {len(filtered_documents)} / ', end='')
 
         filtered_documents = filtered_documents[
             (filtered_documents['publish_time'] >=
@@ -103,8 +103,6 @@ class ArxivDataSet(DataSet):
         # self._fill_authors_table()
 
         print(len(filtered_documents))
-
-        exit()
 
     @log_function_name
     def _get_interactions(self) -> list[list[int]]:

@@ -83,7 +83,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         super().__init__()
         self._parameters = PowerLawDistribution.DistributionParameters()
 
-    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
             f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
@@ -182,7 +182,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         self._domain.max_ = empirical_distribution.domain.max_
         # create an array with guesses in the 0th column, and respective Kolmogorov-Smirnov
         # statistics in the 1st column
-        ks_statistics: npt.NDArray[np.float_] = np.array([
+        ks_statistics: npt.NDArray[np.float64] = np.array([
             [guess, self._objective_function(empirical_distribution, guess)]
             for guess in range(int(valid_min_bounds.min_), int(valid_min_bounds.max_) + 1)
         ])
@@ -270,14 +270,14 @@ class PowerLawDistribution(TheoreticalDistribution):
         ks_statistic = self.kolmogorov_smirnov(empirical_distribution, x_values)
         return ks_statistic
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the PDF of the distribution evaluted at the given x_values."""
         x_min = self.domain.min_
         exponent = self._parameters.exponent
         pdf_values = (exponent - 1.) / x_min * (x_values / x_min)**(-exponent)
         return pdf_values
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         cdf_values = 1. - (x_values / self.domain.min_)**(1 - self.parameters.exponent)
         return cdf_values

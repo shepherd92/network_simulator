@@ -93,7 +93,7 @@ class ModelOptimizer:
 
     @staticmethod
     def _objective_function(
-        guessed_parameters: npt.NDArray[np.float_],
+        guessed_parameters: npt.NDArray[np.float64],
         model: Model,
         target_property_params: list[DerivedNetworkProperty],
         target_values: list[float | int],

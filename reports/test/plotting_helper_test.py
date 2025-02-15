@@ -128,7 +128,7 @@ class PlottingHelperTest(unittest.TestCase):
             max_: float,
             exponent: float,
             size: int = 1
-        ) -> npt.NDArray[np.float_]:
+        ) -> npt.NDArray[np.float64]:
             """Generate a power-law sample for pdf x^(g-1) in the interval [min_, max_]."""
             random = np.random.random(size=size)
             min_to_exponent, max_to_exponent = min_**exponent, max_**exponent

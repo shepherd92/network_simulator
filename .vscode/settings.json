@@ -15,19 +15,19 @@
         "sandbox"
     ],
     "python.analysis.extraPaths": [
-        "/home/au725389/venv/tda/lib/python3.12/site-packages",
-        "/home/au725389/venv/tda/lib/python3.12/site-packages/gudhi",
+        "/home/au725389/venv/network_simulator/lib/python3.12/site-packages",
+        "/home/au725389/venv/network_simulator/lib/python3.12/site-packages/gudhi",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build/cpp_library",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
     ],
     "python.analysis.indexing": true,
     "python.autoComplete.extraPaths": [
-        "/home/au725389/venv/tda/lib/python3.12/site-packages",
-        "/home/au725389/venv/tda/lib/python3.12/site-packages/gudhi",
+        "/home/au725389/venv/network_simulator/lib/python3.12/site-packages",
+        "/home/au725389/venv/network_simulator/lib/python3.12/site-packages/gudhi",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build",
         "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
     ],
-    "python.defaultInterpreterPath": "/home/au725389/venv/tda/bin/python3",
+    "python.defaultInterpreterPath": "/home/au725389/venv/network_simulator/bin/python3",
     "pylint.args": [
         "--disable=F0401",
         "--max-line-length=120",
@@ -37,7 +37,7 @@
         "--max-line-length=120"
     ],
     "python.languageServer": "Pylance",
-    "python.pipenvPath": "/home/au725389/venv/tda/bin/python3",
+    "python.pipenvPath": "/home/au725389/venv/network_simulator/bin/python3",
     "python.terminal.activateEnvironment": true,
     "python.testing.unittestArgs": [
         "-v",

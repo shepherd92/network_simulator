@@ -21,12 +21,12 @@ class ModelConfig:
         class Finite(NamedTuple):
             """Finite network analysis configuration."""
             enable: bool = True
-            plot: bool = False
+            plot: bool = True
             component_index_from_largest: int = -1
             properties_to_calculate: list[BaseNetworkProperty] = [
-                # BaseNetworkProperty.num_of_vertices,
-                BaseNetworkProperty.num_of_edges,
-                BaseNetworkProperty.num_of_triangles,
+                BaseNetworkProperty.num_of_vertices,
+                # BaseNetworkProperty.num_of_edges,
+                # BaseNetworkProperty.num_of_triangles,
                 # BaseNetworkProperty.num_of_interactions,
                 # BaseNetworkProperty.edges,
                 # BaseNetworkProperty.mean_degree,
@@ -44,7 +44,7 @@ class ModelConfig:
                 # BaseNetworkProperty.triangle_interaction_degree_distribution,
                 # BaseNetworkProperty.edge_triangle_degree_distribution,
                 # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-                BaseNetworkProperty.betti_numbers,
+                # BaseNetworkProperty.betti_numbers,
                 # BaseNetworkProperty.betti_numbers_by_component,
                 # BaseNetworkProperty.num_of_vertices_by_component,
                 # BaseNetworkProperty.persistence_intervals,
@@ -96,21 +96,20 @@ class ModelConfig:
 # ==============================================================================
 NETWORK_MAGNITUDE = 3
 
-GAMMA = 0.25
-GAMMA_PRIME = 0.7
+GAMMA = 0.5421430589878034
+GAMMA_PRIME = 0.1349919921383522
 
 EXPECTED_VERTEX_INTERACTION_DEGREE = 3.
 HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
     max_dimension=2,
-    network_size=10**NETWORK_MAGNITUDE,  # vertex_intensity: expected number of vertices
-    interaction_intensity=10**NETWORK_MAGNITUDE,  # interaction_intensity: expected number of interactions
-    beta=EXPECTED_VERTEX_INTERACTION_DEGREE * 0.5 * (1. - GAMMA) * (1. - GAMMA_PRIME) * 10**(-NETWORK_MAGNITUDE),
-    # beta=10**(-NETWORK_MAGNITUDE),
-    # network_size=,
-    # interaction_intensity=,
-    # beta=,
-    gamma=GAMMA,
-    gamma_prime=GAMMA_PRIME,
+    # network_size=10**NETWORK_MAGNITUDE,  # vertex_intensity: expected number of vertices
+    # interaction_intensity=10**NETWORK_MAGNITUDE,  # interaction_intensity: expected number of interactions
+    # beta=EXPECTED_VERTEX_INTERACTION_DEGREE * 0.5 * (1. - GAMMA) * (1. - GAMMA_PRIME) * 10**(-NETWORK_MAGNITUDE),
+    beta=9.031582768540854e-06,
+    network_size=50000,
+    interaction_intensity=43200,
+    # gamma=GAMMA,
+    # gamma_prime=GAMMA_PRIME,
     weighted=False,
     interactions_enough=True,
 )

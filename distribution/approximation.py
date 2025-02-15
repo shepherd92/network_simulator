@@ -105,7 +105,7 @@ class DistributionApproximation:
         points = self.generate_probability_plot_points()
         return self._calc_r_squared_value(points)
 
-    def generate_probability_plot_points(self) -> npt.NDArray[np.float_]:
+    def generate_probability_plot_points(self) -> npt.NDArray[np.float64]:
         """Return the points of the probability points."""
         domain_intersection = self.theoretical.domain.intersect(self.empirical.domain)
         x_values = np.linspace(domain_intersection.min_, domain_intersection.max_, 100, endpoint=True)
@@ -123,7 +123,7 @@ class DistributionApproximation:
         points = self.generate_qq_plot_points()
         return self._calc_r_squared_value(points)
 
-    def generate_qq_plot_points(self, normalize: bool = True) -> npt.NDArray[np.float_]:
+    def generate_qq_plot_points(self, normalize: bool = True) -> npt.NDArray[np.float64]:
         """Return the points of the probability points."""
         number_of_values = len(self.empirical.value_sequence)
         if number_of_values == 0:

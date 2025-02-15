@@ -34,7 +34,10 @@ from reports.plotting_helper import (
 )
 
 
-PLOT_HYPERGRAPH_DETERMINED_POSITIONS = True
+PLOT_ENTIRE_NETWORK = False
+PLOT_NETWORK_GIANT_COMPONENT = True
+PLOT_NETWORK_DETERMINED_POSITIONS = False
+PLOT_HYPERGRAPH_DETERMINED_POSITIONS = False
 
 
 def analyze_model_example_finite_network(
@@ -49,8 +52,12 @@ def analyze_model_example_finite_network(
     plt.rcParams["text.usetex"] = False
 
     if plot:
-        plot_network(network, False, save_directory / 'network.png')
-        plot_network(network, True, save_directory / 'network_fixed_vertex_positions.png')
+        if PLOT_ENTIRE_NETWORK:
+            plot_network(network, False, save_directory / 'network.png')
+        if PLOT_NETWORK_GIANT_COMPONENT:
+            plot_network(network.get_component(0), False, save_directory / 'network_giant_component.png')
+        if PLOT_NETWORK_DETERMINED_POSITIONS:
+            plot_network(network, True, save_directory / 'network_fixed_vertex_positions.png')
         if PLOT_HYPERGRAPH_DETERMINED_POSITIONS:
             plot_hypergraph(network, True, save_directory / 'hypergraph_fixed_positions.png')
 

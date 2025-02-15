@@ -50,6 +50,8 @@ private:
         static const bool store_key = true;
         static const bool store_filtration = true;
         static const bool contiguous_vertices = false;
+        static const bool link_nodes_by_label = false;
+        static const bool stable_simplex_handles = false;
     };
     using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
     using SimplexHandle = SimplexTree::Simplex_handle;

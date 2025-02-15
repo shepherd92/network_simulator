@@ -4,8 +4,10 @@ gudhi
 matplotlib
 networkx
 pandas
+pip
 pybind11
 pygraphviz
 scipy
+setuptools
 snakeviz
 tqdm

@@ -27,7 +27,7 @@ class Distribution:
             domain_max = min(self.max_, other.max_)
             return Distribution.Domain(domain_min, domain_max)
 
-        def filter_values(self, values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_ | np.int_]:
+        def filter_values(self, values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64 | np.int_]:
             """Filter for those values that are in the domain."""
             values_in_domain = values[(values >= self.min_) & (values <= self.max_)]
             return values_in_domain
@@ -52,7 +52,7 @@ class Distribution:
         self._domain = Distribution.Domain(np.nan, np.nan)
         self._valid: bool = False
 
-    def pdf(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
+    def pdf(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
         """Return the PDF of the distribution evaluated at different x_values."""
         pdf_values = np.zeros_like(x_values, dtype=float)  # outside of the domain, the pdf is 0
 
@@ -64,7 +64,7 @@ class Distribution:
 
         return pdf_values
 
-    def cdf(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
+    def cdf(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution."""
         cdf_values = np.zeros_like(x_values, dtype=float)  # below domain min, the cdf is 0
         cdf_values[x_values > self._domain.max_] = 1.  # above domain min, the cdf is 1
@@ -76,7 +76,7 @@ class Distribution:
         cdf_values[np.isnan(x_values)] = np.nan
         return cdf_values
 
-    def conditional_cdf(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
+    def conditional_cdf(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
         """Return the CDF conditioned on the variable is in the domain of x_values."""
         if not self.valid:
             return np.full(x_values.shape, np.nan)
@@ -85,7 +85,7 @@ class Distribution:
         conditional_cdf = (cdf - cdf.min()) / cdf_range
         return conditional_cdf
 
-    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Calculate the inverse CDF at the given values."""
         raise NotImplementedError
 
@@ -97,7 +97,7 @@ class Distribution:
         confidence_interval = self.calc_quantiles(np.array([lower_quantile, upper_quantile]))
         return confidence_interval.tolist()
 
-    def kolmogorov_smirnov(self, other: Distribution, x_values: npt.NDArray[np.float_]) -> float:
+    def kolmogorov_smirnov(self, other: Distribution, x_values: npt.NDArray[np.float64]) -> float:
         """Calculate the Kolmogorov-Smirnov statistic of two degree distributions."""
         if not self.valid or not other.valid:
             # only calculate the statistic if both distributions are valid
@@ -116,7 +116,7 @@ class Distribution:
 
         return kolmogorov_smirnov_statistic
 
-    def calc_p_values(self, test_values: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def calc_p_values(self, test_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Calculate the two tailed p value for the given test value.
 
         Test if the test_value is from this distribution.
@@ -141,11 +141,11 @@ class Distribution:
         data_frame = pd.DataFrame(info, index=[0])
         data_frame.to_csv(save_path, index=False)
 
-    def _pdf_in_domain(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
+    def _pdf_in_domain(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
         """Return the PDF of the distribution evaluted at the given x_values."""
         raise NotImplementedError
 
-    def _cdf_in_domain(self, x_values: npt.NDArray[np.float_ | np.int_]) -> npt.NDArray[np.float_]:
+    def _cdf_in_domain(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
         """Return the CDF of the distribution evaluted at the given x_values."""
         pdf_in_domain = self._pdf_in_domain(x_values)
         return pdf_in_domain.cumsum()

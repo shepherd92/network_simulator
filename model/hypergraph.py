@@ -41,7 +41,7 @@ class HypergraphModel(Model):
         weighted: bool = False
         interactions_enough: bool = False
 
-        def to_numpy(self) -> npt.NDArray[np.float_]:
+        def to_numpy(self) -> npt.NDArray[np.float64]:
             """Return the parameters as a numpy array."""
             return np.array([
                 self.max_dimension,
@@ -79,7 +79,7 @@ class HypergraphModel(Model):
         gamma_prime = 1. / (interaction_vertex_exponent - 1.)
         assert gamma_prime > 0. and gamma_prime < 1., f'gamma_prime_guess = {gamma_prime}'
 
-        def system_of_equations(x: npt.NDArray[np.float_]) -> float:
+        def system_of_equations(x: npt.NDArray[np.float64]) -> float:
             network_size = x[0]
             interaction_intensity = x[1]
 
