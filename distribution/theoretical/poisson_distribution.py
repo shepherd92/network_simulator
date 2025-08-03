@@ -36,7 +36,7 @@ class PoissonDistribution(TheoreticalDistribution):
 
             MAXIMUM_LIKELIHOOD: int = auto()
 
-        method: Method.MAXIMUM_LIKELIHOOD
+        method: Method
         fixed_parameters: PoissonDistribution.DistributionParameters
 
     def __init__(self) -> None:

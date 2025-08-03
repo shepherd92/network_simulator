@@ -18,7 +18,7 @@ def create_model(model_type: Model.Type) -> Model:
         model = ErdosRenyiModel()
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
         model = AgeDependentRandomSimplexModel()
-    elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH:
+    elif model_type == Model.Type.HYPERGRAPH:
         model = HypergraphModel()
     else:
         raise NotImplementedError(f'The requested model type {model_type.name} is not implemented.')
@@ -33,7 +33,7 @@ def load_default_parameters(model_type: Model.Type) -> Model.Parameters:
         parameters = ERDOS_RENYI_MODEL_PARAMETERS
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
         parameters = AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
-    elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH:
+    elif model_type == Model.Type.HYPERGRAPH:
         parameters = HYPERGRAPH_MODEL_PARAMETERS
     else:
         raise NotImplementedError(

@@ -173,7 +173,7 @@ class PowerLawDistribution(TheoreticalDistribution):
     ) -> None:
         """Find the domain at which the power-law holds.
 
-        min_bounds: minimum and maximum vlues of the domain minimum
+        min_bounds: minimum and maximum values of the domain minimum
         """
         min_bounds = Distribution.Domain(*domain_calculation_params.min_bounds)
         low = max(empirical_distribution.domain.min_, 1.)

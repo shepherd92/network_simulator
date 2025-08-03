@@ -86,8 +86,11 @@ class AgeDependentRandomSimplexModel(Model):
             f'Wrong model parameter type {type(self.parameters)}'
 
         cpp_model = FiniteAdrcmModel(self._parameters.to_numpy(), seed)
-        network: FiniteNetwork = cpp_model.generate_network()
+        cpp_network, vertex_positions = cpp_model.generate_network()
+        network = FiniteNetwork(cpp_network)
+        network.vertex_positions = self._create_point_positions_dict(vertex_positions)
         network.expand()
+
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
@@ -97,7 +100,6 @@ class AgeDependentRandomSimplexModel(Model):
 
         cpp_model = InfiniteAdrcmModel(self._parameters.to_numpy(), seed)
         networks: list[InfiniteNetwork] = cpp_model.generate_networks()
-        networks.apply(lambda network: network.expand())
         infinite_network_set = InfiniteNetworkSet(networks)
 
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed} done.')
@@ -106,6 +108,15 @@ class AgeDependentRandomSimplexModel(Model):
     def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
         """Convert a tuple to ModelParamters. Used for model optimization."""
         self.parameters = AgeDependentRandomSimplexModel.Parameters(*parameters_tuple)
+
+    def _create_point_positions_dict(self, vertex_positions: list[tuple[float, float]]) -> dict[int, tuple[float, ...]]:
+        vertex_ids = list(range(len(vertex_positions)))
+        vertex_positions_dict = {
+            id: (position, mark)
+            for id, (mark, position)
+            in zip(vertex_ids, vertex_positions)
+        }
+        return vertex_positions_dict
 
     @property
     def parameters(self) -> AgeDependentRandomSimplexModel.Parameters:

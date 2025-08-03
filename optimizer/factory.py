@@ -7,8 +7,6 @@ from config_files.model_fitting import AgeDependentRandomSimplexParameterOptions
 from config_files.model_fitting import ErdosRenyiParameterOptions
 from config_files.model_fitting import NetworkGeometryWithFlavorParameterOptions
 from config_files.model_fitting import PreferentialAttachmentParameterOptions
-from config_files.model_fitting import PriceParameterOptions
-from config_files.model_fitting import WattsStrogatzParameterOptions
 from data_set.data_set import DataSet
 from optimizer.parameter_option import ModelParameterOptions
 
@@ -18,12 +16,8 @@ def create_parameter_options(model_type: Model.Type, data_set: DataSet) -> Model
     parameter_options: ModelParameterOptions = ModelParameterOptions()
     if model_type == Model.Type.ERDOS_RENYI:
         parameter_options = ErdosRenyiParameterOptions(data_set)
-    elif model_type == Model.Type.WATTS_STROGATZ:
-        parameter_options = WattsStrogatzParameterOptions(data_set)
     elif model_type == Model.Type.PREFERENTIAL_ATTACHMENT:
         parameter_options = PreferentialAttachmentParameterOptions(data_set)
-    elif model_type == Model.Type.PRICE:
-        parameter_options = PriceParameterOptions(data_set)
     elif model_type == Model.Type.NETWORK_GEOMETRY_WITH_FLAVOR:
         parameter_options = NetworkGeometryWithFlavorParameterOptions(data_set)
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:

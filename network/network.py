@@ -52,7 +52,7 @@ class Network:
     @log_function_name
     def expand(self) -> None:
         """Expand simplicial complex to a clique complex."""
-        self.cpp_network.expand(self.max_dimension)
+        self.cpp_network.expand()
 
     @log_function_name
     def filter_to_graph(self) -> None:

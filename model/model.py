@@ -26,12 +26,10 @@ class Model:
         """Specify the available model types."""
 
         ERDOS_RENYI = auto()
-        WATTS_STROGATZ = auto()
         PREFERENTIAL_ATTACHMENT = auto()
-        PRICE = auto()
         NETWORK_GEOMETRY_WITH_FLAVOR = auto()
         AGE_DEPENDENT_RANDOM_SIMPLEX = auto()
-        AGE_DEPENDENT_RANDOM_HYPERGRAPH = auto()
+        HYPERGRAPH = auto()
         INVALID = auto()
 
     @unique

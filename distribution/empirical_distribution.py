@@ -141,7 +141,7 @@ class EmpiricalDistribution(Distribution):
 
     def _calc_histogram_lin(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Return the histogram of the value sequence."""
-        return np.histogram(self.value_sequence, bins=self._auto_bins(), density=True)
+        return np.histogram(self.value_sequence, bins='fd', density=True)
 
     def _calc_histogram_integers(self) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
         """Return the histogram of the value sequence."""
@@ -161,21 +161,6 @@ class EmpiricalDistribution(Distribution):
         bins = np.geomspace(values.min(), values.max(), num_of_bins)
 
         return np.histogram(values, bins=bins, density=True)
-
-    def _auto_bins(self) -> npt.NDArray[np.float64]:
-        """Calculate the bins of the histogram.
-
-        This function is implemented due to a bug in the numpy histogram auto_bin method.
-        """
-        minimum_value = self.value_sequence.min()
-        maximum_value = self.value_sequence.max()
-        self.value_sequence.sort()
-        a = self.value_sequence - minimum_value
-        fd = np.lib.histograms._hist_bin_fd(a, range)  # pylint: disable=protected-access
-        left_edges = a // fd * fd
-        right_edges = left_edges + fd
-        new_bins = np.unique(np.concatenate((left_edges, right_edges))) + minimum_value
-        return np.append(new_bins, maximum_value + fd)
 
     @property
     def natural_x_values(self) -> npt.NDArray[np.float64 | np.int_]:

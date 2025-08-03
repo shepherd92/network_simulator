@@ -26,7 +26,7 @@ class ModelConfig:
             properties_to_calculate: list[BaseNetworkProperty] = [
                 BaseNetworkProperty.num_of_vertices,
                 # BaseNetworkProperty.num_of_edges,
-                # BaseNetworkProperty.num_of_triangles,
+                BaseNetworkProperty.num_of_triangles,
                 # BaseNetworkProperty.num_of_interactions,
                 # BaseNetworkProperty.edges,
                 # BaseNetworkProperty.mean_degree,
@@ -60,7 +60,7 @@ class ModelConfig:
                 # BaseNetworkProperty.in_degree_distribution,
                 # BaseNetworkProperty.out_degree_distribution,
                 # BaseNetworkProperty.edge_triangle_degree_distribution,
-                BaseNetworkProperty.vertex_interaction_degree_distribution,
+                # BaseNetworkProperty.vertex_interaction_degree_distribution,
                 # BaseNetworkProperty.edge_interaction_degree_distribution,
                 # BaseNetworkProperty.triangle_interaction_degree_distribution,
                 # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
@@ -82,11 +82,11 @@ class ModelConfig:
     class Testing(NamedTuple):
         """Model testing configuration for networks."""
 
-        mode: Model.Mode = Model.Mode.INFINITE
+        mode: Model.Mode = Model.Mode.FINITE
         num_of_simulations: int = 100
         num_of_infinite_networks: int = 100000
 
-    type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_HYPERGRAPH
+    type_: Model.Type = Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX
     set_params_from_data_set: bool = False
     analysis = Analysis()
     fitting = Fitting()

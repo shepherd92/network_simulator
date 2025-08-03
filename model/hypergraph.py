@@ -161,15 +161,6 @@ class HypergraphModel(Model):
             infinite_networks.append(infinite_network)
         return InfiniteNetworkSet(infinite_networks)
 
-    def _create_point_positions_dict(self, vertex_positions: list[tuple[float, float]]) -> dict[int, tuple[float, ...]]:
-        vertex_ids = list(range(len(vertex_positions)))
-        vertex_positions_dict = {
-            id: (position, mark)
-            for id, (mark, position)
-            in zip(vertex_ids, vertex_positions)
-        }
-        return vertex_positions_dict
-
     def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
         """Convert a tuple to ModelParamters. Used for model optimization."""
         self.parameters = HypergraphModel.Parameters(*parameters_tuple)
@@ -208,6 +199,15 @@ class HypergraphModel(Model):
             'parameter_gamma': self.parameters.gamma,
             'parameter_gamma_prime': self.parameters.gamma_prime,
         }
+
+    def _create_point_positions_dict(self, vertex_positions: list[tuple[float, float]]) -> dict[int, tuple[float, ...]]:
+        vertex_ids = list(range(len(vertex_positions)))
+        vertex_positions_dict = {
+            id: (position, mark)
+            for id, (mark, position)
+            in zip(vertex_ids, vertex_positions)
+        }
+        return vertex_positions_dict
 
     @ property
     def parameters(self) -> HypergraphModel.Parameters:
