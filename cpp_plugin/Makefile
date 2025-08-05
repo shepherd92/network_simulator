@@ -99,6 +99,7 @@ SHOBJEXT := $(shell python$(PYTHON_VERSION)-config --extension-suffix)
 # find source files
 SOSRCS := $(shell find $(ROOT) -type f -name "*.$(SRCEXT)" -not -path "$(ROOT)/test/*")
 SOOBJS := $(SOSRCS:%.$(SRCEXT)=$(TARGETDIR)/%.$(OBJEXT))
+$(info The value of FOO is $(SOOBJS))
 
 TESTSRCS := $(shell find $(ROOT) -type f -name "*.$(SRCEXT)" -not -name "python_module.cpp")
 TESTOBJS := $(TESTSRCS:%.$(SRCEXT)=$(TARGETDIR)/%.$(OBJEXT))

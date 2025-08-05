@@ -142,5 +142,13 @@
     "editor.formatOnType": true,
     "makefile.makefilePath": "${workspaceFolder}/cpp_plugin",
     "makefile.buildBeforeLaunch": true,
-    "makefile.loggingLevel": "Verbose"
+    "makefile.loggingLevel": "Verbose",
+    "cSpell.words": [
+        "Adrcm",
+        "bron",
+        "coface",
+        "Hypergraph",
+        "kerbosch",
+        "simplicial"
+    ]
 }

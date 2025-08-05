@@ -15,5 +15,5 @@ class GeneralConfig:
     memory_profiling = False
     tracing = False
     seed = 1733852529  # 0 for random seed
-    root_dir = Path('/home/au725389/save/research/higher_order_adrcm/code/')
+    root_dir = Path('/home/au725389/save/research/network_simulator/code/')
     output_dir = Path('../output')

@@ -1,6 +1,7 @@
 #include <atomic>
 
 #include "adrcm_model.h"
+#include "bron_kerbosch.h"
 #include "point.h"
 #include "simplex.h"
 #include "simplex_list.h"
@@ -66,6 +67,12 @@ ConnectionList AdrcmModel::generate_connections(const PointList &vertices) const
         log_progress(++counter, num_of_nodes, 10000U, "Generating connections");
     }
     return connections;
+}
+
+SimplexList AdrcmModel::create_cliques(const PointIdList &vertices, const ConnectionList &connections) const
+{
+    ISimplexList cliques{find_maximal_cliques(vertices, connections)};
+    return SimplexList{cliques};
 }
 
 SimplexList AdrcmModel::create_simplices_from_connections(const ConnectionList &connections) const

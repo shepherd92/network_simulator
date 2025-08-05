@@ -21,7 +21,7 @@ Network::Network(
 {
     if (vertices_.empty())
     {
-        vertices_ = interactions_.vertices();
+        vertices_ = get_interactions().vertices();
     }
     std::sort(vertices_.begin(), vertices_.end());
 }
@@ -64,7 +64,7 @@ uint32_t Network::num_vertices()
 
 std::vector<Dimension> Network::calc_interaction_dimension_distribution() const
 {
-    return interactions_.calc_dimension_distribution();
+    return get_interactions().calc_dimension_distribution();
 }
 
 std::vector<Dimension> Network::calc_facet_dimension_distribution()
@@ -76,7 +76,7 @@ const SimplexList &Network::get_facets()
 {
     if (!facets_.has_value())
     {
-        facets_ = interactions_.facets();
+        facets_ = get_interactions().facets();
     }
     return *facets_;
 }
@@ -109,7 +109,7 @@ ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 void Network::keep_only_vertices(const PointIdList &vertices)
 {
     vertices_ = vertices;
-    interactions_ = interactions_.filter(vertices);
+    interactions_ = get_interactions().filter(vertices);
     reset();
 }
 

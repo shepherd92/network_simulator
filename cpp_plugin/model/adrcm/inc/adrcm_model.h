@@ -22,6 +22,7 @@ public:
 protected:
     ConnectionList generate_connections(const PointList &vertices) const;
     SimplexList create_simplices_from_connections(const ConnectionList &connections) const;
+    SimplexList create_cliques(const PointIdList &vertices, const ConnectionList &connections) const;
 
     Dimension max_dimension() const;
     float lambda() const;

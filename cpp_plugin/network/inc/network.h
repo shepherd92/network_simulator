@@ -56,7 +56,7 @@ protected:
 private:
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
     virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
-    std::map<PointId, std::vector<int32_t>> create_vertex_simplex_map(const SimplexList &simplices) const;
+    std::map<PointId, std::vector<PointId>> create_vertex_simplex_map(const SimplexList &simplices) const;
     void filter_facets(const PointIdList &vertices);
 };
 

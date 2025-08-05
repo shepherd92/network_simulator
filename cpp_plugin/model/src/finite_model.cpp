@@ -34,3 +34,10 @@ PositionList FiniteModel::generate_positions(const size_t num_of_points) const
     return positions;
 }
 
+float FiniteModel::distance(const Point &first, const Point &second) const
+{
+    const auto distance_inside{fabs(first.position() - second.position())};
+    const auto distance{
+        distance_inside < 0.5 * torus_size() ? distance_inside : torus_size() - distance_inside};
+    return distance;
+}

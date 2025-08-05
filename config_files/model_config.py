@@ -118,7 +118,7 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
 
 AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
     max_dimension=2,
-    network_size=100,  # expected number of nodes
+    network_size=10,  # expected number of nodes
     alpha=0.5,
     beta=1.0,
     gamma=0.7,

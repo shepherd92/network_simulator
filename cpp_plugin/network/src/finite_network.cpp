@@ -57,21 +57,12 @@ SimplexList FiniteNetwork::get_skeleton(const Dimension max_dimension)
 
 SimplexList FiniteNetwork::calc_simplices(const Dimension dimension)
 {
-    if (interactions_.size() > 0)
+    if (get_interactions().size() > 0)
     {
-        return interactions_.faces(dimension);
+        return get_interactions().faces(dimension);
     }
     else
     {
-        fill_simplicial_complex();
-        simplex_tree_->expansion(max_dimension_ + 1U);
-        for (const auto &simplex : simplex_tree_->complex_simplex_range())
-        {
-            if (simplex->)
-            {
-                return SimplexList{simplex.vertices()};
-            }
-        }
         return get_facets().faces(dimension);
     }
 }
@@ -237,8 +228,8 @@ std::vector<uint32_t> FiniteNetwork::calc_vertex_interaction_degree_distribution
 
     std::for_each(
         std::execution::seq,
-        interactions_.simplices().begin(),
-        interactions_.simplices().end(),
+        get_interactions().simplices().begin(),
+        get_interactions().simplices().end(),
         [&](const auto &interaction)
         {
             std::for_each(
