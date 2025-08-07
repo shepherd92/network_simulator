@@ -4,31 +4,22 @@
 #include <mutex>
 
 #include "network.h"
-#include "simplex.h"
 #include "simplex_list.h"
 #include "tools.h"
 #include "typedefs.h"
 
 Network::Network(
     const Dimension max_dimension,
-    const PointIdList &vertices,
-    const SimplexList &interactions)
+    const PointIdList &vertices)
     : max_dimension_{max_dimension},
-      vertices_{vertices},
-      interactions_{interactions},
-      facets_{std::nullopt},
-      simplices_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
+      simplices_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt},
+      vertices_{vertices}
 {
-    if (vertices_.empty())
-    {
-        vertices_ = get_interactions().vertices();
-    }
     std::sort(vertices_.begin(), vertices_.end());
 }
 
 void Network::reset()
 {
-    facets_ = std::nullopt;
     simplices_ = std::vector<std::optional<SimplexList>>{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt};
 }
 
@@ -47,38 +38,14 @@ void Network::set_vertices(const PointIdList &vertices)
     vertices_ = vertices;
 }
 
-ISimplexList Network::get_interactions_interface() const
+PointIdList Network::get_vertices() const
 {
-    return get_interactions().raw();
-}
-
-ISimplexList Network::get_facets_interface()
-{
-    return get_facets().raw();
+    return vertices_;
 }
 
 uint32_t Network::num_vertices()
 {
     return vertices_.size();
-}
-
-std::vector<Dimension> Network::calc_interaction_dimension_distribution() const
-{
-    return get_interactions().calc_dimension_distribution();
-}
-
-std::vector<Dimension> Network::calc_facet_dimension_distribution()
-{
-    return get_facets().calc_dimension_distribution();
-}
-
-const SimplexList &Network::get_facets()
-{
-    if (!facets_.has_value())
-    {
-        facets_ = get_interactions().facets();
-    }
-    return *facets_;
 }
 
 const SimplexList &Network::get_simplices(const Dimension dimension)
@@ -91,26 +58,9 @@ const SimplexList &Network::get_simplices(const Dimension dimension)
     return *simplices_[dimension];
 }
 
-const SimplexList &Network::get_interactions() const
-{
-    return interactions_;
-}
-
-void Network::set_interactions(const ISimplexList &interactions)
-{
-    interactions_ = SimplexList{interactions};
-}
-
 ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 {
     return get_skeleton(max_dimension).raw();
-}
-
-void Network::keep_only_vertices(const PointIdList &vertices)
-{
-    vertices_ = vertices;
-    interactions_ = get_interactions().filter(vertices);
-    reset();
 }
 
 std::vector<Dimension> Network::calc_simplex_dimension_distribution()
@@ -126,4 +76,10 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
 uint32_t Network::num_simplices(const Dimension dimension)
 {
     return get_simplices(dimension).size();
+}
+
+void Network::keep_only_vertices(const PointIdList &vertices)
+{
+    set_vertices(vertices);
+    reset();
 }
