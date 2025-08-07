@@ -15,9 +15,39 @@ FiniteHypergraph::FiniteHypergraph(
 {
 }
 
-FiniteHypergraph::~FiniteHypergraph()
+std::vector<uint32_t> FiniteHypergraph::calc_vertex_interaction_degree_distribution() const
 {
-    reset_persistence();
+    // initialize result with zeros
+    std::map<PointId, uint32_t> point_id_interaction_count_map{};
+    for (const auto vertex_id : get_vertices())
+    {
+        point_id_interaction_count_map.emplace(vertex_id, 0U);
+    }
+
+    std::for_each(
+        std::execution::seq,
+        get_interactions().simplices().begin(),
+        get_interactions().simplices().end(),
+        [&](const auto &interaction)
+        {
+            std::for_each(
+                execution_policy, // can execute parallel, different vertices in an interaction
+                interaction.vertices().begin(),
+                interaction.vertices().end(),
+                [&](const auto vertex_id)
+                {
+                    ++point_id_interaction_count_map[vertex_id];
+                });
+        });
+
+    std::vector<uint32_t> counts{};
+    counts.reserve(get_vertices().size());
+    for (const auto vertex_id : get_vertices())
+    {
+        counts.emplace_back(point_id_interaction_count_map[vertex_id]);
+    }
+
+    return counts;
 }
 
 std::vector<std::vector<std::pair<float, float>>> FiniteHypergraph::calc_persistence_intervals()
@@ -95,6 +125,11 @@ std::vector<ISimplexList> FiniteHypergraph::calc_persistence_pairs()
             log_progress(++counter, total, 1000U, "Calc persistence pairs");
         });
     return result;
+}
+
+SimplexList FiniteHypergraph::calc_simplices(const Dimension dimension)
+{
+    return get_interactions().faces(dimension);
 }
 
 void FiniteHypergraph::fill_simplicial_complex()
