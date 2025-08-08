@@ -5,7 +5,7 @@
 #include "infinite_network.hpp"
 #include "typedefs.hpp"
 
-class InfiniteHypergraph : public InfiniteNetwork, public Hypergraph
+class InfiniteHypergraph final : public InfiniteNetwork, public Hypergraph
 {
 public:
     InfiniteHypergraph(
@@ -15,28 +15,16 @@ public:
         const Mark typical_vertex_mark_,
         const MarkList &marks);
 
-    InfiniteHypergraph(InfiniteHypergraph &&other) noexcept
-        : Network{std::move(other)},
-          InfiniteNetwork{std::move(other)},
-          Hypergraph{std::move(other)}
-    {
-    }
+    InfiniteHypergraph(InfiniteHypergraph &&other) noexcept;
 
     // move assignment defined due to virtual base class
-    InfiniteHypergraph &operator=(InfiniteHypergraph &&other) noexcept
-    {
-        if (this != &other)
-        {
-            Network::operator=(std::move(other));
-            Hypergraph::operator=(std::move(other));
-            InfiniteNetwork::operator=(std::move(other));
-        }
-        return *this;
-    }
+    InfiniteHypergraph &operator=(InfiniteHypergraph &&other) noexcept;
 
     std::vector<Dimension> calc_interaction_dimension_distribution() const override;
     std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
         const Dimension simplex_dimension) override;
+
+    InfiniteHypergraph filter(const PointIdList &vertices);
 
 private:
     SimplexList calc_neighbors(const Dimension dimension) override;

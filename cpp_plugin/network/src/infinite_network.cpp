@@ -15,6 +15,24 @@ InfiniteNetwork::InfiniteNetwork(
 {
 }
 
+InfiniteNetwork::InfiniteNetwork(InfiniteNetwork &&other) noexcept
+{
+    typical_vertex_mark_ = std::move(other.typical_vertex_mark_);
+    marks_ = std::move(other.marks_);
+    neighbors_ = std::move(other.neighbors_);
+}
+
+InfiniteNetwork &InfiniteNetwork::operator=(InfiniteNetwork &&other) noexcept
+{
+    if (this != &other)
+    {
+        typical_vertex_mark_ = std::move(other.typical_vertex_mark_);
+        marks_ = std::move(other.marks_);
+        neighbors_ = std::move(other.neighbors_);
+    }
+    return *this;
+}
+
 Mark InfiniteNetwork::typical_mark() const
 {
     return typical_vertex_mark_;

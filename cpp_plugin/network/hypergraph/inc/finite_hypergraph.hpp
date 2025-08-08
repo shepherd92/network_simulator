@@ -50,6 +50,8 @@ public:
     std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
         const Dimension simplex_dimension) override;
 
+    FiniteHypergraph filter(const PointIdList &vertices);
+
 private:
     SimplexList calc_simplices(const Dimension dimension) override;
 

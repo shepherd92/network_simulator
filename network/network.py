@@ -39,26 +39,6 @@ class Network:
         cpp_network_type = type(self.cpp_network)
         self.cpp_network = cpp_network_type(self.max_dimension, self.graph.nodes, self.graph.edges)
 
-    def create_simplicial_complex(self) -> None:
-        """Create a simplicial complex."""
-        self.cpp_network.create_simplicial_complex()
-
-    @log_function_name
-    def filter_to_graph(self) -> None:
-        """Filter out those simplices from the simplicial complex that are not present in the graph."""
-        self.cpp_network = self.cpp_network.filter(list(self.graph.nodes))
-
-    @log_function_name
-    def filter_interactions_from_graph(self) -> None:
-        """Filter out interactions that are not present in the graph."""
-        graph_nodes_set = set(self.graph.nodes)
-        filtered_interactions: list[list[int]] = [
-            list(set(interaction) & graph_nodes_set)
-            for interaction in self.interactions
-        ]
-        # filter out empty lists
-        self.interactions = list(filter(None, filtered_interactions))
-
     @log_function_name
     def _generate_graph_from_simplicial_complex(self) -> nx.Graph:
         """Set graph to represent the simplicial complex."""
@@ -82,11 +62,6 @@ class Network:
         info = self.info()
         data_frame = pd.DataFrame(info, index=[0])
         data_frame.to_csv(save_path, index=False)
-
-    def _reset(self) -> None:
-        self.cpp_network.reset()
-        self.graph = None
-        self._digraph = None
 
     @log_function_name
     def _calculate_simplex_dimension_distribution(self) -> EmpiricalDistribution:

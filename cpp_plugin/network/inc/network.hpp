@@ -29,8 +29,6 @@ public:
         return *this;
     }
 
-    uint32_t num_simplices(const Dimension dimension);
-
     virtual void reset();
 
     std::vector<Dimension> calc_simplex_dimension_distribution();
@@ -38,16 +36,19 @@ public:
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension) = 0;
 
-    virtual void keep_only_vertices(const PointIdList &vertices);
     ISimplexList get_skeleton_interface(const Dimension max_dimension);
 
     uint32_t num_vertices();
+    const PointIdList &get_vertices() const;
+    virtual void set_vertices(const PointIdList &vertices);
+
+    uint32_t num_simplices(const Dimension dimension);
+    const SimplexList &get_simplices(const Dimension dimension);
+    Dimension get_max_dimension() const;
 
 protected:
     virtual SimplexList get_skeleton(const Dimension max_dimension) = 0;
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
-    const SimplexList &get_simplices(const Dimension dimension);
-    void set_simplices(const Dimension dimension, const SimplexList &simplices);
 
     Dimension max_dimension_;
     PointIdList vertices_;

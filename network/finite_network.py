@@ -78,16 +78,6 @@ class FiniteNetwork(Network):
         return scalar_property_value
 
     @log_function_name
-    def collapse(self) -> FiniteNetwork:
-        """Collapse edges of the simplicial complex preserving its 1 homology."""
-        debug(f'Collapsing network, containing currently: {self.num_simplices(0)} vertices.')
-        collapsed_network = FiniteNetwork(self.cpp_network)
-        collapsed_network.cpp_network.collapse()
-        collapsed_network.expand()
-        debug(f'Collapsed containing {collapsed_network.num_simplices(0)} vertices.')
-        return collapsed_network
-
-    @log_function_name
     def calc_base_property(self, property_type: BaseNetworkProperty) -> Any:
         """Return a base property of the network."""
         debug(f'Calculating {property_type.name}...')

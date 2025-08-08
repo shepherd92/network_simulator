@@ -14,6 +14,22 @@ FiniteNetwork::~FiniteNetwork()
     reset_persistence();
 }
 
+FiniteNetwork::FiniteNetwork(FiniteNetwork &&other) noexcept
+{
+    simplex_tree_ = std::move(other.simplex_tree_);
+    persistent_cohomology_ = other.persistent_cohomology_;
+}
+
+FiniteNetwork &FiniteNetwork::operator=(FiniteNetwork &&other) noexcept
+{
+    if (this != &other)
+    {
+        simplex_tree_ = std::move(other.simplex_tree_);
+        persistent_cohomology_ = other.persistent_cohomology_;
+    }
+    return *this;
+}
+
 SimplexList FiniteNetwork::get_skeleton(const Dimension max_dimension)
 {
     SimplexList result{};

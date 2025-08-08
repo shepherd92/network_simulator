@@ -89,7 +89,6 @@ class AgeDependentRandomSimplexModel(Model):
         cpp_network, vertex_positions = cpp_model.generate_network()
         network = FiniteNetwork(cpp_network)
         network.vertex_positions = self._create_point_positions_dict(vertex_positions)
-        network.expand()
 
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network

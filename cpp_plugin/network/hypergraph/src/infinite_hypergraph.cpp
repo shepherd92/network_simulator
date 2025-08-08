@@ -18,6 +18,25 @@ InfiniteHypergraph::InfiniteHypergraph(
 {
 }
 
+InfiniteHypergraph::InfiniteHypergraph(InfiniteHypergraph &&other) noexcept
+    : Network{std::move(other)},
+      InfiniteNetwork{std::move(other)},
+      Hypergraph{std::move(other)}
+{
+}
+
+// move assignment defined due to virtual base class
+InfiniteHypergraph &InfiniteHypergraph::operator=(InfiniteHypergraph &&other) noexcept
+{
+    if (this != &other)
+    {
+        Network::operator=(std::move(other));
+        Hypergraph::operator=(std::move(other));
+        InfiniteNetwork::operator=(std::move(other));
+    }
+    return *this;
+}
+
 std::vector<uint32_t> InfiniteHypergraph::calc_simplex_interaction_degree_sequence(
     const Dimension simplex_dimension)
 {
@@ -67,4 +86,25 @@ std::vector<Dimension> InfiniteHypergraph::calc_interaction_dimension_distributi
     }
 
     return result;
+}
+
+InfiniteHypergraph InfiniteHypergraph::filter(const PointIdList &vertices)
+{
+    SimplexList filtered_interactions{interactions_.filter(vertices)};
+
+    MarkList filtered_marks{};
+    filtered_marks.reserve(vertices.size());
+    for (const auto &vertex : vertices)
+    {
+        const auto it{std::find(marks_.begin(), marks_.end(), vertex)};
+        assert(it != marks_.end() && "Vertex not found");
+        filtered_marks.push_back(marks_[it - marks_.begin()]);
+    }
+
+    return InfiniteHypergraph{
+        max_dimension_,
+        vertices,
+        std::move(filtered_interactions),
+        typical_vertex_mark_,
+        std::move(filtered_marks)};
 }

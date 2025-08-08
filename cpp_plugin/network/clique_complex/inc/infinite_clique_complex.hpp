@@ -4,7 +4,7 @@
 #include "infinite_network.hpp"
 #include "typedefs.hpp"
 
-class InfiniteCliqueComplex : public InfiniteNetwork
+class InfiniteCliqueComplex final : public InfiniteNetwork
 {
 public:
     InfiniteCliqueComplex(
@@ -13,22 +13,11 @@ public:
         const Mark typical_vertex_mark_,
         const MarkList &marks);
 
-    InfiniteCliqueComplex(InfiniteCliqueComplex &&other) noexcept
-        : Network{std::move(other)},
-          InfiniteNetwork{std::move(other)}
-    {
-    }
-
     // move assignment defined due to virtual base class
-    InfiniteCliqueComplex &operator=(InfiniteCliqueComplex &&other) noexcept
-    {
-        if (this != &other)
-        {
-            Network::operator=(std::move(other));
-            InfiniteNetwork::operator=(std::move(other));
-        }
-        return *this;
-    }
+    InfiniteCliqueComplex(InfiniteCliqueComplex &&other) noexcept;
+    InfiniteCliqueComplex &operator=(InfiniteCliqueComplex &&other) noexcept;
+
+    InfiniteCliqueComplex filter(const PointIdList &vertices) const;
 
 private:
     SimplexList calc_neighbors(const Dimension dimension) override;

@@ -20,8 +20,6 @@ public:
     virtual std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
         const Dimension simplex_dimension) = 0;
 
-    void keep_only_vertices(const PointIdList &vertices) override;
-
     // interface functions exposed to Python
     void set_interactions(const ISimplexList &interactions);
     ISimplexList get_interactions() const;

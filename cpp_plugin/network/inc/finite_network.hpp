@@ -33,26 +33,9 @@ public:
 
 public:
     FiniteNetwork();
-    FiniteNetwork(const FiniteNetwork &other);
     ~FiniteNetwork();
-
-    FiniteNetwork(FiniteNetwork &&other) noexcept
-    {
-        simplex_tree_ = std::move(other.simplex_tree_);
-        persistent_cohomology_ = other.persistent_cohomology_;
-    }
-
-    FiniteNetwork &operator=(FiniteNetwork &&other) noexcept
-    {
-        if (this != &other)
-        {
-            simplex_tree_ = std::move(other.simplex_tree_);
-            persistent_cohomology_ = other.persistent_cohomology_;
-        }
-        return *this;
-    }
-
-    void create_simplicial_complex();
+    FiniteNetwork(FiniteNetwork &&other) noexcept;
+    FiniteNetwork &operator=(FiniteNetwork &&other) noexcept;
 
     void reset() override;
 
@@ -60,6 +43,7 @@ public:
         const Dimension simplex_dimension,
         const Dimension neighbor_dimension) override;
     std::vector<int32_t> calc_betti_numbers();
+    SimplexList get_skeleton(const Dimension max_dimension) override;
 
 protected:
     void assert_simplicial_complex_is_initialized();
@@ -72,7 +56,7 @@ protected:
     PersistentCohomology *persistent_cohomology_;
 
 private:
-    SimplexList get_skeleton(const Dimension max_dimension) override;
+    void create_simplicial_complex();
 
     // simplicial complex methods
     void calc_persistent_cohomology();

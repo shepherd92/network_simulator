@@ -28,6 +28,22 @@ uint32_t Network::num_vertices()
     return vertices_.size();
 }
 
+const PointIdList &Network::get_vertices() const
+{
+    return vertices_;
+}
+
+void Network::set_vertices(const PointIdList &vertices)
+{
+    vertices_ = vertices;
+    reset();
+}
+
+Dimension Network::get_max_dimension() const
+{
+    return max_dimension_;
+}
+
 const SimplexList &Network::get_simplices(const Dimension dimension)
 {
     assert(dimension <= max_dimension_);
@@ -56,10 +72,4 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
         result[dimension] = get_simplices(dimension).size();
     }
     return result;
-}
-
-void Network::keep_only_vertices(const PointIdList &vertices)
-{
-    vertices_ = vertices;
-    reset();
 }

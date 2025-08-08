@@ -2,11 +2,13 @@
 #include <pybind11/stl.h>
 
 #include "finite_adrcm_model.hpp"
+#include "finite_clique_complex.hpp"
 #include "finite_hypergraph_model.hpp"
-#include "finite_network.hpp"
+#include "finite_hypergraph.hpp"
 #include "infinite_adrcm_model.hpp"
 #include "infinite_hypergraph_model.hpp"
-#include "infinite_network.hpp"
+#include "infinite_hypergraph.hpp"
+#include "infinite_clique_complex.hpp"
 
 namespace py = pybind11;
 
@@ -33,41 +35,52 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_vertex_interaction_degree_sequence_directly",
              &InfiniteHypergraphModel::calc_vertex_interaction_degree_sequence_directly);
 
-    py::class_<FiniteHypergraph>(m, "FiniteHypergraph")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const bool>())
-        .def("create_simplicial_complex", &FiniteNetwork::create_simplicial_complex)
-        .def("expand", &FiniteNetwork::expand)
-        .def("filter", &FiniteNetwork::filter)
-        .def("get_skeleton", &FiniteNetwork::get_skeleton_interface)
-        .def("num_vertices", &FiniteNetwork::num_vertices)
-        .def("num_simplices", &Network::num_simplices)
-        .def("reset", &FiniteNetwork::reset)
-        .def("calc_simplex_dimension_distribution", &FiniteNetwork::calc_simplex_dimension_distribution)
-        .def("calc_facet_dimension_distribution", &FiniteNetwork::calc_facet_dimension_distribution)
-        .def("calc_interaction_dimension_distribution", &FiniteNetwork::calc_interaction_dimension_distribution)
+    py::class_<FiniteCliqueComplex>(m, "FiniteCliqueComplex")
+        .def(py::init<const Dimension, const PointIdList &, const ConnectionList &>())
+        .def("get_skeleton", &Network::get_skeleton_interface)
+        .def("calc_simplex_dimension_distribution", &Network::calc_simplex_dimension_distribution)
         .def("calc_coface_degree_sequence", &FiniteNetwork::calc_coface_degree_sequence)
-        .def("calc_simplex_interaction_degree_sequence", &FiniteNetwork::calc_simplex_interaction_degree_sequence)
         .def("calc_betti_numbers", &FiniteNetwork::calc_betti_numbers)
-        .def("calc_persistence_pairs", &FiniteNetwork::calc_persistence_pairs)
-        .def("calc_persistence_intervals", &FiniteHypergraph::calc_persistence_intervals)
-        .def_property("vertices", &FiniteNetwork::get_vertices, &FiniteNetwork::set_vertices)
-        .def_property("max_dimension", &FiniteNetwork::get_max_dimension, &FiniteNetwork::set_max_dimension)
-        .def_property("interactions", &FiniteHypergraph::get_interactions, &FiniteHypergraph::set_interactions);
+        .def("filter", &FiniteCliqueComplex::filter)
+        .def("num_vertices", &Network::num_vertices)
+        .def("num_simplices", &Network::num_simplices)
+        .def("get_simplices", &Network::get_simplices)
+        .def_property_readonly("max_dimension", &Network::get_max_dimension)
+        .def_property("edges", &FiniteCliqueComplex::get_edges, &FiniteCliqueComplex::set_edges)
+        .def_property("vertices", &Network::get_vertices, &Network::set_vertices);
+    /*
+        py::class_<FiniteHypergraph>(m, "FiniteHypergraph")
+            .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const bool>())
+            .def("filter", &FiniteNetwork::filter)
+            .def("get_skeleton", &FiniteNetwork::get_skeleton_interface)
+            .def("num_vertices", &FiniteNetwork::num_vertices)
+            .def("num_simplices", &Network::num_simplices)
+            .def("calc_simplex_dimension_distribution", &FiniteNetwork::calc_simplex_dimension_distribution)
+            .def("calc_facet_dimension_distribution", &FiniteNetwork::calc_facet_dimension_distribution)
+            .def("calc_interaction_dimension_distribution", &FiniteNetwork::calc_interaction_dimension_distribution)
+            .def("calc_coface_degree_sequence", &FiniteNetwork::calc_coface_degree_sequence)
+            .def("calc_simplex_interaction_degree_sequence", &FiniteNetwork::calc_simplex_interaction_degree_sequence)
+            .def("calc_betti_numbers", &FiniteNetwork::calc_betti_numbers)
+            .def("calc_persistence_pairs", &FiniteNetwork::calc_persistence_pairs)
+            .def("calc_persistence_intervals", &FiniteHypergraph::calc_persistence_intervals)
+            .def_property("vertices", &FiniteNetwork::get_vertices, &FiniteNetwork::set_vertices)
+            .def_property("max_dimension", &FiniteNetwork::get_max_dimension, &FiniteNetwork::set_max_dimension)
+            .def_property("interactions", &FiniteHypergraph::get_interactions, &FiniteHypergraph::set_interactions);
 
-    py::class_<InfiniteNetwork>(m, "InfiniteNetwork")
-        .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const Mark, const MarkList &>())
-        .def("get_skeleton", &InfiniteNetwork::get_skeleton_interface)
-        .def("num_vertices", &InfiniteNetwork::num_vertices)
-        .def("num_simplices", &InfiniteNetwork::num_simplices)
-        .def("filter", &InfiniteNetwork::filter)
-        .def("reset", &InfiniteNetwork::reset)
-        .def("calc_simplex_dimension_distribution", &InfiniteNetwork::calc_simplex_dimension_distribution)
-        .def("calc_facet_dimension_distribution", &InfiniteNetwork::calc_facet_dimension_distribution)
-        .def("calc_interaction_dimension_distribution", &InfiniteNetwork::calc_interaction_dimension_distribution)
-        .def("calc_coface_degree_sequence", &InfiniteNetwork::calc_coface_degree_sequence)
-        .def("calc_simplex_interaction_degree_sequence", &InfiniteNetwork::calc_simplex_interaction_degree_sequence)
-        .def("typical_mark", &InfiniteNetwork::typical_mark)
-        .def_property("max_dimension", &InfiniteNetwork::get_max_dimension, &InfiniteNetwork::set_max_dimension)
-        .def_property("interactions", &InfiniteNetwork::get_interactions_interface, &InfiniteNetwork::set_interactions)
-        .def("calc_facets", &InfiniteNetwork::get_facets_interface);
+        py::class_<InfiniteNetwork>(m, "InfiniteNetwork")
+            .def(py::init<const Dimension, const PointIdList &, const ISimplexList &, const Mark, const MarkList &>())
+            .def("get_skeleton", &InfiniteNetwork::get_skeleton_interface)
+            .def("num_vertices", &InfiniteNetwork::num_vertices)
+            .def("num_simplices", &InfiniteNetwork::num_simplices)
+            .def("filter", &InfiniteNetwork::filter)
+            .def("calc_simplex_dimension_distribution", &InfiniteNetwork::calc_simplex_dimension_distribution)
+            .def("calc_facet_dimension_distribution", &InfiniteNetwork::calc_facet_dimension_distribution)
+            .def("calc_interaction_dimension_distribution", &InfiniteNetwork::calc_interaction_dimension_distribution)
+            .def("calc_coface_degree_sequence", &InfiniteNetwork::calc_coface_degree_sequence)
+            .def("calc_simplex_interaction_degree_sequence", &InfiniteNetwork::calc_simplex_interaction_degree_sequence)
+            .def("typical_mark", &InfiniteNetwork::typical_mark)
+            .def_property("max_dimension", &InfiniteNetwork::get_max_dimension, &InfiniteNetwork::set_max_dimension)
+            .def_property("interactions", &InfiniteNetwork::get_interactions_interface, &InfiniteNetwork::set_interactions)
+            .def("calc_facets", &InfiniteNetwork::get_facets_interface);
+            */
 }

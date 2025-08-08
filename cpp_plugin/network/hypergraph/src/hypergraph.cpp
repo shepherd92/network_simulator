@@ -46,9 +46,3 @@ std::vector<Dimension> Hypergraph::calc_interaction_dimension_distribution() con
 {
     return interactions_.calc_dimension_distribution();
 }
-
-void Hypergraph::keep_only_vertices(const PointIdList &vertices)
-{
-    Network::keep_only_vertices(vertices);
-    interactions_ = interactions_.filter(vertices);
-}

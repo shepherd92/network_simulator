@@ -188,3 +188,9 @@ std::vector<uint32_t> FiniteHypergraph::calc_simplex_interaction_degree_sequence
 
     return result;
 }
+
+FiniteHypergraph FiniteHypergraph::filter(const PointIdList &vertices)
+{
+    SimplexList filtered_interactions{interactions_.filter(vertices)};
+    return FiniteHypergraph{max_dimension_, vertices, std::move(filtered_interactions), weighted_};
+}

@@ -5,11 +5,10 @@
 #include <gudhi/Persistent_cohomology.h>
 #include <gudhi/Simplex_tree.h>
 
-#include "clique_complex.hpp"
 #include "finite_network.hpp"
 #include "typedefs.hpp"
 
-class FiniteCliqueComplex : public FiniteNetwork, CliqueComplex
+class FiniteCliqueComplex final : public FiniteNetwork
 {
 public:
     FiniteCliqueComplex(
@@ -17,29 +16,23 @@ public:
         const PointIdList &vertices,
         const ConnectionList &edges);
 
-    FiniteCliqueComplex(FiniteCliqueComplex &&other) noexcept
-        : Network{std::move(other)},
-          FiniteNetwork{std::move(other)},
-          edges_{std::move(other.edges_)}
-    {
-    }
+    FiniteCliqueComplex(FiniteCliqueComplex &&other) noexcept;
+
+    void set_edges(const ConnectionList &edges);
+    ConnectionList get_edges() const;
+
+    void set_vertices(const PointIdList &vertices) override;
 
     // move assignment defined due to virtual base class
-    FiniteCliqueComplex &operator=(FiniteCliqueComplex &&other) noexcept
-    {
-        if (this != &other)
-        {
-            Network::operator=(std::move(other));
-            FiniteNetwork::operator=(std::move(other));
-            edges_ = std::move(other.edges_);
-        }
-        return *this;
-    }
+    FiniteCliqueComplex &operator=(FiniteCliqueComplex &&other) noexcept;
+    FiniteCliqueComplex filter(const PointIdList &vertices) const;
 
 private:
     void expand();
     void fill_simplicial_complex() override;
     SimplexList calc_simplices(const Dimension dimension) override;
+    ConnectionList filter_edges(const PointIdList &vertices) const;
+
     ConnectionList edges_;
 };
 
