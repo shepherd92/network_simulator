@@ -17,7 +17,7 @@ public:
         const Dimension simplex_dimension) = 0;
 
     ISimplexList get_interactions_interface() const;
-    void set_interactions(const ISimplexList &interactions);
+    void set_interactions(const SimplexList &interactions);
 
     void keep_only_vertices(const PointIdList &vertices) override;
 

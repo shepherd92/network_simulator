@@ -6,7 +6,7 @@
 
 class Center;
 class Hyperbola;
-class InfiniteNetwork;
+class InfiniteHypergraph;
 class NeighborhoodPart;
 
 class InfiniteHypergraphModel : public InfiniteModel, public HypergraphModel
@@ -14,10 +14,10 @@ class InfiniteHypergraphModel : public InfiniteModel, public HypergraphModel
 public:
     InfiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed);
 
-    std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
+    std::vector<std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>>
     generate_networks(const uint32_t num_of_infinite_networks) const;
 
-    std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
+    std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>
     generate_network(const Mark typical_vertex_mark) const;
 
     std::vector<uint32_t> calc_vertex_interaction_degree_sequence_directly(const uint32_t num_of_networks);

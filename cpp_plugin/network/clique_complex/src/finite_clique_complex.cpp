@@ -13,12 +13,6 @@ FiniteCliqueComplex::FiniteCliqueComplex(
 {
 }
 
-FiniteCliqueComplex::FiniteCliqueComplex(const FiniteCliqueComplex &other)
-    : Network{other},
-      FiniteNetwork{other}
-{
-}
-
 SimplexList FiniteCliqueComplex::calc_simplices(const Dimension dimension)
 {
     assert_simplicial_complex_is_built();
@@ -48,7 +42,7 @@ void FiniteCliqueComplex::fill_simplicial_complex()
     for (const auto &edge : edges_)
     {
         // insert edges as simplices
-        get_simplex_tree()->insert_simplex({edge.first, edge.second});
+        get_simplex_tree()->insert_simplex_and_subfaces({edge.first, edge.second});
     }
     expand();
 }

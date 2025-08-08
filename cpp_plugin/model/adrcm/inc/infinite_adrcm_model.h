@@ -5,14 +5,16 @@
 #include "infinite_model.h"
 #include "typedefs.h"
 
+class InfiniteCliqueComplex;
+
 class InfiniteAdrcmModel : public InfiniteModel, public AdrcmModel
 {
 public:
     InfiniteAdrcmModel(const std::vector<double> &parameters_in, const uint32_t seed);
-    std::vector<InfiniteNetwork> generate_networks(const uint32_t num_of_infinite_networks) const;
+    std::vector<InfiniteCliqueComplex> generate_networks(const uint32_t num_of_infinite_networks) const;
 
 protected:
-    InfiniteNetwork generate_network() const;
+    InfiniteCliqueComplex generate_network() const;
 
 private:
     PointList create_vertices(const Mark typical_vertex_mark) const;

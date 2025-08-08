@@ -15,8 +15,6 @@ public:
         const Dimension max_dimension,
         const PointIdList &vertices,
         const ConnectionList &edges);
-    FiniteCliqueComplex(const FiniteCliqueComplex &other);
-    void create_simplicial_complex();
 
 private:
     void expand();

@@ -29,7 +29,7 @@ const SimplexList &Hypergraph::get_interactions() const
     return interactions_;
 }
 
-void Hypergraph::set_interactions(const ISimplexList &interactions)
+void Hypergraph::set_interactions(const SimplexList &interactions)
 {
     interactions_ = SimplexList{interactions};
 }
@@ -37,5 +37,5 @@ void Hypergraph::set_interactions(const ISimplexList &interactions)
 void Hypergraph::keep_only_vertices(const PointIdList &vertices)
 {
     Network::keep_only_vertices(vertices);
-    interactions_ = get_interactions().filter(vertices);
+    set_interactions(get_interactions().filter(vertices));
 }

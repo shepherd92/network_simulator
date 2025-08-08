@@ -1,5 +1,5 @@
 #include "infinite_adrcm_model.h"
-#include "infinite_network.h"
+#include "infinite_clique_complex.h"
 #include "point.h"
 #include "typedefs.h"
 
@@ -8,9 +8,9 @@ InfiniteAdrcmModel::InfiniteAdrcmModel(const std::vector<double> &parameters_in,
 {
 }
 
-std::vector<InfiniteNetwork> InfiniteAdrcmModel::generate_networks(const uint32_t num_of_infinite_networks) const
+std::vector<InfiniteCliqueComplex> InfiniteAdrcmModel::generate_networks(const uint32_t num_of_infinite_networks) const
 {
-    std::vector<InfiniteNetwork> networks;
+    std::vector<InfiniteCliqueComplex> networks;
     networks.reserve(num_of_infinite_networks);
     for (uint32_t i = 0; i < num_of_infinite_networks; ++i)
     {
@@ -19,7 +19,7 @@ std::vector<InfiniteNetwork> InfiniteAdrcmModel::generate_networks(const uint32_
     return networks;
 }
 
-InfiniteNetwork InfiniteAdrcmModel::generate_network() const
+InfiniteCliqueComplex InfiniteAdrcmModel::generate_network() const
 {
     std::uniform_real_distribution<float> uniform_distribution(0., 1.);
     const auto typical_vertex_mark{uniform_distribution(random_number_generator_)}; // birth time of the typical node
@@ -30,8 +30,7 @@ InfiniteNetwork InfiniteAdrcmModel::generate_network() const
     const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices)};
-    const auto simplices{create_simplices_from_connections(connections)};
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
+    const InfiniteCliqueComplex network{max_dimension(), vertex_ids, typical_vertex_mark, vertex_marks};
     return network;
 }
 

@@ -6,7 +6,7 @@
 #include <tuple>
 
 #include "infinite_hypergraph_model.h"
-#include "infinite_network.h"
+#include "infinite_hypergraph.h"
 #include "neighborhood.h"
 #include "point.h"
 #include "rectangle.h"
@@ -18,12 +18,12 @@ InfiniteHypergraphModel::InfiniteHypergraphModel(const std::vector<double> &para
 {
 }
 
-std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>>
+std::vector<std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>>
 InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networks) const
 {
     std::uniform_real_distribution<Mark> mark_distribution(0.F, MAX_MARK);
 
-    std::vector<std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>> result{};
+    std::vector<std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>> result{};
     result.reserve(num_of_infinite_networks);
 
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
@@ -36,7 +36,7 @@ InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networ
     return result;
 }
 
-std::tuple<InfiniteNetwork, MarkPositionList, MarkPositionList>
+std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>
 InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
 {
     const auto interactions{create_interactions(typical_vertex_mark)};
@@ -46,7 +46,7 @@ InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
     if (interactions_only())
     {
         std::vector<Simplex> simplices{interactions.size(), PointIdList{}};
-        return {InfiniteNetwork{max_dimension(), {}, SimplexList{simplices}, typical_vertex_mark, {}}, {}, interaction_mark_position_pairs};
+        return {InfiniteHypergraph{max_dimension(), {}, SimplexList{simplices}, typical_vertex_mark, {}}, {}, interaction_mark_position_pairs};
     }
 
     PointList vertices{};
@@ -65,7 +65,7 @@ InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
     const auto connections{generate_connections(vertices, interactions)};
     const auto simplices{create_interaction_simplices_from_connections(interaction_ids, connections)};
 
-    const InfiniteNetwork network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
+    const InfiniteHypergraph network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
 
     return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
 

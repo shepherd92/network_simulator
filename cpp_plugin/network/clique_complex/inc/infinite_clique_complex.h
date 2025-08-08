@@ -12,7 +12,6 @@ public:
         const PointIdList &vertices,
         const Mark typical_vertex_mark_,
         const MarkList &marks);
-    const SimplexList &get_neighbors(const Dimension dimension);
 
 private:
     SimplexList calc_neighbors(const Dimension dimension) override;

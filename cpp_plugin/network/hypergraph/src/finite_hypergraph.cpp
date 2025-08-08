@@ -154,6 +154,12 @@ void FiniteHypergraph::fill_simplicial_complex()
     reset_persistence();
 }
 
+std::vector<uint32_t> FiniteHypergraph::calc_simplex_interaction_degree_sequence(
+    const Dimension simplex_dimension)
+{
+    JJJJJ
+}
+
 bool FiniteHypergraph::weighted() const
 {
     return weighted_;

@@ -9,18 +9,6 @@
 InfiniteHypergraph::InfiniteHypergraph(
     const Dimension max_dimension,
     const PointIdList &vertices,
-    const ISimplexList &interactions,
-    const Mark typical_vertex_mark_,
-    const MarkList &marks)
-    : Network{max_dimension, vertices},
-      InfiniteNetwork{typical_vertex_mark_, marks},
-      Hypergraph{SimplexList{interactions}}
-{
-}
-
-InfiniteHypergraph::InfiniteHypergraph(
-    const Dimension max_dimension,
-    const PointIdList &vertices,
     const SimplexList &interactions,
     const Mark typical_vertex_mark_,
     const MarkList &marks)
@@ -59,6 +47,12 @@ std::vector<uint32_t> InfiniteHypergraph::calc_vertex_interaction_degree_distrib
 {
     // assumption: all interactions are connected to the typical vertex
     return {get_interactions().size()};
+}
+
+SimplexList InfiniteHypergraph::calc_neighbors(const Dimension dimension)
+{
+    // typical vertex is implicitly included in the neighbors
+    return dimension == 0U ? SimplexList{} : get_interactions().faces(dimension - 1);
 }
 
 std::vector<Dimension> InfiniteHypergraph::calc_interaction_dimension_distribution() const

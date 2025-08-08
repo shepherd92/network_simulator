@@ -1,5 +1,5 @@
 #include "finite_adrcm_model.h"
-#include "finite_network.h"
+#include "finite_clique_complex.h"
 #include "point.h"
 #include "simplex_list.h"
 #include "typedefs.h"
@@ -9,7 +9,7 @@ FiniteAdrcmModel::FiniteAdrcmModel(const std::vector<double> &parameters_in, con
 {
 }
 
-std::tuple<FiniteNetwork, MarkPositionList> FiniteAdrcmModel::generate_network() const
+std::tuple<FiniteCliqueComplex, MarkPositionList> FiniteAdrcmModel::generate_network() const
 {
     const auto num_of_vertices{std::poisson_distribution<uint32_t>(
         lambda() * torus_size())(random_number_generator_)};
@@ -17,8 +17,7 @@ std::tuple<FiniteNetwork, MarkPositionList> FiniteAdrcmModel::generate_network()
     const auto connections{generate_connections(vertices)};
 
     const auto vertex_ids{convert_to_id_list(vertices)};
-    const auto cliques{create_cliques(vertex_ids, connections)};
-    const FiniteNetwork network{max_dimension(), vertex_ids, cliques, false};
+    const FiniteCliqueComplex network{max_dimension(), vertex_ids, connections};
     const auto mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
     return std::make_tuple<>(network, mark_position_pairs);

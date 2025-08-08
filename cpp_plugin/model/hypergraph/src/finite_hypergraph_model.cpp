@@ -1,7 +1,7 @@
 #include <random>
 
 #include "finite_hypergraph_model.h"
-#include "finite_network.h"
+#include "finite_hypergraph.h"
 #include "point.h"
 #include "simplex_list.h"
 #include "rectangle.h"
@@ -11,7 +11,7 @@ FiniteHypergraphModel::FiniteHypergraphModel(const std::vector<double> &paramete
 {
 }
 
-std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphModel::generate_network() const
+std::tuple<FiniteHypergraph, MarkPositionList, MarkPositionList> FiniteHypergraphModel::generate_network() const
 {
     const auto num_of_vertices{std::poisson_distribution<uint32_t>(lambda() * torus_size())(random_number_generator_)};
     const auto vertices{create_points(num_of_vertices)};
@@ -25,7 +25,7 @@ std::tuple<FiniteNetwork, MarkPositionList, MarkPositionList> FiniteHypergraphMo
 
     const auto connections{generate_connections(vertices, interactions)};
     const auto interaction_simplices{create_interaction_simplices_from_connections(interaction_ids, connections)};
-    FiniteNetwork network{max_dimension(), vertex_ids, interaction_simplices, weighted()};
+    FiniteHypergraph network{max_dimension(), vertex_ids, interaction_simplices, weighted()};
 
     return {std::move(network), std::move(vertex_mark_position_pairs), std::move(interaction_mark_position_pairs)};
 }
