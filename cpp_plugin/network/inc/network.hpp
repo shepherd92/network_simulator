@@ -1,19 +1,34 @@
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#ifndef _NETWORK_HPP_
+#define _NETWORK_HPP_
 
 #include <map>
 #include <optional>
 
-#include "simplex_list.h"
-#include "typedefs.h"
+#include "simplex_list.hpp"
+#include "typedefs.hpp"
 
 class Network
 {
 public:
     Network(const Dimension max_dimension, const PointIdList &vertices);
 
-    Dimension get_max_dimension() const;
-    void set_max_dimension(const Dimension dimension);
+    Network(Network &&other) noexcept
+    {
+        max_dimension_ = std::move(other.max_dimension_);
+        vertices_ = std::move(other.vertices_);
+        simplices_ = std::move(other.simplices_);
+    }
+    Network &operator=(Network &&other) noexcept
+    {
+        if (this != &other)
+        {
+            max_dimension_ = std::move(other.max_dimension_);
+            vertices_ = std::move(other.vertices_);
+            simplices_ = std::move(other.simplices_);
+        }
+        return *this;
+    }
+
     uint32_t num_simplices(const Dimension dimension);
 
     virtual void reset();
@@ -27,20 +42,19 @@ public:
     ISimplexList get_skeleton_interface(const Dimension max_dimension);
 
     uint32_t num_vertices();
-    void set_vertices(const PointIdList &vertices);
-    PointIdList get_vertices() const;
 
 protected:
-    virtual SimplexList calc_simplices(const Dimension dimension) = 0;
     virtual SimplexList get_skeleton(const Dimension max_dimension) = 0;
+    virtual SimplexList calc_simplices(const Dimension dimension) = 0;
     const SimplexList &get_simplices(const Dimension dimension);
+    void set_simplices(const Dimension dimension, const SimplexList &simplices);
 
     Dimension max_dimension_;
-    std::vector<std::optional<SimplexList>> simplices_;
+    PointIdList vertices_;
 
 private:
-    PointIdList vertices_;
     std::map<PointId, std::vector<PointId>> create_vertex_simplex_map(const SimplexList &simplices) const;
+    std::vector<std::optional<SimplexList>> simplices_;
 };
 
 #endif

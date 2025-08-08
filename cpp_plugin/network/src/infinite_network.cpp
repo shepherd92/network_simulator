@@ -1,10 +1,10 @@
 #include <cassert>
 #include <mutex>
 
-#include "infinite_network.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "infinite_network.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 InfiniteNetwork::InfiniteNetwork(
     const Mark typical_vertex_mark_,

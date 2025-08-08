@@ -1,8 +1,8 @@
-#ifndef _HYPERGRAPH_MODEL_H_
-#define _HYPERGRAPH_MODEL_H_
+#ifndef _HYPERGRAPH_MODEL_HPP_
+#define _HYPERGRAPH_MODEL_HPP_
 
-#include "model.h"
-#include "typedefs.h"
+#include "model.hpp"
+#include "typedefs.hpp"
 
 class HypergraphModel : virtual public Model
 {

@@ -1,9 +1,9 @@
 #include <cassert>
 #include <cmath>
 
-#include "hypergraph_model.h"
-#include "neighborhood.h"
-#include "tools.h"
+#include "hypergraph_model.hpp"
+#include "neighborhood.hpp"
+#include "tools.hpp"
 
 NeighborhoodPart::NeighborhoodPart(const float left, const float right)
     : left_{left}, right_{right}

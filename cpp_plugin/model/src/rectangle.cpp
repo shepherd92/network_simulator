@@ -3,10 +3,10 @@
 #include <iostream>
 #include <mutex>
 
-#include "point.h"
-#include "rectangle.h"
-#include "tools.h"
-#include "typedefs.h"
+#include "point.hpp"
+#include "rectangle.hpp"
+#include "tools.hpp"
+#include "typedefs.hpp"
 
 Rectangle::Rectangle(
     const Mark bottom_mark,

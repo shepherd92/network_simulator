@@ -1,5 +1,5 @@
-#ifndef _TOOLS_H_
-#define _TOOLS_H_
+#ifndef _TOOLS_HPP_
+#define _TOOLS_HPP_
 
 #include <cmath>
 #include <cstdint>

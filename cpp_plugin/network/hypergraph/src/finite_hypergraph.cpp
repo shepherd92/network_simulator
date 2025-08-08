@@ -1,7 +1,7 @@
-#include "finite_hypergraph.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "finite_hypergraph.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 FiniteHypergraph::FiniteHypergraph(
     const Dimension max_dimension,
@@ -15,19 +15,31 @@ FiniteHypergraph::FiniteHypergraph(
 {
 }
 
+FiniteHypergraph::FiniteHypergraph(
+    const Dimension max_dimension,
+    const PointIdList &vertices,
+    const SimplexList &interactions,
+    const bool weighted)
+    : Network{max_dimension, vertices},
+      FiniteNetwork{},
+      Hypergraph{interactions},
+      weighted_{weighted}
+{
+}
+
 std::vector<uint32_t> FiniteHypergraph::calc_vertex_interaction_degree_distribution() const
 {
     // initialize result with zeros
     std::map<PointId, uint32_t> point_id_interaction_count_map{};
-    for (const auto vertex_id : get_vertices())
+    for (const auto vertex_id : vertices_)
     {
         point_id_interaction_count_map.emplace(vertex_id, 0U);
     }
 
     std::for_each(
         std::execution::seq,
-        get_interactions().simplices().begin(),
-        get_interactions().simplices().end(),
+        interactions_.simplices().begin(),
+        interactions_.simplices().end(),
         [&](const auto &interaction)
         {
             std::for_each(
@@ -41,8 +53,8 @@ std::vector<uint32_t> FiniteHypergraph::calc_vertex_interaction_degree_distribut
         });
 
     std::vector<uint32_t> counts{};
-    counts.reserve(get_vertices().size());
-    for (const auto vertex_id : get_vertices())
+    counts.reserve(vertices_.size());
+    for (const auto vertex_id : vertices_)
     {
         counts.emplace_back(point_id_interaction_count_map[vertex_id]);
     }
@@ -68,7 +80,7 @@ std::vector<std::vector<std::pair<float, float>>> FiniteHypergraph::calc_persist
 
     for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
     {
-        const auto interaction_degree_map_for_dimension{get_interactions().calc_degree_sequence(dimension)};
+        const auto interaction_degree_map_for_dimension{interactions_.calc_degree_sequence(dimension)};
         simplex_interaction_map.insert(
             interaction_degree_map_for_dimension.begin(),
             interaction_degree_map_for_dimension.end());
@@ -129,7 +141,7 @@ std::vector<ISimplexList> FiniteHypergraph::calc_persistence_pairs()
 
 SimplexList FiniteHypergraph::calc_simplices(const Dimension dimension)
 {
-    return get_interactions().faces(dimension);
+    return interactions_.faces(dimension);
 }
 
 void FiniteHypergraph::fill_simplicial_complex()
@@ -146,7 +158,7 @@ void FiniteHypergraph::fill_simplicial_complex()
         std::atomic<uint32_t> counter{0U};
         for (auto i{0U}; i < simplices.size(); ++i)
         {
-            get_simplex_tree()->insert_simplex_and_subfaces(
+            simplex_tree_->insert_simplex_and_subfaces(
                 simplices[i].vertices(), 0.);
             log_progress(++counter, total, 1000U, "Insert simplices");
         }
@@ -157,10 +169,22 @@ void FiniteHypergraph::fill_simplicial_complex()
 std::vector<uint32_t> FiniteHypergraph::calc_simplex_interaction_degree_sequence(
     const Dimension simplex_dimension)
 {
-    JJJJJ
-}
+    if (simplex_dimension == 0)
+    {
+        return calc_vertex_interaction_degree_distribution();
+    }
 
-bool FiniteHypergraph::weighted() const
-{
-    return weighted_;
+    auto simplex_degree_map{interactions_.calc_degree_sequence(simplex_dimension)};
+
+    // order of the degree values does not matter
+    std::vector<uint32_t> result{};
+    const auto &simplices{get_simplices(simplex_dimension)};
+    result.reserve(simplex_degree_map.size());
+    for (const auto &simplex : simplices)
+    {
+        // simplex has typical vertex, simplex_degree_map is for simplices without typical vertex
+        result.emplace_back(simplex_degree_map[simplex]);
+    }
+
+    return result;
 }

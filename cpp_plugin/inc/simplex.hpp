@@ -1,9 +1,9 @@
-#ifndef _SIMPLEX_H_
-#define _SIMPLEX_H_
+#ifndef _SIMPLEX_HPP_
+#define _SIMPLEX_HPP_
 
 #include <bitset>
 
-#include "typedefs.h"
+#include "typedefs.hpp"
 
 struct SimplexHash;
 

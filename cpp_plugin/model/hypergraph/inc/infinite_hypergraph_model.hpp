@@ -1,8 +1,8 @@
-#ifndef _INFINITE_HYPERGRAPH_MODEL_H_
-#define _INFINITE_HYPERGRAPH_MODEL_H_
+#ifndef _INFINITE_HYPERGRAPH_MODEL_HPP_
+#define _INFINITE_HYPERGRAPH_MODEL_HPP_
 
-#include "hypergraph_model.h"
-#include "infinite_model.h"
+#include "hypergraph_model.hpp"
+#include "infinite_model.hpp"
 
 class Center;
 class Hyperbola;

@@ -1,10 +1,10 @@
 #include <cassert>
 #include <mutex>
 
-#include "infinite_hypergraph.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "infinite_hypergraph.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 InfiniteHypergraph::InfiniteHypergraph(
     const Dimension max_dimension,
@@ -24,11 +24,11 @@ std::vector<uint32_t> InfiniteHypergraph::calc_simplex_interaction_degree_sequen
     if (simplex_dimension == 0)
     {
         // assumption: all interactions are connected to the typical vertex
-        return {get_interactions().size()};
+        return {interactions_.size()};
     }
 
     // -1 because the typical vertex is implicitly included
-    auto simplex_degree_map{get_interactions().calc_degree_sequence(simplex_dimension - 1)};
+    auto simplex_degree_map{interactions_.calc_degree_sequence(simplex_dimension - 1)};
 
     // order of the degree values does not matter
     std::vector<uint32_t> result{};
@@ -46,13 +46,13 @@ std::vector<uint32_t> InfiniteHypergraph::calc_simplex_interaction_degree_sequen
 std::vector<uint32_t> InfiniteHypergraph::calc_vertex_interaction_degree_distribution() const
 {
     // assumption: all interactions are connected to the typical vertex
-    return {get_interactions().size()};
+    return {interactions_.size()};
 }
 
 SimplexList InfiniteHypergraph::calc_neighbors(const Dimension dimension)
 {
     // typical vertex is implicitly included in the neighbors
-    return dimension == 0U ? SimplexList{} : get_interactions().faces(dimension - 1);
+    return dimension == 0U ? SimplexList{} : interactions_.faces(dimension - 1);
 }
 
 std::vector<Dimension> InfiniteHypergraph::calc_interaction_dimension_distribution() const

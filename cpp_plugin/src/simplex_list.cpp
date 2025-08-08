@@ -2,9 +2,9 @@
 #include <map>
 #include <vector>
 
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 SimplexList::SimplexList(const ISimplexList &input)
     : simplices_{}

@@ -1,12 +1,12 @@
-#ifndef _FINITE_NETWORK_H_
-#define _FINITE_NETWORK_H_
+#ifndef _FINITE_NETWORK_HPP_
+#define _FINITE_NETWORK_HPP_
 
 #include <iostream>
 #include <gudhi/Persistent_cohomology.h>
 #include <gudhi/Simplex_tree.h>
 
-#include "network.h"
-#include "typedefs.h"
+#include "network.hpp"
+#include "typedefs.hpp"
 
 class FiniteNetwork : virtual public Network
 {
@@ -36,6 +36,22 @@ public:
     FiniteNetwork(const FiniteNetwork &other);
     ~FiniteNetwork();
 
+    FiniteNetwork(FiniteNetwork &&other) noexcept
+    {
+        simplex_tree_ = std::move(other.simplex_tree_);
+        persistent_cohomology_ = other.persistent_cohomology_;
+    }
+
+    FiniteNetwork &operator=(FiniteNetwork &&other) noexcept
+    {
+        if (this != &other)
+        {
+            simplex_tree_ = std::move(other.simplex_tree_);
+            persistent_cohomology_ = other.persistent_cohomology_;
+        }
+        return *this;
+    }
+
     void create_simplicial_complex();
 
     void reset() override;
@@ -51,7 +67,9 @@ protected:
     PointIdList get_simplex_vertices(const SimplexHandle &simplex_handle);
     PersistentCohomology &get_persistence();
     void reset_persistence();
-    std::optional<SimplexTree> &get_simplex_tree();
+
+    std::optional<SimplexTree> simplex_tree_;
+    PersistentCohomology *persistent_cohomology_;
 
 private:
     SimplexList get_skeleton(const Dimension max_dimension) override;
@@ -62,9 +80,6 @@ private:
     void add_vertices();
     virtual void fill_simplicial_complex() = 0;
     void reset_simplicial_complex();
-
-    std::optional<SimplexTree> simplex_tree_;
-    PersistentCohomology *persistent_cohomology_;
 };
 
 #endif

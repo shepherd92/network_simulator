@@ -1,7 +1,7 @@
-#ifndef _INFINITE_MODEL_H_
-#define _INFINITE_MODEL_H_
+#ifndef _INFINITE_MODEL_HPP_
+#define _INFINITE_MODEL_HPP_
 
-#include "model.h"
+#include "model.hpp"
 
 class InfiniteNetwork;
 

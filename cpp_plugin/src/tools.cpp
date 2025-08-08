@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 
-#include "tools.h"
+#include "tools.hpp"
 
 void log_progress(const uint32_t current, const uint32_t total, const uint32_t condition, const std::string &message)
 {

@@ -1,7 +1,7 @@
-#include "finite_network.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "finite_network.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 FiniteNetwork::FiniteNetwork()
     : simplex_tree_{std::nullopt},
@@ -132,7 +132,7 @@ void FiniteNetwork::create_simplicial_complex()
 void FiniteNetwork::add_vertices()
 {
     assert_simplicial_complex_is_initialized();
-    get_simplex_tree()->insert_batch_vertices(get_vertices());
+    simplex_tree_->insert_batch_vertices(vertices_);
 }
 
 PointIdList FiniteNetwork::get_simplex_vertices(const SimplexHandle &simplex_handle)
@@ -147,9 +147,4 @@ PointIdList FiniteNetwork::get_simplex_vertices(const SimplexHandle &simplex_han
         }
     }
     return result;
-}
-
-std::optional<FiniteNetwork::SimplexTree> &FiniteNetwork::get_simplex_tree()
-{
-    return simplex_tree_;
 }

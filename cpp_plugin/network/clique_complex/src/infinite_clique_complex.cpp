@@ -1,10 +1,10 @@
 #include <cassert>
 #include <mutex>
 
-#include "infinite_clique_complex.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "infinite_clique_complex.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 InfiniteCliqueComplex::InfiniteCliqueComplex(
     const Dimension max_dimension,
@@ -24,7 +24,7 @@ SimplexList InfiniteCliqueComplex::calc_neighbors(const Dimension dimension)
     }
     // typical vertex is implicitly included in the neighbors
     // implement all combinations of vertices of length dimension
-    Simplex simplex_all_vertices{get_vertices()};
+    Simplex simplex_all_vertices{vertices_};
     const auto neighbors{simplex_all_vertices.faces(dimension)};
     return neighbors;
 }

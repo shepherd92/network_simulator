@@ -1,9 +1,9 @@
-#ifndef _FINITE_ADRCM_MODEL_H_
-#define _FINITE_ADRCM_MODEL_H_
+#ifndef _FINITE_ADRCM_MODEL_HPP_
+#define _FINITE_ADRCM_MODEL_HPP_
 
-#include "adrcm_model.h"
-#include "finite_model.h"
-#include "typedefs.h"
+#include "adrcm_model.hpp"
+#include "finite_model.hpp"
+#include "typedefs.hpp"
 
 class FiniteCliqueComplex;
 

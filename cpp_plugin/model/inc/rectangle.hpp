@@ -1,9 +1,9 @@
-#ifndef _RECTANGLE_H_
-#define _RECTANGLE_H_
+#ifndef _RECTANGLE_HPP_
+#define _RECTANGLE_HPP_
 
 #include <mutex>
 
-#include "typedefs.h"
+#include "typedefs.hpp"
 
 class Point;
 

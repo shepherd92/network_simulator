@@ -1,7 +1,7 @@
-#include "infinite_model.h"
-#include "infinite_network.h"
-#include "point.h"
-#include "tools.h"
+#include "infinite_model.hpp"
+#include "infinite_network.hpp"
+#include "point.hpp"
+#include "tools.hpp"
 
 InfiniteModel::InfiniteModel(const uint32_t seed) : Model{seed}
 {

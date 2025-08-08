@@ -1,8 +1,8 @@
-#ifndef _ADRCM_MODEL_H_
-#define _ADRCM_MODEL_H_
+#ifndef _ADRCM_MODEL_HPP_
+#define _ADRCM_MODEL_HPP_
 
-#include "model.h"
-#include "typedefs.h"
+#include "model.hpp"
+#include "typedefs.hpp"
 
 class AdrcmModel : virtual public Model
 {

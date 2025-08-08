@@ -137,7 +137,9 @@
         "scoped_allocator": "cpp",
         "shared_mutex": "cpp",
         "syncstream": "cpp",
-        "*.ipp": "cpp"
+        "*.ipp": "cpp",
+        "format": "cpp",
+        "stdfloat": "cpp"
     },
     "editor.formatOnType": true,
     "makefile.makefilePath": "${workspaceFolder}/cpp_plugin",
@@ -147,6 +149,9 @@
         "Adrcm",
         "bron",
         "coface",
+        "cofaces",
+        "cohomology",
+        "Gudhi",
         "Hypergraph",
         "kerbosch",
         "simplicial"

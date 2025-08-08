@@ -1,10 +1,10 @@
 #include <atomic>
 
-#include "adrcm_model.h"
-#include "point.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "adrcm_model.hpp"
+#include "point.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 AdrcmModel::Parameters::Parameters(const std::vector<double> &model_parameters)
 {

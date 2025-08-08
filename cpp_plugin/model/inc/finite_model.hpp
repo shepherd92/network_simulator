@@ -1,7 +1,7 @@
-#ifndef _FINITE_MODEL_H_
-#define _FINITE_MODEL_H_
+#ifndef _FINITE_MODEL_HPP_
+#define _FINITE_MODEL_HPP_
 
-#include "model.h"
+#include "model.hpp"
 
 constexpr float TORUS_SIZE{1.};
 class FiniteNetwork;

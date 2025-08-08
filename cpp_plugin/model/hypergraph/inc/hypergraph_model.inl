@@ -1,8 +1,8 @@
 #ifndef _HYPERGRAPH_MODEL_INL_
 #define _HYPERGRAPH_MODEL_INL_
 
-#include "point.h"
-#include "typedefs.h"
+#include "point.hpp"
+#include "typedefs.hpp"
 
 bool HypergraphModel::connects(const Point &vertex, const Point &interaction) const
 {

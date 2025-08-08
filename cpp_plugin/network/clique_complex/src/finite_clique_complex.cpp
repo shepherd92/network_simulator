@@ -1,7 +1,7 @@
-#include "finite_clique_complex.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
+#include "finite_clique_complex.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
 
 FiniteCliqueComplex::FiniteCliqueComplex(
     const Dimension max_dimension,
@@ -19,7 +19,7 @@ SimplexList FiniteCliqueComplex::calc_simplices(const Dimension dimension)
     // iterate over simplices
     SimplexList result{};
 
-    auto &simplex_tree{get_simplex_tree().value()};
+    auto &simplex_tree{simplex_tree_.value()};
 
     for (const auto &simplex_handle : simplex_tree.filtration_simplex_range())
     {
@@ -42,7 +42,7 @@ void FiniteCliqueComplex::fill_simplicial_complex()
     for (const auto &edge : edges_)
     {
         // insert edges as simplices
-        get_simplex_tree()->insert_simplex_and_subfaces({edge.first, edge.second});
+        simplex_tree_->insert_simplex_and_subfaces({edge.first, edge.second});
     }
     expand();
 }
@@ -50,6 +50,6 @@ void FiniteCliqueComplex::fill_simplicial_complex()
 void FiniteCliqueComplex::expand()
 {
     assert_simplicial_complex_is_built();
-    get_simplex_tree()->expansion(max_dimension_ + 1U);
+    simplex_tree_->expansion(max_dimension_ + 1U);
     reset_persistence();
 }

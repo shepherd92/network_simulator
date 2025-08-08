@@ -1,7 +1,7 @@
-#include "infinite_adrcm_model.h"
-#include "infinite_clique_complex.h"
-#include "point.h"
-#include "typedefs.h"
+#include "infinite_adrcm_model.hpp"
+#include "infinite_clique_complex.hpp"
+#include "point.hpp"
+#include "typedefs.hpp"
 
 InfiniteAdrcmModel::InfiniteAdrcmModel(const std::vector<double> &parameters_in, const uint32_t seed)
     : Model{seed}, InfiniteModel{seed}, AdrcmModel{parameters_in}
@@ -30,8 +30,7 @@ InfiniteCliqueComplex InfiniteAdrcmModel::generate_network() const
     const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices)};
-    const InfiniteCliqueComplex network{max_dimension(), vertex_ids, typical_vertex_mark, vertex_marks};
-    return network;
+    return InfiniteCliqueComplex{max_dimension(), vertex_ids, typical_vertex_mark, vertex_marks};
 }
 
 PointList InfiniteAdrcmModel::create_vertices(const Mark typical_vertex_mark) const

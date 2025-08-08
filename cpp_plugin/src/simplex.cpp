@@ -2,9 +2,9 @@
 #include <map>
 #include <mutex>
 
-#include "combinations.h"
-#include "simplex.h"
-#include "tools.h"
+#include "combinations.hpp"
+#include "simplex.hpp"
+#include "tools.hpp"
 
 void Simplex::combination_util(
     const Dimension dimension_,

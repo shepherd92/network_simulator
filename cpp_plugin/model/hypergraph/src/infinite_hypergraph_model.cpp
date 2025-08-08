@@ -5,13 +5,13 @@
 #include <thread>
 #include <tuple>
 
-#include "infinite_hypergraph_model.h"
-#include "infinite_hypergraph.h"
-#include "neighborhood.h"
-#include "point.h"
-#include "rectangle.h"
-#include "tools.h"
-#include "typedefs.h"
+#include "infinite_hypergraph_model.hpp"
+#include "infinite_hypergraph.hpp"
+#include "neighborhood.hpp"
+#include "point.hpp"
+#include "rectangle.hpp"
+#include "tools.hpp"
+#include "typedefs.hpp"
 
 InfiniteHypergraphModel::InfiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed)
     : Model{seed}, InfiniteModel{seed}, HypergraphModel{parameters_in}, interactions_only_{parameters_in[7] > 0.5}
@@ -29,8 +29,8 @@ InfiniteHypergraphModel::generate_networks(const uint32_t num_of_infinite_networ
     for (auto network_index{0U}; network_index < num_of_infinite_networks; ++network_index)
     {
         const auto typical_vertex_mark{std::max(mark_distribution(random_number_generator_), MIN_MARK)}; // mark of the typical node
-        const auto network_interface{generate_network(typical_vertex_mark)};
-        result.push_back(network_interface);
+        auto network_interface{generate_network(typical_vertex_mark)};
+        result.push_back(std::move(network_interface));
         log_progress(network_index, num_of_infinite_networks, 1U, "Generating infinite networks");
     }
     return result;
@@ -41,12 +41,12 @@ InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
 {
     const auto interactions{create_interactions(typical_vertex_mark)};
     const auto interaction_ids{convert_to_id_list(interactions)};
-    const auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
+    auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
 
     if (interactions_only())
     {
         std::vector<Simplex> simplices{interactions.size(), PointIdList{}};
-        return {InfiniteHypergraph{max_dimension(), {}, SimplexList{simplices}, typical_vertex_mark, {}}, {}, interaction_mark_position_pairs};
+        return std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>(InfiniteHypergraph{max_dimension(), {}, SimplexList{simplices}, typical_vertex_mark, {}}, MarkPositionList{}, std::move(interaction_mark_position_pairs));
     }
 
     PointList vertices{};
@@ -60,14 +60,17 @@ InfiniteHypergraphModel::generate_network(const Mark typical_vertex_mark) const
 
     const auto vertex_ids{convert_to_id_list(vertices)};
     const auto vertex_marks{convert_to_mark_list(vertices)};
-    const auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
+    auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
     const auto connections{generate_connections(vertices, interactions)};
     const auto simplices{create_interaction_simplices_from_connections(interaction_ids, connections)};
 
-    const InfiniteHypergraph network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
+    InfiniteHypergraph network{max_dimension(), vertex_ids, simplices, typical_vertex_mark, vertex_marks};
 
-    return {network, vertex_mark_position_pairs, interaction_mark_position_pairs};
+    return std::tuple<InfiniteHypergraph, MarkPositionList, MarkPositionList>(
+        std::move(network),
+        std::move(vertex_mark_position_pairs),
+        std::move(interaction_mark_position_pairs));
 
     // check if the connections are correct
     // for (const auto &vertex : vertices)

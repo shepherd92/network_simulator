@@ -1,11 +1,11 @@
-#ifndef _SIMPLEX_LIST_H_
-#define _SIMPLEX_LIST_H_
+#ifndef _SIMPLEX_LIST_HPP_
+#define _SIMPLEX_LIST_HPP_
 
 #include <map>
 #include <vector>
 
-#include "simplex.h"
-#include "typedefs.h"
+#include "simplex.hpp"
+#include "typedefs.hpp"
 
 class SimplexList
 {

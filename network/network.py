@@ -39,20 +39,9 @@ class Network:
         cpp_network_type = type(self.cpp_network)
         self.cpp_network = cpp_network_type(self.max_dimension, self.graph.nodes, self.graph.edges)
 
-    @log_function_name
-    def generate_clique_complex_from_graph(self) -> None:
-        """Given graph, generate the clique complex and store it in the simplicial complex member."""
-        self.generate_simplicial_complex_from_graph()
-        self.expand()
-
     def create_simplicial_complex(self) -> None:
         """Create a simplicial complex."""
         self.cpp_network.create_simplicial_complex()
-
-    @log_function_name
-    def expand(self) -> None:
-        """Expand simplicial complex to a clique complex."""
-        self.cpp_network.expand()
 
     @log_function_name
     def filter_to_graph(self) -> None:

@@ -1,5 +1,5 @@
-#include "model.h"
-#include "point.h"
+#include "model.hpp"
+#include "point.hpp"
 
 Model::Model(const uint32_t seed)
     : random_number_generator_{seed}

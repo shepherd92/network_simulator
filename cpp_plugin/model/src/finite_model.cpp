@@ -1,5 +1,5 @@
-#include "finite_model.h"
-#include "point.h"
+#include "finite_model.hpp"
+#include "point.hpp"
 
 FiniteModel::FiniteModel(const uint32_t seed) : Model{seed}
 {

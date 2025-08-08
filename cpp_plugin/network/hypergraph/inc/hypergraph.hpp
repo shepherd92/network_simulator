@@ -1,31 +1,35 @@
-#ifndef _HYPERGRAPH_H_
-#define _HYPERGRAPH_H_
+#ifndef _HYPERGRAPH_HPP_
+#define _HYPERGRAPH_HPP_
 
 #include <map>
 #include <optional>
 
-#include "network.h"
-#include "simplex_list.h"
-#include "typedefs.h"
+#include "network.hpp"
+#include "simplex_list.hpp"
+#include "typedefs.hpp"
 
 class Hypergraph : virtual public Network
 {
 public:
+    // constructors, assignment operators, and destructors
     Hypergraph(const SimplexList &interactions);
+    Hypergraph(Hypergraph &&other) noexcept;
+    Hypergraph &operator=(Hypergraph &&other) noexcept;
+
     virtual std::vector<Dimension> calc_interaction_dimension_distribution() const;
     virtual std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
         const Dimension simplex_dimension) = 0;
 
-    ISimplexList get_interactions_interface() const;
-    void set_interactions(const SimplexList &interactions);
-
     void keep_only_vertices(const PointIdList &vertices) override;
 
+    // interface functions exposed to Python
+    void set_interactions(const ISimplexList &interactions);
+    ISimplexList get_interactions() const;
+
 protected:
-    const SimplexList &get_interactions() const;
+    SimplexList interactions_;
 
 private:
-    SimplexList interactions_;
     virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
 };
 

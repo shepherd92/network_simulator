@@ -1,9 +1,9 @@
-#ifndef _NEIGHBORHOOD_H_
-#define _NEIGHBORHOOD_H_
+#ifndef _NEIGHBORHOOD_HPP_
+#define _NEIGHBORHOOD_HPP_
 
 #include <optional>
 
-#include "typedefs.h"
+#include "typedefs.hpp"
 
 class InfiniteHypergraphModel;
 
@@ -58,4 +58,4 @@ public:
     PointList create_points(const HypergraphModel::Parameters &parameters, std::mt19937 &rng) const override;
 };
 
-#endif // _NEIGHBORHOOD_H_
+#endif // _NEIGHBORHOOD_HPP_

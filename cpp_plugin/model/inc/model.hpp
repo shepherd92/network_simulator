@@ -1,9 +1,9 @@
-#ifndef _MODEL_H_
-#define _MODEL_H_
+#ifndef _MODEL_HPP_
+#define _MODEL_HPP_
 
 #include <random>
 
-#include "typedefs.h"
+#include "typedefs.hpp"
 
 class Model
 {

@@ -5,13 +5,13 @@
 #include <random>
 #include <vector>
 
-#include "hypergraph_model.h"
-#include "point.h"
-#include "rectangle.h"
-#include "simplex.h"
-#include "simplex_list.h"
-#include "tools.h"
-#include "typedefs.h"
+#include "hypergraph_model.hpp"
+#include "point.hpp"
+#include "rectangle.hpp"
+#include "simplex.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
+#include "typedefs.hpp"
 
 HypergraphModel::Parameters::Parameters(const std::vector<double> &parameters)
 {

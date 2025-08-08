@@ -3,17 +3,17 @@
 #include <execution>
 #include <mutex>
 
-#include "network.h"
-#include "simplex_list.h"
-#include "tools.h"
-#include "typedefs.h"
+#include "network.hpp"
+#include "simplex_list.hpp"
+#include "tools.hpp"
+#include "typedefs.hpp"
 
 Network::Network(
     const Dimension max_dimension,
     const PointIdList &vertices)
     : max_dimension_{max_dimension},
-      simplices_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt},
-      vertices_{vertices}
+      vertices_{vertices},
+      simplices_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
 {
     std::sort(vertices_.begin(), vertices_.end());
 }
@@ -21,26 +21,6 @@ Network::Network(
 void Network::reset()
 {
     simplices_ = std::vector<std::optional<SimplexList>>{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt};
-}
-
-Dimension Network::get_max_dimension() const
-{
-    return max_dimension_;
-}
-
-void Network::set_max_dimension(const Dimension dimension)
-{
-    max_dimension_ = dimension;
-}
-
-void Network::set_vertices(const PointIdList &vertices)
-{
-    vertices_ = vertices;
-}
-
-PointIdList Network::get_vertices() const
-{
-    return vertices_;
 }
 
 uint32_t Network::num_vertices()
@@ -58,6 +38,11 @@ const SimplexList &Network::get_simplices(const Dimension dimension)
     return *simplices_[dimension];
 }
 
+uint32_t Network::num_simplices(const Dimension dimension)
+{
+    return get_simplices(dimension).size();
+}
+
 ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 {
     return get_skeleton(max_dimension).raw();
@@ -73,13 +58,8 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
     return result;
 }
 
-uint32_t Network::num_simplices(const Dimension dimension)
-{
-    return get_simplices(dimension).size();
-}
-
 void Network::keep_only_vertices(const PointIdList &vertices)
 {
-    set_vertices(vertices);
+    vertices_ = vertices;
     reset();
 }

@@ -1,9 +1,9 @@
-#ifndef _INFINITE_ADRCM_MODEL_H_
-#define _INFINITE_ADRCM_MODEL_H_
+#ifndef _INFINITE_ADRCM_MODEL_HPP_
+#define _INFINITE_ADRCM_MODEL_HPP_
 
-#include "adrcm_model.h"
-#include "infinite_model.h"
-#include "typedefs.h"
+#include "adrcm_model.hpp"
+#include "infinite_model.hpp"
+#include "typedefs.hpp"
 
 class InfiniteCliqueComplex;
 

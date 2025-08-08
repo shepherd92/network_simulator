@@ -1,7 +1,7 @@
-#ifndef _POINT_H_
-#define _POINT_H_
+#ifndef _POINT_HPP_
+#define _POINT_HPP_
 
-#include "typedefs.h"
+#include "typedefs.hpp"
 
 class Point
 {

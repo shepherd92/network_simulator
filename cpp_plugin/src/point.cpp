@@ -1,4 +1,4 @@
-#include "point.h"
+#include "point.hpp"
 
 MarkPositionList convert_to_mark_position_pairs(const PointList &points)
 {
