@@ -26,7 +26,7 @@ SCALAR_PROPERTY_PARAMS_TO_FIT: tuple[DerivedNetworkProperty, ...] = (
 )
 
 
-class AgeDependentRandomSimplexParameterOptions(ModelParameterOptions):
+class AdrcmParameterOptions(ModelParameterOptions):
     """Represent the parameter options for fitting for Age-Dependent Random Simplex model."""
 
     def __init__(self, data_set: DataSet) -> None:

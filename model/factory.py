@@ -3,11 +3,11 @@
 
 from model.model import Model
 from model.erdos_renyi import ErdosRenyiModel
-from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
+from model.adrcm import AdrcmModel
 from model.hypergraph import HypergraphModel
 
 from config_files.model_config import ERDOS_RENYI_MODEL_PARAMETERS
-from config_files.model_config import AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
+from config_files.model_config import ADRCM_MODEL_PARAMETERS
 from config_files.model_config import HYPERGRAPH_MODEL_PARAMETERS
 
 
@@ -17,7 +17,7 @@ def create_model(model_type: Model.Type) -> Model:
     if model_type == Model.Type.ERDOS_RENYI:
         model = ErdosRenyiModel()
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
-        model = AgeDependentRandomSimplexModel()
+        model = AdrcmModel()
     elif model_type == Model.Type.HYPERGRAPH:
         model = HypergraphModel()
     else:
@@ -32,7 +32,7 @@ def load_default_parameters(model_type: Model.Type) -> Model.Parameters:
     if model_type == Model.Type.ERDOS_RENYI:
         parameters = ERDOS_RENYI_MODEL_PARAMETERS
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
-        parameters = AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS
+        parameters = ADRCM_MODEL_PARAMETERS
     elif model_type == Model.Type.HYPERGRAPH:
         parameters = HYPERGRAPH_MODEL_PARAMETERS
     else:

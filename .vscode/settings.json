@@ -17,15 +17,15 @@
     "python.analysis.extraPaths": [
         "/home/au725389/venv/network_simulator/lib/python3.12/site-packages",
         "/home/au725389/venv/network_simulator/lib/python3.12/site-packages/gudhi",
-        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build/cpp_library",
-        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
+        "/home/au725389/save/research/network_simulator/modeling/cpp/build/cpp_library",
+        "/home/au725389/save/research/network_simulator/modeling/cpp_modules/build/",
     ],
     "python.analysis.indexing": true,
     "python.autoComplete.extraPaths": [
         "/home/au725389/venv/network_simulator/lib/python3.12/site-packages",
         "/home/au725389/venv/network_simulator/lib/python3.12/site-packages/gudhi",
-        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp/build",
-        "/home/au725389/save/research/higher_order_adrcm/code/modeling/cpp_modules/build/",
+        "/home/au725389/save/research/network_simulator/modeling/cpp/build",
+        "/home/au725389/save/research/network_simulator/modeling/cpp_modules/build/",
     ],
     "python.defaultInterpreterPath": "/home/au725389/venv/network_simulator/bin/python3",
     "pylint.args": [
@@ -42,7 +42,7 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        ".",
+        "/home/au725389/save/research/network_simulator/modeling/",
         "-p",
         "*_test.py"
     ],
@@ -147,13 +147,11 @@
     "makefile.loggingLevel": "Verbose",
     "cSpell.words": [
         "Adrcm",
-        "bron",
         "coface",
         "cofaces",
         "cohomology",
         "Gudhi",
         "Hypergraph",
-        "kerbosch",
         "simplicial"
     ]
 }

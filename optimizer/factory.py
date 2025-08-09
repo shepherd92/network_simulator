@@ -3,7 +3,7 @@
 
 from model.model import Model
 
-from config_files.model_fitting import AgeDependentRandomSimplexParameterOptions
+from config_files.model_fitting import AdrcmParameterOptions
 from config_files.model_fitting import ErdosRenyiParameterOptions
 from config_files.model_fitting import NetworkGeometryWithFlavorParameterOptions
 from config_files.model_fitting import PreferentialAttachmentParameterOptions
@@ -21,7 +21,7 @@ def create_parameter_options(model_type: Model.Type, data_set: DataSet) -> Model
     elif model_type == Model.Type.NETWORK_GEOMETRY_WITH_FLAVOR:
         parameter_options = NetworkGeometryWithFlavorParameterOptions(data_set)
     elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
-        parameter_options = AgeDependentRandomSimplexParameterOptions(data_set)
+        parameter_options = AdrcmParameterOptions(data_set)
     else:
         raise NotImplementedError(
             f'The requested model type {model_type} is not implemented.'

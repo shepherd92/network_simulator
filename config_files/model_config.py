@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import NamedTuple
 
 from model.model import Model
-from model.age_dependent_random_simplex import AgeDependentRandomSimplexModel
+from model.adrcm import AdrcmModel
 from model.hypergraph import HypergraphModel
 from model.erdos_renyi import ErdosRenyiModel
 from network.property import BaseNetworkProperty
@@ -116,7 +116,7 @@ HYPERGRAPH_MODEL_PARAMETERS = HypergraphModel.Parameters(
 # ==============================================================================
 
 
-AGE_DEPENDENT_RANDOM_SIMPLEX_MODEL_PARAMETERS = AgeDependentRandomSimplexModel.Parameters(
+ADRCM_MODEL_PARAMETERS = AdrcmModel.Parameters(
     max_dimension=2,
     network_size=10,  # expected number of nodes
     alpha=0.5,
