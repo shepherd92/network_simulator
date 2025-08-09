@@ -19,6 +19,7 @@ public:
     virtual std::vector<Dimension> calc_interaction_dimension_distribution() const;
     virtual std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
         const Dimension simplex_dimension) = 0;
+    virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
 
     // interface functions exposed to Python
     void set_interactions(const ISimplexList &interactions);
@@ -28,7 +29,6 @@ protected:
     SimplexList interactions_;
 
 private:
-    virtual std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const = 0;
 };
 
 #endif

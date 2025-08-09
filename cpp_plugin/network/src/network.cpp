@@ -61,6 +61,7 @@ uint32_t Network::num_simplices(const Dimension dimension)
 
 ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 {
+    assert(max_dimension <= max_dimension_);
     return get_skeleton(max_dimension).raw();
 }
 

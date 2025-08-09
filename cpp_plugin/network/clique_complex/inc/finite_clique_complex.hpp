@@ -1,5 +1,5 @@
-#ifndef _FINITE_HYPERGRAPH_HPP_
-#define _FINITE_HYPERGRAPH_HPP_
+#ifndef _FINITE_CLIQUE_COMPLEX_HPP_
+#define _FINITE_CLIQUE_COMPLEX_HPP_
 
 #include <iostream>
 #include <gudhi/Persistent_cohomology.h>

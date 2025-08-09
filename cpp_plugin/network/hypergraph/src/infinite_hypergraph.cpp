@@ -18,6 +18,18 @@ InfiniteHypergraph::InfiniteHypergraph(
 {
 }
 
+InfiniteHypergraph::InfiniteHypergraph(
+    const Dimension max_dimension,
+    const PointIdList &vertices,
+    const ISimplexList &interactions,
+    const Mark typical_vertex_mark_,
+    const MarkList &marks)
+    : Network{max_dimension, vertices},
+      InfiniteNetwork{typical_vertex_mark_, marks},
+      Hypergraph{SimplexList{interactions}}
+{
+}
+
 InfiniteHypergraph::InfiniteHypergraph(InfiniteHypergraph &&other) noexcept
     : Network{std::move(other)},
       InfiniteNetwork{std::move(other)},

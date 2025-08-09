@@ -6,8 +6,7 @@ from enum import Enum, auto
 from pathlib import Path
 
 # pylint: disable-next=no-name-in-module
-from cpp_plugin.build.release.cpp_plugin import FiniteAdrcmModel
-from cpp_plugin.build.release.cpp_plugin import FiniteNetwork as CppFiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import FiniteHypergraph as CppFiniteHypergraph
 from network.finite_network import FiniteNetwork
 from network.property import DerivedNetworkProperty
 from tools.logging_helper import log_function_name
@@ -42,7 +41,7 @@ class DataSet(FiniteNetwork):
         self._read_data()
         vertices = self._get_vertices() if self._get_vertices() is not None else []
         interactions = self._get_interactions()
-        cpp_network = CppFiniteNetwork(
+        cpp_network = CppFiniteHypergraph(
             data_set_properties.max_dimension,
             vertices, interactions,
             data_set_properties.weighted

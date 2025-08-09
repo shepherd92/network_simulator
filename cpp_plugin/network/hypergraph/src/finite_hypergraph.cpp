@@ -27,6 +27,27 @@ FiniteHypergraph::FiniteHypergraph(
 {
 }
 
+FiniteHypergraph::FiniteHypergraph(FiniteHypergraph &&other) noexcept
+    : Network{std::move(other)},
+      FiniteNetwork{std::move(other)},
+      Hypergraph{std::move(other)},
+      weighted_{std::move(other.weighted_)}
+{
+}
+
+// move assignment defined due to virtual base class
+FiniteHypergraph &FiniteHypergraph::operator=(FiniteHypergraph &&other) noexcept
+{
+    if (this != &other)
+    {
+        Network::operator=(std::move(other));
+        Hypergraph::operator=(std::move(other));
+        FiniteNetwork::operator=(std::move(other));
+        weighted_ = std::move(other.weighted_);
+    }
+    return *this;
+}
+
 std::vector<uint32_t> FiniteHypergraph::calc_vertex_interaction_degree_distribution() const
 {
     // initialize result with zeros

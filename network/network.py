@@ -10,7 +10,7 @@ import networkx as nx
 import pandas as pd
 
 # pylint: disable=no-name-in-module
-from cpp_plugin.build.release.cpp_plugin import FiniteNetwork as CppFiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import FiniteCliqueComplex as CppFiniteCliqueComplex
 from cpp_plugin.build.release.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
 # pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
