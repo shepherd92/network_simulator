@@ -56,21 +56,23 @@ SimplexList FiniteCliqueComplex::calc_simplices(const Dimension dimension)
     }
 
     assert_simplicial_complex_is_built();
-    // iterate over simplices
     SimplexList result{};
 
-    auto &simplex_tree{simplex_tree_.value()};
-
-    for (const auto &simplex_handle : simplex_tree.filtration_simplex_range())
+    // iterate over simplices
+    for (const auto &simplex_handle : simplex_tree_->complex_simplex_range())
     {
-        if (simplex_tree.dimension(simplex_handle) == dimension)
+        if (simplex_tree_->dimension(simplex_handle) == dimension)
         {
             PointIdList vertices{};
             vertices.reserve(dimension + 1U);
-            for (const auto vertex : simplex_tree.simplex_vertex_range(simplex_handle))
+            std::cout << "Dimension: " << simplex_tree_->dimension(simplex_handle) << std::endl;
+            std::cout << "Vertices: ";
+            for (const auto vertex : simplex_tree_->simplex_vertex_range(simplex_handle))
             {
-                vertices.emplace_back(vertex);
+                std::cout << vertex << " ";
+                vertices.push_back(vertex);
             }
+            std::cout << std::endl;
             result += SimplexList{std::vector{Simplex{vertices}}};
         }
     }
@@ -90,7 +92,7 @@ void FiniteCliqueComplex::fill_simplicial_complex()
 void FiniteCliqueComplex::expand()
 {
     assert_simplicial_complex_is_built();
-    simplex_tree_->expansion(max_dimension_ + 1U);
+    simplex_tree_->expansion(max_dimension_);
     reset_persistence();
 }
 

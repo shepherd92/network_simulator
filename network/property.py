@@ -23,7 +23,6 @@ class BaseNetworkProperty(Enum):
     num_of_connected_components: int = auto()
     interaction_vertex_degree_distribution: int = auto()
     simplex_dimension_distribution: int = auto()
-    facet_dimension_distribution: int = auto()
     vertex_edge_degree_distribution: int = auto()
     in_degree_distribution: int = auto()
     out_degree_distribution: int = auto()

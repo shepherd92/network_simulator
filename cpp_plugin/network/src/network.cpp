@@ -67,10 +67,17 @@ ISimplexList Network::get_skeleton_interface(const Dimension max_dimension)
 
 std::vector<Dimension> Network::calc_simplex_dimension_distribution()
 {
-    std::vector<Dimension> result{max_dimension_ + 1, 0};
+    std::vector<Dimension> result(max_dimension_ + 1, 0);
     for (auto dimension{0}; dimension <= max_dimension_; ++dimension)
     {
         result[dimension] = get_simplices(dimension).size();
+        std::cout << "Dinemsion: " << dimension << " simplices: " << result[dimension] << std::endl;
     }
+    std::cout << "Result: ";
+    for (auto temp : result)
+    {
+        std::cout << temp << " ";
+    }
+    std::cout << std::endl;
     return result;
 }

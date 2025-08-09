@@ -140,7 +140,6 @@ bool FiniteNetwork::is_valid() const
 
 void FiniteNetwork::create_simplicial_complex()
 {
-    reset_simplicial_complex();
     add_vertices();
     fill_simplicial_complex();
 }

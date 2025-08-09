@@ -71,10 +71,6 @@ class Network:
         """
         return EmpiricalDistribution(self.cpp_network.calc_simplex_dimension_distribution())
 
-    def _calculate_facet_dimension_distribution(self) -> EmpiricalDistribution:
-        """Return the number of facets for each dimension."""
-        return EmpiricalDistribution(self.cpp_network.calc_facet_dimension_distribution())
-
     def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
         """Return the number of interactions for each vertex."""
         raise NotImplementedError
