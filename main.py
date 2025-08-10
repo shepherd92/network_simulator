@@ -44,7 +44,6 @@ class Mode(Enum):
     """Mode in which the program runs."""
 
     ANALYSIS = 'analysis'  # to analyze a data set
-    FITTING = 'fitting'  # to fit model parameters to data
     TESTING = 'testing'  # to analyze model properties
     EXAMPLE = 'example'  # to analyze an example network from the model
 
@@ -181,7 +180,6 @@ def data_set_required(mode: Mode, configuration: Configuration) -> bool:
     """Check if loading of a data set is required."""
     return \
         mode == Mode.ANALYSIS or \
-        mode == Mode.FITTING or \
         (
             mode == Mode.TESTING and
             configuration.model.set_params_from_data_set
