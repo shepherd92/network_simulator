@@ -1,6 +1,8 @@
 #ifndef _NETWORK_HPP_
 #define _NETWORK_HPP_
 
+#include <gudhi/Persistent_cohomology.h>
+#include <gudhi/Simplex_tree.h>
 #include <map>
 #include <optional>
 
@@ -10,24 +12,32 @@
 class Network
 {
 public:
-    Network(const Dimension max_dimension, const PointIdList &vertices);
+    // Gudhi aliases
+    struct SimplexTreeOptions
+    {
+        typedef Gudhi::linear_indexing_tag Indexing_tag;
+        typedef int Vertex_handle;
+        typedef float Filtration_value;
+        typedef uint32_t Simplex_key;
+        static const bool store_key = true;
+        static const bool store_filtration = true;
+        static const bool contiguous_vertices = false;
+        static const bool link_nodes_by_label = false;
+        static const bool stable_simplex_handles = false;
+    };
+    using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
+    using VertexHandle = SimplexTreeOptions::Vertex_handle;
+    using SimplexHandle = SimplexTree::Simplex_handle;
+    using SimplexHandleList = std::vector<SimplexHandle>;
+    using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
+    using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
-    Network(Network &&other) noexcept
-    {
-        max_dimension_ = std::move(other.max_dimension_);
-        vertices_ = std::move(other.vertices_);
-        simplices_ = std::move(other.simplices_);
-    }
-    Network &operator=(Network &&other) noexcept
-    {
-        if (this != &other)
-        {
-            max_dimension_ = std::move(other.max_dimension_);
-            vertices_ = std::move(other.vertices_);
-            simplices_ = std::move(other.simplices_);
-        }
-        return *this;
-    }
+public:
+    Network(const Dimension max_dimension, const PointIdList &vertices);
+    ~Network();
+
+    Network(Network &&other) noexcept;
+    Network &operator=(Network &&other) noexcept;
 
     virtual void reset();
 
@@ -50,10 +60,26 @@ protected:
     virtual SimplexList get_skeleton(const Dimension max_dimension) = 0;
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
 
+    void assert_simplicial_complex_is_initialized();
+    void assert_simplicial_complex_is_built();
+    PointIdList get_simplex_vertices(const SimplexHandle &simplex_handle);
+    PersistentCohomology &get_persistence();
+    void reset_persistence();
+
     Dimension max_dimension_;
     PointIdList vertices_;
+    std::optional<SimplexTree> simplex_tree_;
+    PersistentCohomology *persistent_cohomology_;
 
 private:
+    // simplicial complex methods
+    void create_simplicial_complex();
+    void calc_persistent_cohomology();
+    bool is_valid() const;
+    void add_vertices();
+    virtual void fill_simplicial_complex() = 0;
+    void reset_simplicial_complex();
+
     std::map<PointId, std::vector<PointId>> create_vertex_simplex_map(const SimplexList &simplices) const;
     std::vector<std::optional<SimplexList>> simplices_;
 };

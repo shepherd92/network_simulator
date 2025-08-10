@@ -50,6 +50,7 @@ SimplexList InfiniteNetwork::get_skeleton(const Dimension max_dimension)
 
 SimplexList InfiniteNetwork::calc_simplices(const Dimension dimension)
 {
+    assert(dimension <= max_dimension_);
     // This method calculates those simplices where the typical vertex is the lowest-mark vertex.
     // The result contains all these simplices without the typical vertex.
     if (dimension == 0U)

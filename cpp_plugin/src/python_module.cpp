@@ -61,7 +61,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def_property("edges", &FiniteCliqueComplex::get_edges, &FiniteCliqueComplex::set_edges);
 
     py::class_<InfiniteCliqueComplex, InfiniteNetwork, Network>(m, "InfiniteCliqueComplex")
-        .def(py::init<const Dimension, const PointIdList &, const Mark, const MarkList &>())
+        .def(py::init<const Dimension, const PointIdList &, const ConnectionList &, const Mark, const MarkList &>())
         .def("filter", &InfiniteCliqueComplex::filter);
 
     py::class_<FiniteHypergraph, FiniteNetwork, Hypergraph, Network>(m, "FiniteHypergraph")

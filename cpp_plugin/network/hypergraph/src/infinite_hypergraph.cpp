@@ -120,3 +120,17 @@ InfiniteHypergraph InfiniteHypergraph::filter(const PointIdList &vertices)
         typical_vertex_mark_,
         std::move(filtered_marks)};
 }
+
+void InfiniteHypergraph::fill_simplicial_complex()
+{
+    assert_simplicial_complex_is_initialized();
+
+    // insert simplices from interactions
+    for (const auto &interaction : interactions_.simplices())
+    {
+        simplex_tree_->insert_simplex_and_subfaces(interaction.vertices());
+    }
+
+    // expand the simplicial complex
+    simplex_tree_->expansion(max_dimension_);
+}

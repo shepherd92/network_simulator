@@ -4,29 +4,15 @@
 #include "tools.hpp"
 
 FiniteNetwork::FiniteNetwork()
-    : simplex_tree_{std::nullopt},
-      persistent_cohomology_{nullptr}
 {
 }
 
-FiniteNetwork::~FiniteNetwork()
+FiniteNetwork::FiniteNetwork(FiniteNetwork &&) noexcept
 {
-    reset_persistence();
 }
 
-FiniteNetwork::FiniteNetwork(FiniteNetwork &&other) noexcept
+FiniteNetwork &FiniteNetwork::operator=(FiniteNetwork &&) noexcept
 {
-    simplex_tree_ = std::move(other.simplex_tree_);
-    persistent_cohomology_ = other.persistent_cohomology_;
-}
-
-FiniteNetwork &FiniteNetwork::operator=(FiniteNetwork &&other) noexcept
-{
-    if (this != &other)
-    {
-        simplex_tree_ = std::move(other.simplex_tree_);
-        persistent_cohomology_ = other.persistent_cohomology_;
-    }
     return *this;
 }
 
@@ -38,44 +24,6 @@ SimplexList FiniteNetwork::get_skeleton(const Dimension max_dimension)
         result += get_simplices(dimension);
     }
     return result;
-}
-
-void FiniteNetwork::reset()
-{
-    Network::reset();
-    reset_simplicial_complex();
-}
-
-void FiniteNetwork::reset_simplicial_complex()
-{
-    simplex_tree_ = std::nullopt;
-    reset_persistence();
-}
-
-void FiniteNetwork::reset_persistence()
-{
-    delete persistent_cohomology_;
-    persistent_cohomology_ = nullptr;
-}
-
-FiniteNetwork::PersistentCohomology &FiniteNetwork::get_persistence()
-{
-    if (!persistent_cohomology_)
-    {
-        calc_persistent_cohomology();
-    }
-    return *persistent_cohomology_;
-}
-
-void FiniteNetwork::calc_persistent_cohomology()
-{
-    reset_persistence();
-    assert_simplicial_complex_is_built();
-    std::cout << "\rCompute persistent cohomology..." << std::flush;
-    persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
-    persistent_cohomology_->init_coefficients(2);
-    persistent_cohomology_->compute_persistent_cohomology();
-    std::cout << "done" << std::flush;
 }
 
 std::vector<uint32_t> FiniteNetwork::calc_coface_degree_sequence(
@@ -114,52 +62,5 @@ std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
         result.resize(max_dimension_);
     }
     assert(static_cast<int32_t>(result.size()) == max_dimension_);
-    return result;
-}
-
-void FiniteNetwork::assert_simplicial_complex_is_built()
-{
-    if (!is_valid())
-    {
-        create_simplicial_complex();
-    }
-}
-
-void FiniteNetwork::assert_simplicial_complex_is_initialized()
-{
-    if (!is_valid())
-    {
-        simplex_tree_ = SimplexTree{};
-    }
-}
-
-bool FiniteNetwork::is_valid() const
-{
-    return simplex_tree_.has_value();
-}
-
-void FiniteNetwork::create_simplicial_complex()
-{
-    add_vertices();
-    fill_simplicial_complex();
-}
-
-void FiniteNetwork::add_vertices()
-{
-    assert_simplicial_complex_is_initialized();
-    simplex_tree_->insert_batch_vertices(vertices_);
-}
-
-PointIdList FiniteNetwork::get_simplex_vertices(const SimplexHandle &simplex_handle)
-{
-    assert_simplicial_complex_is_built();
-    PointIdList result{};
-    if (simplex_handle != simplex_tree_->null_simplex())
-    {
-        for (const auto &vertex : simplex_tree_->simplex_vertex_range(simplex_handle))
-        {
-            result.push_back(vertex);
-        }
-    }
     return result;
 }

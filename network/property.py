@@ -19,8 +19,6 @@ class BaseNetworkProperty(Enum):
     edges: int = auto()
     mean_degree: int = auto()
     max_degree: int = auto()
-    mean_clustering: int = auto()
-    num_of_connected_components: int = auto()
     interaction_vertex_degree_distribution: int = auto()
     simplex_dimension_distribution: int = auto()
     vertex_edge_degree_distribution: int = auto()

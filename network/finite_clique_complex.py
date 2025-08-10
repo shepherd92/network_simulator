@@ -88,15 +88,13 @@ class FiniteCliqueComplex(Network):
             property_value = self.num_simplices(1)
         elif property_type == BaseNetworkProperty.num_of_triangles:
             property_value = self.num_simplices(2)
-        elif property_type == BaseNetworkProperty.edges:
-            property_value = np.array(self.graph.edges, dtype=int)
         elif property_type == BaseNetworkProperty.mean_degree:
             property_value = self._calculate_average_degree()
         elif property_type == BaseNetworkProperty.max_degree:
-            oridnary_degree_distributions = self._calculate_degree_distribution()
-            property_value = oridnary_degree_distributions.domain.max_
+            ordinary_degree_distribution = self._calculate_higher_order_degree_distribution(0)
+            property_value = ordinary_degree_distribution.domain.max_
         elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
-            property_value = self._calculate_degree_distribution()
+            property_value = self._calculate_higher_order_degree_distribution(0)
         elif property_type == BaseNetworkProperty.in_degree_distribution:
             property_value = self._calculate_in_degree_distribution()
         elif property_type == BaseNetworkProperty.out_degree_distribution:
@@ -105,10 +103,6 @@ class FiniteCliqueComplex(Network):
             property_value = self._calculate_higher_order_degree_distribution(1)
         elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
             property_value = self._calculate_higher_order_degree_distribution(2)
-        elif property_type == BaseNetworkProperty.mean_clustering:
-            property_value = nx.average_clustering(self.graph)
-        elif property_type == BaseNetworkProperty.num_of_connected_components:
-            property_value = nx.number_connected_components(self.graph)
         elif property_type == BaseNetworkProperty.simplex_dimension_distribution:
             property_value = self._calculate_simplex_dimension_distribution()
         elif property_type == BaseNetworkProperty.betti_numbers:
@@ -150,15 +144,10 @@ class FiniteCliqueComplex(Network):
 
     @log_function_name
     def _calculate_average_degree(self) -> float:
-        num_of_nodes = self.graph.number_of_nodes()
-        num_of_edges = self.graph.number_of_edges()
+        num_of_nodes = self.num_simplices(0)
+        num_of_edges = self.num_simplices(1)
         average_degree = num_of_edges / num_of_nodes * 2
         return average_degree
-
-    @log_function_name
-    def _calculate_degree_distribution(self) -> EmpiricalDistribution:
-        degree_sequence = [degree for _, degree in self.graph.degree()]
-        return EmpiricalDistribution(degree_sequence)
 
     @log_function_name
     def _calculate_in_degree_distribution(self) -> EmpiricalDistribution:

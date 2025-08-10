@@ -21,7 +21,7 @@ FiniteHypergraph::FiniteHypergraph(
     const SimplexList &interactions,
     const bool weighted)
     : Network{max_dimension, vertices},
-      FiniteNetwork{},
+      FiniteNetwork(),
       Hypergraph{interactions},
       weighted_{weighted}
 {

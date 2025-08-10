@@ -30,7 +30,7 @@ InfiniteCliqueComplex InfiniteAdrcmModel::generate_network() const
     const auto vertex_marks{convert_to_mark_list(vertices)};
 
     const auto connections{generate_connections(vertices)};
-    return InfiniteCliqueComplex{max_dimension(), vertex_ids, typical_vertex_mark, vertex_marks};
+    return InfiniteCliqueComplex{max_dimension(), vertex_ids, connections, typical_vertex_mark, vertex_marks};
 }
 
 PointList InfiniteAdrcmModel::create_vertices(const Mark typical_vertex_mark) const

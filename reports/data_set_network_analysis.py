@@ -52,10 +52,6 @@ def analyze_data_set_network(
 
     network.save_info(save_directory / 'network_info.csv')
 
-    if BaseNetworkProperty.edges in calculated_properties:
-        edges = summary.get(BaseNetworkProperty.edges)
-        np.savetxt(save_directory / 'edges.csv', edges, delimiter=',', fmt='%i')
-
     figure = plt.figure('Network Analysis', figsize=(axes_grid_width * 10, axes_grid_height * 10))
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
     subfigure_row_index = 0
