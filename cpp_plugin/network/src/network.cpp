@@ -118,7 +118,7 @@ void Network::add_vertices_to_simplex_tree()
     simplex_tree_->insert_batch_vertices(vertices_);
 }
 
-PointIdList Network::get_simplex_vertices_simplex_tree(const SimplexHandle &simplex_handle)
+PointIdList Network::get_simplex_vertices_simplex_tree(const SimplexTreeSimplexHandle &simplex_handle)
 {
     assert_simplex_tree_is_built();
     PointIdList result{};

@@ -13,6 +13,10 @@ FiniteHypergraph::FiniteHypergraph(
       Hypergraph{SimplexList{interactions}},
       weighted_{weighted}
 {
+    if (weighted_)
+    {
+        assert(SimplexTreeOptions::store_filtration);
+    }
 }
 
 FiniteHypergraph::FiniteHypergraph(

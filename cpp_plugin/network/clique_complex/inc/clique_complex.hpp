@@ -1,10 +1,6 @@
 #ifndef _CLIQUE_COMPLEX_HPP_
 #define _CLIQUE_COMPLEX_HPP_
 
-#include <iostream>
-#include <gudhi/Persistent_cohomology.h>
-#include <gudhi/Simplex_tree.h>
-
 #include "network.hpp"
 #include "typedefs.hpp"
 
@@ -24,7 +20,6 @@ public:
 
 protected:
     void expand();
-
     void fill_simplex_tree() override;
 
     ConnectionList filter_edges(const PointIdList &vertices) const;

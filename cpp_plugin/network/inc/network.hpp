@@ -20,7 +20,7 @@ public:
         typedef float Filtration_value;
         typedef uint32_t Simplex_key;
         static const bool store_key = true;
-        static const bool store_filtration = true;
+        static const bool store_filtration = false; // change to true if weighted
         static const bool contiguous_vertices = false;
         static const bool link_nodes_by_label = false;
         static const bool stable_simplex_handles = false;
@@ -28,7 +28,6 @@ public:
     using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
     using VertexHandle = SimplexTreeOptions::Vertex_handle;
     using SimplexHandle = SimplexTree::Simplex_handle;
-    using SimplexHandleList = std::vector<SimplexHandle>;
     using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
     using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
@@ -72,7 +71,6 @@ protected:
     PersistentCohomology *persistent_cohomology_;
 
 private:
-    // simplicial complex methods
     void create_simplex_tree();
     void calc_persistent_cohomology();
     bool is_simplex_tree_valid() const;
