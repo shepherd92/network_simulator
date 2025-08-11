@@ -84,7 +84,7 @@ SimplexList InfiniteCliqueComplex::calc_neighbors(const Dimension dimension)
     }
 
     // implement all combinations of vertices of length dimension
-    assert_simplicial_complex_is_built();
+    assert_simplex_tree_is_built();
     SimplexList result{};
 
     // iterate over simplices

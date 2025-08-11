@@ -60,9 +60,9 @@ protected:
     virtual SimplexList get_skeleton(const Dimension max_dimension) = 0;
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
 
-    void assert_simplicial_complex_is_initialized();
-    void assert_simplicial_complex_is_built();
-    PointIdList get_simplex_vertices(const SimplexHandle &simplex_handle);
+    void assert_simplex_tree_is_initialized();
+    void assert_simplex_tree_is_built();
+    PointIdList get_simplex_vertices_simplex_tree(const SimplexHandle &simplex_handle);
     PersistentCohomology &get_persistence();
     void reset_persistence();
 
@@ -73,12 +73,12 @@ protected:
 
 private:
     // simplicial complex methods
-    void create_simplicial_complex();
+    void create_simplex_tree();
     void calc_persistent_cohomology();
-    bool is_valid() const;
-    void add_vertices();
-    virtual void fill_simplicial_complex() = 0;
-    void reset_simplicial_complex();
+    bool is_simplex_tree_valid() const;
+    void add_vertices_to_simplex_tree();
+    virtual void fill_simplex_tree() = 0;
+    void reset_simplex_tree();
 
     std::map<PointId, std::vector<PointId>> create_vertex_simplex_map(const SimplexList &simplices) const;
     std::vector<std::optional<SimplexList>> simplices_;

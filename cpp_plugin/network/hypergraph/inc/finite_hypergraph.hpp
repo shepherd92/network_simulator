@@ -39,7 +39,7 @@ public:
 private:
     SimplexList calc_simplices(const Dimension dimension) override;
 
-    void fill_simplicial_complex() override;
+    void fill_simplex_tree() override;
 
     bool weighted_;
 };

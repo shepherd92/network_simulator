@@ -113,8 +113,8 @@ std::vector<std::vector<std::pair<float, float>>> FiniteHypergraph::calc_persist
         persistent_pairs.end(),
         [&](const auto &persistent_interval)
         {
-            const Simplex birth_simplex{get_simplex_vertices(std::get<0>(persistent_interval))};
-            const Simplex death_simplex{get_simplex_vertices(std::get<1>(persistent_interval))};
+            const Simplex birth_simplex{get_simplex_vertices_simplex_tree(std::get<0>(persistent_interval))};
+            const Simplex death_simplex{get_simplex_vertices_simplex_tree(std::get<1>(persistent_interval))};
             assert(simplex_interaction_map.contains(birth_simplex.vertices()));
             const auto birth_weight{simplex_interaction_map[birth_simplex]};
             const auto death_weight{
@@ -151,8 +151,8 @@ std::vector<ISimplexList> FiniteHypergraph::calc_persistence_pairs()
         persistent_pairs.end(),
         [&](const auto &persistent_interval)
         {
-            const PointIdList birth_simplex{get_simplex_vertices(std::get<0>(persistent_interval))};
-            const PointIdList death_simplex{get_simplex_vertices(std::get<1>(persistent_interval))};
+            const PointIdList birth_simplex{get_simplex_vertices_simplex_tree(std::get<0>(persistent_interval))};
+            const PointIdList death_simplex{get_simplex_vertices_simplex_tree(std::get<1>(persistent_interval))};
             std::lock_guard<std::mutex> lock{mutex};
             result.push_back({birth_simplex, death_simplex});
             log_progress(++counter, total, 1000U, "Calc persistence pairs");
@@ -165,9 +165,9 @@ SimplexList FiniteHypergraph::calc_simplices(const Dimension dimension)
     return interactions_.faces(dimension);
 }
 
-void FiniteHypergraph::fill_simplicial_complex()
+void FiniteHypergraph::fill_simplex_tree()
 {
-    assert_simplicial_complex_is_initialized();
+    assert_simplex_tree_is_initialized();
 
     std::cout << "\rInsert simplices" << std::flush;
 

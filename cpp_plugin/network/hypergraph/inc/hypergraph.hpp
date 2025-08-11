@@ -27,8 +27,6 @@ public:
 
 protected:
     SimplexList interactions_;
-
-private:
 };
 
 #endif

@@ -49,11 +49,11 @@ Network &Network::operator=(Network &&other) noexcept
 
 void Network::reset()
 {
-    reset_simplicial_complex();
+    reset_simplex_tree();
     simplices_ = std::vector<std::optional<SimplexList>>{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt};
 }
 
-void Network::reset_simplicial_complex()
+void Network::reset_simplex_tree()
 {
     simplex_tree_ = std::nullopt;
     reset_persistence();
@@ -77,7 +77,7 @@ Network::PersistentCohomology &Network::get_persistence()
 void Network::calc_persistent_cohomology()
 {
     reset_persistence();
-    assert_simplicial_complex_is_built();
+    assert_simplex_tree_is_built();
     std::cout << "\rCompute persistent cohomology..." << std::flush;
     persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
     persistent_cohomology_->init_coefficients(2);
@@ -85,42 +85,42 @@ void Network::calc_persistent_cohomology()
     std::cout << "done" << std::flush;
 }
 
-void Network::assert_simplicial_complex_is_built()
+void Network::assert_simplex_tree_is_built()
 {
-    if (!is_valid())
+    if (!is_simplex_tree_valid())
     {
-        create_simplicial_complex();
+        create_simplex_tree();
     }
 }
 
-void Network::assert_simplicial_complex_is_initialized()
+void Network::assert_simplex_tree_is_initialized()
 {
-    if (!is_valid())
+    if (!is_simplex_tree_valid())
     {
         simplex_tree_ = SimplexTree{};
     }
 }
 
-bool Network::is_valid() const
+bool Network::is_simplex_tree_valid() const
 {
     return simplex_tree_.has_value();
 }
 
-void Network::create_simplicial_complex()
+void Network::create_simplex_tree()
 {
-    add_vertices();
-    fill_simplicial_complex();
+    add_vertices_to_simplex_tree();
+    fill_simplex_tree();
 }
 
-void Network::add_vertices()
+void Network::add_vertices_to_simplex_tree()
 {
-    assert_simplicial_complex_is_initialized();
+    assert_simplex_tree_is_initialized();
     simplex_tree_->insert_batch_vertices(vertices_);
 }
 
-PointIdList Network::get_simplex_vertices(const SimplexHandle &simplex_handle)
+PointIdList Network::get_simplex_vertices_simplex_tree(const SimplexHandle &simplex_handle)
 {
-    assert_simplicial_complex_is_built();
+    assert_simplex_tree_is_built();
     PointIdList result{};
     if (simplex_handle != simplex_tree_->null_simplex())
     {

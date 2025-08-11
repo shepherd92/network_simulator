@@ -33,7 +33,7 @@ public:
 
     InfiniteHypergraph filter(const PointIdList &vertices);
 
-    void fill_simplicial_complex() override;
+    void fill_simplex_tree() override;
 
 private:
     SimplexList calc_neighbors(const Dimension dimension) override;

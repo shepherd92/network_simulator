@@ -121,9 +121,9 @@ InfiniteHypergraph InfiniteHypergraph::filter(const PointIdList &vertices)
         std::move(filtered_marks)};
 }
 
-void InfiniteHypergraph::fill_simplicial_complex()
+void InfiniteHypergraph::fill_simplex_tree()
 {
-    assert_simplicial_complex_is_initialized();
+    assert_simplex_tree_is_initialized();
 
     // insert simplices from interactions
     for (const auto &interaction : interactions_.simplices())

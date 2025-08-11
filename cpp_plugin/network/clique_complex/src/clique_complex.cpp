@@ -53,7 +53,7 @@ ConnectionList CliqueComplex::filter_edges(const PointIdList &vertices) const
     return filtered_edges;
 }
 
-void CliqueComplex::fill_simplicial_complex()
+void CliqueComplex::fill_simplex_tree()
 {
     for (const auto &edge : edges_)
     {
@@ -65,7 +65,7 @@ void CliqueComplex::fill_simplicial_complex()
 
 void CliqueComplex::expand()
 {
-    assert_simplicial_complex_is_built();
+    assert_simplex_tree_is_built();
     simplex_tree_->expansion(max_dimension_);
     reset_persistence();
 }

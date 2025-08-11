@@ -54,7 +54,7 @@ SimplexList FiniteCliqueComplex::calc_simplices(const Dimension dimension)
         return {std::move(result)};
     }
 
-    assert_simplicial_complex_is_built();
+    assert_simplex_tree_is_built();
     SimplexList result{};
 
     // iterate over simplices

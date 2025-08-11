@@ -24,7 +24,8 @@ public:
 
 protected:
     void expand();
-    void fill_simplicial_complex() override;
+
+    void fill_simplex_tree() override;
 
     ConnectionList filter_edges(const PointIdList &vertices) const;
     ConnectionList edges_; // every vertex is by default connected to the typical vertex
