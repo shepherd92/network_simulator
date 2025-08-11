@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Unittest for AdrcmModel."""
+"""Unittest for InfiniteCliqueComplex."""
 
 import unittest
 
@@ -50,11 +50,6 @@ class InfiniteCliqueComplexTest(unittest.TestCase):
     def test_degree_distribution_2_3(self) -> None:
 
         degrees: list[int] = self.network.calc_base_property(BaseNetworkProperty.triangle_tetrahedra_degree_distribution)
-        self.assertEqual(sorted(degrees), [1, 1, 2, 2, 2, 2, 2, 3])
-
-    def test_in_degree_distribution(self) -> None:
-
-        degrees: list[int] = self.network.calc_base_property(BaseNetworkProperty.in_degree_distribution)
         self.assertEqual(sorted(degrees), [1, 1, 2, 2, 2, 2, 2, 3])
 
     # def test_degree_distribution_0_1(self) -> None:

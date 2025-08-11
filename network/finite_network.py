@@ -103,10 +103,6 @@ class FiniteNetwork(Network):
             property_value = self._calculate_edge_interaction_degree_distribution()
         elif property_type == BaseNetworkProperty.triangle_interaction_degree_distribution:
             property_value = self._calculate_triangle_interaction_degree_distribution()
-        elif property_type == BaseNetworkProperty.in_degree_distribution:
-            property_value = self._calculate_in_degree_distribution()
-        elif property_type == BaseNetworkProperty.out_degree_distribution:
-            property_value = self._calculate_out_degree_distribution()
         elif property_type == BaseNetworkProperty.edge_triangle_degree_distribution:
             property_value = self._calculate_higher_order_degree_distribution(1)
         elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
@@ -115,8 +111,6 @@ class FiniteNetwork(Network):
             property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.simplex_dimension_distribution:
             property_value = self._calculate_simplex_dimension_distribution()
-        elif property_type == BaseNetworkProperty.facet_dimension_distribution:
-            property_value = self._calculate_facet_dimension_distribution()
         elif property_type == BaseNetworkProperty.betti_numbers:
             property_value = self._calculate_betti_numbers()
         elif property_type == BaseNetworkProperty.betti_numbers_by_component:
@@ -168,16 +162,6 @@ class FiniteNetwork(Network):
     @log_function_name
     def _calculate_degree_distribution(self) -> EmpiricalDistribution:
         degree_sequence = [degree for _, degree in self.graph.degree()]
-        return EmpiricalDistribution(degree_sequence)
-
-    @log_function_name
-    def _calculate_in_degree_distribution(self) -> EmpiricalDistribution:
-        degree_sequence = [degree for _, degree in self.digraph.in_degree()]
-        return EmpiricalDistribution(degree_sequence)
-
-    @log_function_name
-    def _calculate_out_degree_distribution(self) -> EmpiricalDistribution:
-        degree_sequence = [degree for _, degree in self.digraph.out_degree()]
         return EmpiricalDistribution(degree_sequence)
 
     @log_function_name

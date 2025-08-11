@@ -12,11 +12,8 @@ from network.finite_network import FiniteNetwork
 from network.property import BaseNetworkProperty
 from reports.finite_network_analysis import (
     report_vertex_edge_degree_distribution,
-    report_in_degree_distribution,
-    report_out_degree_distribution,
     report_vertices_by_component,
     report_edge_triangle_degree_distribution,
-    report_facet_dimension_distribution,
     report_triangle_tetrahedron_degree_distribution,
     report_simplex_dimension_distribution,
     report_vertex_interaction_degree_distribution,
@@ -56,18 +53,6 @@ def analyze_data_set_network(
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
     subfigure_row_index = 0
 
-    report_in_degree_distribution(
-        summary.get(BaseNetworkProperty.in_degree_distribution),
-        figure.add_subplot(axes_grid[subfigure_row_index, 1]),
-        save_directory,
-        power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_DATA,
-    )
-    report_out_degree_distribution(
-        summary.get(BaseNetworkProperty.out_degree_distribution),
-        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
-        save_directory
-    )
-
     subfigure_row_index += 1
 
     report_vertex_edge_degree_distribution(
@@ -103,12 +88,6 @@ def analyze_data_set_network(
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_DATA,
     )
-    report_interaction_dimension_distribution(
-        summary.get(BaseNetworkProperty.interaction_vertex_degree_distribution),
-        figure.add_subplot(axes_grid[subfigure_row_index, 2]),
-        save_directory,
-        power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_DATA,
-    )
 
     subfigure_row_index += 1
 
@@ -118,8 +97,8 @@ def analyze_data_set_network(
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_DATA,
     )
-    report_facet_dimension_distribution(
-        summary.get(BaseNetworkProperty.facet_dimension_distribution),
+    report_interaction_dimension_distribution(
+        summary.get(BaseNetworkProperty.interaction_vertex_degree_distribution),
         figure.add_subplot(axes_grid[subfigure_row_index, 1]),
         save_directory,
         power_law_fitting_minimum_value=POWER_LAW_FITTING_MINIMUM_VALUE_DATA,

@@ -77,7 +77,7 @@ namespace detail
     //    false, continue for every combination and then return [first1, last1) and
     //    [first2, last2) to their original state.  If f() returns true, return
     //    immediately.
-    //  Does the absolute mininum amount of swapping to accomplish its task.
+    //  Does the absolute minimum amount of swapping to accomplish its task.
     //  If f() always returns false it will be called (d1+d2)!/(d1!*d2!) times.
     template <class BidirIter, class Function>
     bool
@@ -725,7 +725,7 @@ namespace detail
         // Beginning with the first element, swap the previous element with the
         //    next element.  For each swap, call f_(first, last) for each
         //    permutation of the discontinuous range:
-        //    [prior to the orignal element] + [after the original element].
+        //    [prior to the original element] + [after the original element].
         Size s2 = s_ / 2;
         BidirIter am1 = first;
         BidirIter ap1 = std::next(a);
@@ -751,7 +751,7 @@ namespace detail
             swap(*am1, *a);
         }
         // else the range is an odd number greater than 3.  We need to permute
-        //     through exactly half of the permuations with the original element in
+        //     through exactly half of the permutations with the original element in
         //     the middle.
         else
         {

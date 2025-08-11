@@ -28,13 +28,10 @@ public:
     using SimplexTree = Gudhi::Simplex_tree<SimplexTreeOptions>;
     using VertexHandle = SimplexTreeOptions::Vertex_handle;
     using SimplexHandle = SimplexTree::Simplex_handle;
-    using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
-    using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
 
 public:
     Network(const Dimension max_dimension, const PointIdList &vertices);
     ~Network();
-
     Network(Network &&other) noexcept;
     Network &operator=(Network &&other) noexcept;
 
@@ -56,13 +53,17 @@ public:
     Dimension get_max_dimension() const;
 
 protected:
+    using Field_Zp = Gudhi::persistent_cohomology::Field_Zp;
+    using PersistentCohomology = Gudhi::persistent_cohomology::Persistent_cohomology<SimplexTree, Field_Zp>;
+
     virtual SimplexList get_skeleton(const Dimension max_dimension) = 0;
     virtual SimplexList calc_simplices(const Dimension dimension) = 0;
 
     void assert_simplex_tree_is_initialized();
     void assert_simplex_tree_is_built();
     PointIdList get_simplex_vertices_simplex_tree(const SimplexHandle &simplex_handle);
-    PersistentCohomology &get_persistence();
+
+    void assert_persistence_cohomology_is_calculated();
     void reset_persistence();
 
     Dimension max_dimension_;
@@ -72,13 +73,11 @@ protected:
 
 private:
     void create_simplex_tree();
-    void calc_persistent_cohomology();
     bool is_simplex_tree_valid() const;
     void add_vertices_to_simplex_tree();
     virtual void fill_simplex_tree() = 0;
-    void reset_simplex_tree();
+    void calc_persistent_cohomology();
 
-    std::map<PointId, std::vector<PointId>> create_vertex_simplex_map(const SimplexList &simplices) const;
     std::vector<std::optional<SimplexList>> simplices_;
 };
 

@@ -20,11 +20,6 @@ Network::Network(
     std::sort(vertices_.begin(), vertices_.end());
 }
 
-Network::~Network()
-{
-    reset_persistence();
-}
-
 Network::Network(Network &&other) noexcept
 {
     max_dimension_ = std::move(other.max_dimension_);
@@ -34,6 +29,11 @@ Network::Network(Network &&other) noexcept
     simplices_ = std::move(other.simplices_);
 }
 
+Network::~Network()
+{
+    reset_persistence();
+}
+
 Network &Network::operator=(Network &&other) noexcept
 {
     if (this != &other)
@@ -41,56 +41,17 @@ Network &Network::operator=(Network &&other) noexcept
         max_dimension_ = std::move(other.max_dimension_);
         vertices_ = std::move(other.vertices_);
         simplex_tree_ = std::move(other.simplex_tree_);
-        persistent_cohomology_ = other.persistent_cohomology_;
         simplices_ = std::move(other.simplices_);
+        persistent_cohomology_ = other.persistent_cohomology_;
     }
     return *this;
 }
 
 void Network::reset()
 {
-    reset_simplex_tree();
     simplices_ = std::vector<std::optional<SimplexList>>{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt};
-}
-
-void Network::reset_simplex_tree()
-{
     simplex_tree_ = std::nullopt;
     reset_persistence();
-}
-
-void Network::reset_persistence()
-{
-    delete persistent_cohomology_;
-    persistent_cohomology_ = nullptr;
-}
-
-Network::PersistentCohomology &Network::get_persistence()
-{
-    if (!persistent_cohomology_)
-    {
-        calc_persistent_cohomology();
-    }
-    return *persistent_cohomology_;
-}
-
-void Network::calc_persistent_cohomology()
-{
-    reset_persistence();
-    assert_simplex_tree_is_built();
-    std::cout << "\rCompute persistent cohomology..." << std::flush;
-    persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
-    persistent_cohomology_->init_coefficients(2);
-    persistent_cohomology_->compute_persistent_cohomology();
-    std::cout << "done" << std::flush;
-}
-
-void Network::assert_simplex_tree_is_built()
-{
-    if (!is_simplex_tree_valid())
-    {
-        create_simplex_tree();
-    }
 }
 
 void Network::assert_simplex_tree_is_initialized()
@@ -98,6 +59,14 @@ void Network::assert_simplex_tree_is_initialized()
     if (!is_simplex_tree_valid())
     {
         simplex_tree_ = SimplexTree{};
+    }
+}
+
+void Network::assert_simplex_tree_is_built()
+{
+    if (!is_simplex_tree_valid())
+    {
+        create_simplex_tree();
     }
 }
 
@@ -118,7 +87,7 @@ void Network::add_vertices_to_simplex_tree()
     simplex_tree_->insert_batch_vertices(vertices_);
 }
 
-PointIdList Network::get_simplex_vertices_simplex_tree(const SimplexTreeSimplexHandle &simplex_handle)
+PointIdList Network::get_simplex_vertices_simplex_tree(const SimplexHandle &simplex_handle)
 {
     assert_simplex_tree_is_built();
     PointIdList result{};
@@ -183,4 +152,29 @@ std::vector<Dimension> Network::calc_simplex_dimension_distribution()
         result.insert(result.end(), result_for_dimension.begin(), result_for_dimension.end());
     }
     return result;
+}
+
+void Network::assert_persistence_cohomology_is_calculated()
+{
+    if (!persistent_cohomology_)
+    {
+        calc_persistent_cohomology();
+    }
+}
+
+void Network::reset_persistence()
+{
+    delete persistent_cohomology_;
+    persistent_cohomology_ = nullptr;
+}
+
+void Network::calc_persistent_cohomology()
+{
+    reset_persistence();
+    assert_simplex_tree_is_built();
+    std::cout << "\rCompute persistent cohomology..." << std::flush;
+    persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
+    persistent_cohomology_->init_coefficients(2);
+    persistent_cohomology_->compute_persistent_cohomology();
+    std::cout << "done" << std::flush;
 }

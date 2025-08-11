@@ -22,8 +22,6 @@ class BaseNetworkProperty(Enum):
     interaction_vertex_degree_distribution: int = auto()
     simplex_dimension_distribution: int = auto()
     vertex_edge_degree_distribution: int = auto()
-    in_degree_distribution: int = auto()
-    out_degree_distribution: int = auto()
     vertex_interaction_degree_distribution: int = auto()
     edge_interaction_degree_distribution: int = auto()
     triangle_interaction_degree_distribution: int = auto()

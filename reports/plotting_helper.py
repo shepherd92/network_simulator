@@ -254,8 +254,8 @@ def _determine_node_positions(graph: nx.Graph):
 
 @log_function_name
 def _determine_interactions_to_plot(interactions: list[list[int]]) -> list[list[int]]:
-    # remove facets with dimension 0 and 1 (points and edges)
-    interactions_to_plot = sorted([facet for facet in interactions if len(facet) - 1 > 1], key=len, reverse=False)
+    # remove interactions with dimension 0 and 1 (points and edges)
+    interactions_to_plot = sorted([interaction for interaction in interactions if len(interaction) - 1 > 1], key=len, reverse=False)
     return interactions_to_plot
 
 
@@ -613,7 +613,7 @@ def plot_qq_plot(distribution_pair: DistributionApproximation, axes: plt.Axes) -
         np.max([axes.get_xlim(), axes.get_ylim()]),  # max of both axes
     ]
 
-    # now plot both limits against eachother
+    # now plot both limits against each other
     axes.plot(limits, limits, color='red')
 
     axes.set_aspect('equal')

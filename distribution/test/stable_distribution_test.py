@@ -18,7 +18,7 @@ class StableDistributionTest(unittest.TestCase):
 
     def setUp(self):
         """Set up test case."""
-        self.parameters = StableDistribution.Parameters(
+        self.parameters = StableDistribution.DistributionParameters(
             alpha=1.5,
             beta=1.,
             location=1000.,
@@ -48,7 +48,7 @@ class StableDistributionTest(unittest.TestCase):
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters()
+                StableDistribution.DistributionParameters()
             )
         )
         approximation.fit(fitting_parameters)
@@ -75,7 +75,7 @@ class StableDistributionTest(unittest.TestCase):
             StableDistribution.DomainCalculation(),
             StableDistribution.ParameterFitting(
                 StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                StableDistribution.Parameters(
+                StableDistribution.DistributionParameters(
                     alpha=self.parameters.alpha,
                     beta=self.parameters.beta,
                     location=np.nan,

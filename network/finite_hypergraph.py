@@ -13,29 +13,29 @@ from tqdm import tqdm
 
 from distribution.empirical_distribution import EmpiricalDistribution
 # pylint: disable=no-name-in-module
-from cpp_plugin.build.release.cpp_plugin import FiniteCliqueComplex as CppFiniteCliqueComplex
+from cpp_plugin.build.release.cpp_plugin import FiniteHypergraph as CppFiniteHypergraph
 # pylint: enable=no-name-in-module
 from network.network import Network
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 from tools.logging_helper import log_function_name
 
 
-class FiniteCliqueComplex(Network):
+class FiniteHypergraph(Network):
     """Base class representing a data set or a simulated finite network."""
 
-    def __init__(self, cpp_network: CppFiniteCliqueComplex) -> None:
+    def __init__(self, cpp_network: CppFiniteHypergraph) -> None:
         """Construct an empty network."""
         super().__init__()
         self._cpp_network = cpp_network
-        self._components: list[FiniteCliqueComplex] | None = None
+        self._components: list[CppFiniteHypergraph] | None = None
 
     @log_function_name
-    def get_component(self, component_index: int) -> FiniteCliqueComplex:
+    def get_component(self, component_index: int) -> FiniteHypergraph:
         """Return the network of the specified component."""
         if component_index == -1:
             return self
         vertices_in_component = self._get_vertices_in_components()[component_index]
-        return FiniteCliqueComplex(self.cpp_network.filter(vertices_in_component))
+        return FiniteHypergraph(self.cpp_network.filter(vertices_in_component))
 
     @log_function_name
     def reduce_to_component(self, component_index: int) -> None:
@@ -88,17 +88,27 @@ class FiniteCliqueComplex(Network):
             property_value = self.num_simplices(1)
         elif property_type == BaseNetworkProperty.num_of_triangles:
             property_value = self.num_simplices(2)
+        elif property_type == BaseNetworkProperty.num_of_interactions:
+            property_value = len(self.interactions)
         elif property_type == BaseNetworkProperty.mean_degree:
             property_value = self._calculate_average_degree()
         elif property_type == BaseNetworkProperty.max_degree:
-            ordinary_degree_distribution = self._calculate_higher_order_degree_distribution(0)
+            ordinary_degree_distribution = self._calculate_degree_distribution()
             property_value = ordinary_degree_distribution.domain.max_
         elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
-            property_value = self._calculate_higher_order_degree_distribution(0)
+            property_value = self._calculate_degree_distribution()
+        elif property_type == BaseNetworkProperty.vertex_interaction_degree_distribution:
+            property_value = self._calculate_interaction_degree_distribution(0)
+        elif property_type == BaseNetworkProperty.edge_interaction_degree_distribution:
+            property_value = self._calculate_edge_interaction_degree_distribution()
+        elif property_type == BaseNetworkProperty.triangle_interaction_degree_distribution:
+            property_value = self._calculate_triangle_interaction_degree_distribution()
         elif property_type == BaseNetworkProperty.edge_triangle_degree_distribution:
             property_value = self._calculate_higher_order_degree_distribution(1)
         elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
             property_value = self._calculate_higher_order_degree_distribution(2)
+        elif property_type == BaseNetworkProperty.interaction_vertex_degree_distribution:
+            property_value = self._calculate_interaction_dimension_distribution()
         elif property_type == BaseNetworkProperty.simplex_dimension_distribution:
             property_value = self._calculate_simplex_dimension_distribution()
         elif property_type == BaseNetworkProperty.betti_numbers:
@@ -107,6 +117,10 @@ class FiniteCliqueComplex(Network):
             property_value = self._calculate_betti_numbers_in_components()
         elif property_type == BaseNetworkProperty.num_of_vertices_by_component:
             property_value = self._calculate_vertices_in_components()
+        elif property_type == BaseNetworkProperty.persistence_intervals:
+            property_value = self._calc_persistence_intervals()
+        elif property_type == BaseNetworkProperty.persistence_pairs:
+            property_value = self._calc_persistence_pairs()
         else:
             raise NotImplementedError(
                 f'Requested property type {property_type} is not available.'
@@ -120,7 +134,7 @@ class FiniteCliqueComplex(Network):
         """Return a dict representation based on the network properties."""
         return {
             'num_of_vertices': self.num_simplices(0),
-            'num_of_edges': self.num_simplices(1),
+            'num_of_interactions': len(self.interactions),
             'max_dimension': self.max_dimension,
             'num_of_components': self.calc_base_property(BaseNetworkProperty.num_of_connected_components),
             'num_of_vertices_in_component_0': self.num_of_vertices_in_component(0),
@@ -146,6 +160,31 @@ class FiniteCliqueComplex(Network):
         return average_degree
 
     @log_function_name
+    def _calculate_degree_distribution(self) -> EmpiricalDistribution:
+        degree_sequence = [degree for _, degree in self.graph.degree()]
+        return EmpiricalDistribution(degree_sequence)
+
+    @log_function_name
+    def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        return EmpiricalDistribution(self.cpp_network.calc_simplex_interaction_degree_sequence(0))
+
+    @log_function_name
+    def _calculate_edge_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        return EmpiricalDistribution(self.cpp_network.calc_simplex_interaction_degree_sequence(1))
+
+    @log_function_name
+    def _calculate_triangle_interaction_degree_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each vertex."""
+        return EmpiricalDistribution(self.cpp_network.calc_simplex_interaction_degree_sequence(2))
+
+    @log_function_name
+    def _calculate_interaction_dimension_distribution(self) -> EmpiricalDistribution:
+        """Return the number of interactions for each dimension."""
+        return EmpiricalDistribution(self.cpp_network.calc_interaction_dimension_distribution())
+
+    @log_function_name
     def _calculate_higher_order_degree_distribution(
         self,
         simplex_dimension: int,
@@ -166,6 +205,17 @@ class FiniteCliqueComplex(Network):
             degree_sequence.extend(degree_sequence_of_part)
 
         return EmpiricalDistribution(degree_sequence)
+
+    @log_function_name
+    def _calculate_interaction_degree_distribution(self, simplex_dimension: int) -> EmpiricalDistribution:
+
+        interaction_degree_sequence: list[int] = []
+        for part in self.get_partition(10000):
+            interaction_degree_sequence_of_part = \
+                part.cpp_network.calc_simplex_interaction_degree_sequence(simplex_dimension)
+            interaction_degree_sequence.extend(interaction_degree_sequence_of_part)
+
+        return EmpiricalDistribution(interaction_degree_sequence)
 
     @log_function_name
     def _calculate_betti_numbers_in_components(self) -> list[list[int]]:
@@ -200,6 +250,14 @@ class FiniteCliqueComplex(Network):
         return self.cpp_network.calc_betti_numbers()
 
     @log_function_name
+    def _calc_persistence_intervals(self) -> list[tuple[list[int], list[int]]]:
+        return self.cpp_network.calc_persistence_intervals()
+
+    @log_function_name
+    def _calc_persistence_pairs(self) -> list[tuple[list[int], list[int]]]:
+        return self.cpp_network.calc_persistence_pairs()
+
+    @log_function_name
     def _get_vertices_in_components(self) -> list[list[int]]:
         """Reduce the network to the specified component only."""
         vertices_in_components = sorted(nx.connected_components(self.graph), key=len, reverse=True)
@@ -230,33 +288,33 @@ class FiniteCliqueComplex(Network):
     def get_partition(
         self,
         min_vertices_in_part: int
-    ) -> list[FiniteCliqueComplex]:
+    ) -> list[FiniteHypergraph]:
         """Return a partition of the network based on the number of vertices."""
         vertices_in_components = self._get_vertices_in_components()
-        partitions: list[FiniteCliqueComplex] = []
+        partitions: list[FiniteHypergraph] = []
 
         vertices_in_part: list[int] = []
         for vertices_in_component in vertices_in_components:
             vertices_in_part.extend(vertices_in_component)
             if len(vertices_in_part) >= min_vertices_in_part:
-                partitions.append(FiniteCliqueComplex(self.cpp_network.filter(vertices_in_part)))
+                partitions.append(FiniteHypergraph(self.cpp_network.filter(vertices_in_part)))
                 vertices_in_part = []
 
         if len(vertices_in_part) > 0:
-            partitions.append(FiniteCliqueComplex(self.cpp_network.filter(vertices_in_part)))
+            partitions.append(FiniteHypergraph(self.cpp_network.filter(vertices_in_part)))
 
         # k_cliques = list(nx.community.k_clique_communities(self.graph, max_intersecting_simplex_dimension))
         # vertices_in_part: list[int] = []
         # for k_clique in k_cliques:
         #     vertices_in_part.extend(k_clique)
         #     if len(vertices_in_part) >= min_vertices_in_part:
-        #         partitions.append(FiniteCliqueComplex(cpp_network.filter(vertices_in_part))
+        #         partitions.append(FiniteNetwork(cpp_network.filter(vertices_in_part))
         #         vertices_in_part = []
 
         return partitions
 
     @property
-    def components(self) -> list[FiniteCliqueComplex]:
+    def components(self) -> list[FiniteHypergraph]:
         """Getter of Betti numbers."""
         if self._components is None:
             self._calc_components()

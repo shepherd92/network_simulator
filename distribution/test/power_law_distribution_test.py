@@ -20,7 +20,7 @@ class PowerLawDistributionTest(unittest.TestCase):
     def setUp(self):
         """Set up test case."""
         # pylint: disable-next=no-member
-        self.parameters = PowerLawDistribution.Parameters(exponent=2.5,)
+        self.parameters = PowerLawDistribution.DistributionParameters(exponent=2.5,)
 
         np.random.seed(seed=0)
         size = 100000

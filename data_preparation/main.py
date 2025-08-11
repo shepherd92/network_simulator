@@ -337,7 +337,6 @@ def create_data_degree_distributions(directories: dict[str, Path], output_dir: P
         # 'ho_degree_distribution_3',
         # 'simplex_dimension_distribution',
         'interaction_dimension_distribution',
-        # 'facet_dimension_distribution',
     ]:
         _merge_property_tables(
             directories,

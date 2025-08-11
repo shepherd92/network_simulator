@@ -22,9 +22,9 @@ class DataSetTest(unittest.TestCase):
             max_dimension=3,
             max_simplex_dimension=3,
             component_index_from_largest=-1,
+            weighted=False,
         )
         self.data_set = TestDataSet(data_set_properties)
-        self.data_set.load_data()
 
     def test_degree_distribution(self):
         """Test if the higher order degree distribution is correct."""
@@ -33,7 +33,7 @@ class DataSetTest(unittest.TestCase):
 
         np.testing.assert_array_equal(
             degree_distribution.value_sequence,
-            np.array([0, 2, 2, 3, 4, 4, 4, 4, 5, ])
+            np.array([2, 2, 3, 4, 4, 4, 4, 5, ])
         )
 
     def test_ho_degree_distribution(self):

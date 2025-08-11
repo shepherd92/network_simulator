@@ -91,8 +91,8 @@ std::vector<std::vector<std::pair<float, float>>> FiniteHypergraph::calc_persist
 {
     // assumption: filtration is decreasing, i.e. the weight of the simplices is decreasing
     // we use this custom function instead of Gudhi since we want to have the weights of the vertices as well
-    auto &persistent_cohomology{get_persistence()};
-    const auto &persistent_pairs{persistent_cohomology.get_persistent_pairs()};
+    assert_persistence_cohomology_is_calculated();
+    const auto &persistent_pairs{persistent_cohomology_->get_persistent_pairs()};
     std::vector<std::vector<std::pair<float, float>>> intervals{
         static_cast<size_t>(max_dimension_),
         std::vector<std::pair<float, float>>{}};
@@ -140,8 +140,8 @@ std::vector<std::vector<std::pair<float, float>>> FiniteHypergraph::calc_persist
 
 std::vector<ISimplexList> FiniteHypergraph::calc_persistence_pairs()
 {
-    const auto &persistent_cohomology{get_persistence()};
-    const auto &persistent_pairs{persistent_cohomology.get_persistent_pairs()};
+    assert_persistence_cohomology_is_calculated();
+    const auto &persistent_pairs{persistent_cohomology_->get_persistent_pairs()};
     std::vector<ISimplexList> result{};
     result.reserve(persistent_pairs.size());
 
@@ -166,6 +166,17 @@ std::vector<ISimplexList> FiniteHypergraph::calc_persistence_pairs()
 
 SimplexList FiniteHypergraph::calc_simplices(const Dimension dimension)
 {
+    if (dimension == 0)
+    {
+        // return vertices as simplices
+        std::vector<Simplex> result{};
+        result.reserve(vertices_.size());
+        for (const auto vertex_id : vertices_)
+        {
+            result.emplace_back(Simplex{PointIdList{vertex_id}});
+        }
+        return SimplexList{result};
+    }
     return interactions_.faces(dimension);
 }
 

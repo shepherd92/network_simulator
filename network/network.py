@@ -9,10 +9,11 @@ from typing import Any
 import networkx as nx
 import pandas as pd
 
-# pylint: disable=no-name-in-module
-from cpp_plugin.build.release.cpp_plugin import FiniteCliqueComplex as CppFiniteCliqueComplex
-from cpp_plugin.build.release.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
-# pylint: enable=no-name-in-module
+# pylint: disable-next=no-name-in-module
+from cpp_plugin.build.release.cpp_plugin import (
+    FiniteCliqueComplex as CppFiniteCliqueComplex,
+    InfiniteCliqueComplex as CppInfiniteCliqueComplex
+)
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.property import BaseNetworkProperty
 from tools.logging_helper import log_function_name
@@ -65,10 +66,7 @@ class Network:
 
     @log_function_name
     def _calculate_simplex_dimension_distribution(self) -> EmpiricalDistribution:
-        """Return the estimated number of simplices for each dimension.
-
-        Facets might have nonempty intersections which are estimated to be empty.
-        """
+        """Return the estimated number of simplices for each dimension."""
         return EmpiricalDistribution(self.cpp_network.calc_simplex_dimension_distribution())
 
     def _calculate_vertex_interaction_degree_distribution(self) -> EmpiricalDistribution:
@@ -87,12 +85,12 @@ class Network:
         return self.cpp_network.calc_coface_degree_sequence(simplex_dimension, neighbor_dimension)
 
     @property
-    def cpp_network(self) -> CppFiniteNetwork | CppInfiniteNetwork | None:
+    def cpp_network(self) -> CppFiniteCliqueComplex | CppInfiniteCliqueComplex | None:
         """Return the cpp network."""
         return self._cpp_network
 
     @cpp_network.setter
-    def cpp_network(self, value: CppFiniteNetwork | CppInfiniteNetwork) -> None:
+    def cpp_network(self, value: CppFiniteCliqueComplex | CppInfiniteCliqueComplex) -> None:
         """Set the cpp network."""
         self._cpp_network = value
 
@@ -123,11 +121,6 @@ class Network:
         if self._digraph is None:
             self._digraph = self.graph.to_directed()
         return self._digraph
-
-    @property
-    def facets(self) -> list[list[int]]:
-        """Get the simplices associated to the network."""
-        return self.cpp_network.get_facets()
 
     @property
     def vertices(self) -> list[int]:

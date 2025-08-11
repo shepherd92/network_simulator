@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "finite_network.hpp"
 #include "simplex.hpp"
 #include "simplex_list.hpp"
@@ -49,18 +51,23 @@ std::vector<uint32_t> FiniteNetwork::calc_coface_degree_sequence(
 
 std::vector<int32_t> FiniteNetwork::calc_betti_numbers()
 {
-    std::vector<int32_t> result{max_dimension_, 0};
+    std::vector<int32_t> result(max_dimension_, 0);
     if (num_simplices(0) == 1U)
     {
         // handle an error in Gudhi
         result[0] = 1;
+        return result;
     }
     else
     {
-        const auto &persistent_cohomology{get_persistence()};
-        result = persistent_cohomology.betti_numbers();
-        result.resize(max_dimension_);
+        assert_persistence_cohomology_is_calculated();
+        const auto betti_numbers{persistent_cohomology_->betti_numbers()};
+        for (auto dimension{0};
+             dimension < std::min(max_dimension_, static_cast<int32_t>(betti_numbers.size()));
+             ++dimension)
+        {
+            result[dimension] = betti_numbers[dimension];
+        }
     }
-    assert(static_cast<int32_t>(result.size()) == max_dimension_);
     return result;
 }

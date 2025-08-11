@@ -22,7 +22,7 @@ void test_finite_hypergraph()
     const auto seed{0U};
 
     const std::vector<double> model_params{
-        2U,     // max_dimension
+        2,      // max_dimension
         10000., // network_size
         10000., // interaction_intensity
         0.001,  // beta
@@ -41,8 +41,6 @@ void test_finite_hypergraph()
     // network.calc_coface_degree_sequence(0, 1);
     // std::cout << "\rCalculating degree sequence (1, 2)" << std::endl;
     // network.calc_coface_degree_sequence(1, 2);
-    // std::cout << "\rCalculating facet dimension distribution" << std::endl;
-    // network.calc_facet_dimension_distribution();
     // std::cout << "\rCalculating interaction dimension distribution" << std::endl;
     // network.calc_interaction_dimension_distribution();
     // std::cout << "\rCalculating simplex dimension distribution" << std::endl;
@@ -98,8 +96,6 @@ void test_infinite_hypergraph()
         // network.calc_coface_degree_sequence(0, 1);
         // std::cout << "\rCalculating degree sequence (1, 2)" << std::endl;
         // network.calc_coface_degree_sequence(1, 2);
-        // std::cout << "\rCalculating facet dimension distribution" << std::endl;
-        // network.calc_facet_dimension_distribution();
         std::cout << "\rCalculating interaction dimension distribution" << std::endl;
         network.calc_interaction_dimension_distribution();
         // std::cout << "\rCalculating simplex dimension distribution" << std::endl;

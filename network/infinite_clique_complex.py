@@ -96,10 +96,6 @@ class InfiniteCliqueComplex(Network):
             property_value = self.num_simplices(2)
         elif property_type == BaseNetworkProperty.vertex_edge_degree_distribution:
             property_value = self._calc_degree_sequence(0, 1)
-        elif property_type == BaseNetworkProperty.in_degree_distribution:
-            property_value = self._calc_typical_in_degree()
-        elif property_type == BaseNetworkProperty.out_degree_distribution:
-            property_value = self._calc_typical_out_degree()
         elif property_type == BaseNetworkProperty.edge_triangle_degree_distribution:
             property_value = self._calc_degree_sequence(1, 2)
         elif property_type == BaseNetworkProperty.triangle_tetrahedra_degree_distribution:
@@ -144,9 +140,3 @@ class InfiniteCliqueComplex(Network):
     def _calc_typical_triangle_interaction_degree(self) -> list[int]:
         """Return the number of interactions for each vertex."""
         return self.cpp_network.calc_simplex_interaction_degree_sequence(2)
-
-    def _calc_typical_in_degree(self) -> list[int]:
-        return [self.digraph.in_degree(0)]
-
-    def _calc_typical_out_degree(self) -> list[int]:
-        return [self.digraph.out_degree(0)]

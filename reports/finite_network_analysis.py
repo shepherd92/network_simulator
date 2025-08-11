@@ -42,42 +42,6 @@ def report_vertex_edge_degree_distribution(
     plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
 
 
-@check_calculated('In degree distribution')
-def report_in_degree_distribution(
-    empirical_distribution: EmpiricalDistribution,
-    axes: plt.Axes,
-    save_directory: Path,
-    **kwargs,
-) -> None:
-    approximation = DistributionApproximation(
-        empirical_distribution,
-        TheoreticalDistribution.Type.POWER_LAW,
-    )
-    fitting_parameters = create_power_law_fitting_parameters(kwargs['power_law_fitting_minimum_value'])
-    approximation.fit(fitting_parameters)
-
-    approximation.save(save_directory / 'in_degree_distribution')
-    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
-
-
-@check_calculated('Out degree distribution')
-def report_out_degree_distribution(
-    empirical_distribution: EmpiricalDistribution,
-    axes: plt.Axes,
-    save_directory: Path,
-    **_,
-) -> None:
-    approximation = DistributionApproximation(
-        empirical_distribution,
-        TheoreticalDistribution.Type.POISSON,
-    )
-    fitting_parameters = create_fitting_parameters_poisson()
-    approximation.fit(fitting_parameters)
-
-    approximation.save(save_directory / 'out_degree_distribution')
-    plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.RIGHT, axes)
-
-
 @check_calculated('Edge--triangle degree distribution')
 def report_edge_triangle_degree_distribution(
     empirical_distribution: EmpiricalDistribution,
@@ -132,25 +96,6 @@ def report_simplex_dimension_distribution(
     approximation.fit(fitting_parameters)
 
     approximation.save(save_directory / 'simplex_dimension_distribution')
-    plot_value_counts(empirical_distribution.calc_value_counts(), axes)
-
-
-@check_calculated('Facet dimension distribution')
-def report_facet_dimension_distribution(
-    empirical_distribution: EmpiricalDistribution,
-    axes: plt.Axes,
-    save_directory: Path,
-    power_law_fitting_minimum_value: float,
-) -> None:
-    """Report facet dimension distribution."""
-    approximation = DistributionApproximation(
-        empirical_distribution,
-        TheoreticalDistribution.Type.POWER_LAW
-    )
-    fitting_parameters = create_power_law_fitting_parameters(power_law_fitting_minimum_value)
-    approximation.fit(fitting_parameters)
-
-    approximation.save(save_directory / 'facet_dimension_distribution')
     plot_value_counts(empirical_distribution.calc_value_counts(), axes)
 
 
