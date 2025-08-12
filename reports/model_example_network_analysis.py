@@ -23,7 +23,7 @@ from reports.finite_network_analysis import (
     report_persistence_diagram,
 )
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
+from network.infinite_hypergraph import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
     plot_hypergraph,

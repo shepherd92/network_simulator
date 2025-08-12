@@ -66,25 +66,13 @@ void Network::assert_simplex_tree_is_built()
 {
     if (!is_simplex_tree_valid())
     {
-        create_simplex_tree();
+        fill_simplex_tree();
     }
 }
 
 bool Network::is_simplex_tree_valid() const
 {
     return simplex_tree_.has_value();
-}
-
-void Network::create_simplex_tree()
-{
-    add_vertices_to_simplex_tree();
-    fill_simplex_tree();
-}
-
-void Network::add_vertices_to_simplex_tree()
-{
-    assert_simplex_tree_is_initialized();
-    simplex_tree_->insert_batch_vertices(vertices_);
 }
 
 PointIdList Network::get_simplex_vertices_simplex_tree(const SimplexHandle &simplex_handle)

@@ -49,7 +49,8 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_betti_numbers", &FiniteNetwork::calc_betti_numbers);
 
     py::class_<InfiniteNetwork, Network>(m, "InfiniteNetwork")
-        .def("calc_coface_degree_sequence", &InfiniteNetwork::calc_coface_degree_sequence);
+        .def("calc_coface_degree_sequence", &InfiniteNetwork::calc_coface_degree_sequence)
+        .def("typical_mark", &InfiniteNetwork::typical_mark);
 
     py::class_<Hypergraph, Network>(m, "Hypergraph")
         .def("calc_interaction_dimension_distribution", &Hypergraph::calc_interaction_dimension_distribution)
@@ -70,6 +71,7 @@ PYBIND11_MODULE(cpp_plugin, m)
         .def("calc_persistence_pairs", &FiniteHypergraph::calc_persistence_pairs)
         .def("calc_simplex_interaction_degree_sequence", &FiniteHypergraph::calc_simplex_interaction_degree_sequence)
         .def("calc_vertex_interaction_degree_distribution", &FiniteHypergraph::calc_vertex_interaction_degree_distribution)
+        .def("is_weighted", &FiniteHypergraph::is_weighted)
         .def("filter", &FiniteHypergraph::filter);
 
     py::class_<InfiniteHypergraph, InfiniteNetwork, Hypergraph, Network>(m, "InfiniteHypergraph")

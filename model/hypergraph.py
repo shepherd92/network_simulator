@@ -23,7 +23,7 @@ from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
 from model.model import Model
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
+from network.infinite_hypergraph import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 
 

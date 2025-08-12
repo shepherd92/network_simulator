@@ -17,13 +17,15 @@ class FiniteHypergraphTest(unittest.TestCase):
             [
                 [0, 1, 2, 3],
                 [1, 2, 4],
+                [1, 2, 4],
+                [1, 4, 2], # duplicate interaction with different order
                 [1, 3, 4],
                 [2, 3, 4],
                 [0, 5],
                 [1, 5],
                 [6, 7],
             ], # interactions
-            False, # weighted
+            True, # weighted
         )
         self.network = FiniteHypergraph(cpp_network)
 
@@ -83,6 +85,63 @@ class FiniteHypergraphTest(unittest.TestCase):
     def test_num_of_vertices_by_component(self) -> None:
         num_of_vertices_by_component = self.network.calc_base_property(BaseNetworkProperty.num_of_vertices_by_component)
         self.assertEqual(num_of_vertices_by_component.tolist(), [6, 2, 1])
+
+    def test_num_of_interactions(self) -> None:
+        num_of_interactions = self.network.calc_base_property(BaseNetworkProperty.num_of_interactions)
+        self.assertEqual(num_of_interactions, 9)
+
+    def test_vertex_interaction_degree_distribution(self) -> None:
+        distribution: EmpiricalDistribution = self.network.calc_base_property(
+            BaseNetworkProperty.vertex_interaction_degree_distribution)
+
+        self.assertEqual(sorted(distribution.value_sequence), [0, 1, 1, 2, 2, 3, 5, 5, 6,])
+
+    def test_edge_interaction_degree_distribution(self) -> None:
+        distribution: EmpiricalDistribution = self.network.calc_base_property(
+            BaseNetworkProperty.edge_interaction_degree_distribution)
+
+        self.assertEqual(sorted(distribution.value_sequence), [1, 1, 1, 1, 1, 1, 2, 2, 2, 4, 4, 4,])
+
+    def test_triangle_interaction_degree_distribution(self) -> None:
+        distribution: EmpiricalDistribution = self.network.calc_base_property(
+            BaseNetworkProperty.triangle_interaction_degree_distribution)
+
+        self.assertEqual(sorted(distribution.value_sequence), [1, 1, 1, 1, 1, 1, 3,])
+
+    def test_interaction_vertex_degree_distribution(self) -> None:
+        distribution: EmpiricalDistribution = self.network.calc_base_property(
+            BaseNetworkProperty.interaction_vertex_degree_distribution)
+
+        self.assertEqual(sorted(distribution.value_sequence), [2, 2, 2, 3, 3, 3, 3, 3, 4,])
+
+    def test_persistence_intervals(self) -> None:
+        if not self.network.weighted:
+            return
+        persistence_intervals = self.network.calc_base_property(BaseNetworkProperty.persistence_intervals)
+        self.assertEqual(persistence_intervals[0], [(4, 4), (4, 4), (2, 2), (2, 1), (2, 1), (5, -1), (1, -1), (0, -1)])
+        self.assertEqual(persistence_intervals[1], [(4, 2), (2, 1), (2, 1), (1, -1)])
+        self.assertEqual(persistence_intervals[2], [(1, -1)])
+        self.assertEqual(len(persistence_intervals), 3)
+    
+    def test_persistence_pairs(self) -> None:
+        if not self.network.weighted:
+            return
+        persistence_pairs = self.network.calc_base_property(BaseNetworkProperty.persistence_pairs)
+        self.assertEqual(sorted(persistence_pairs), [
+            [[0], [1, 0]],
+            [[1], []],
+            [[2], [2, 1]],
+            [[3], [3, 1]],
+            [[3, 2], [3, 2, 0]],
+            [[4], [4, 1]],
+            [[4, 2], [4, 2, 1]],
+            [[4, 3], [4, 3, 1]],
+            [[4, 3, 2], []],
+            [[5], [5, 0]],
+            [[5, 1], []],
+            [[6], []],
+            [[8], []],
+        ])
 
 
 if __name__ == '__main__':

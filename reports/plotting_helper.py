@@ -22,7 +22,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-from network.infinite_network import InfiniteNetwork
+from network.infinite_hypergraph import InfiniteNetwork
 from network.network import Network
 from tools.logging_helper import log_function_name
 

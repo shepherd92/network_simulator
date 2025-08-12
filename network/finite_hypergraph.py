@@ -109,6 +109,7 @@ class FiniteHypergraph(Network):
             property_value = self._calculate_higher_order_degree_distribution(2)
         elif property_type == BaseNetworkProperty.interaction_vertex_degree_distribution:
             property_value = self._calculate_interaction_dimension_distribution()
+            property_value.value_sequence += 1
         elif property_type == BaseNetworkProperty.simplex_dimension_distribution:
             property_value = self._calculate_simplex_dimension_distribution()
         elif property_type == BaseNetworkProperty.betti_numbers:
@@ -314,8 +315,13 @@ class FiniteHypergraph(Network):
         return partitions
 
     @property
+    def weighted(self) -> bool:
+        """Return if the cpp_network is weighted."""
+        return self.cpp_network.is_weighted()
+
+    @property
     def components(self) -> list[FiniteHypergraph]:
-        """Getter of Betti numbers."""
+        """Getter of components."""
         if self._components is None:
             self._calc_components()
         return self._components

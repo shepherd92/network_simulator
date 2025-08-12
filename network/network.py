@@ -26,7 +26,6 @@ class Network:
         """Construct an empty network."""
         self._cpp_network = None
         self._graph: nx.Graph | None = None
-        self._digraph: nx.DiGraph | None = None
         self._vertex_positions: dict[int, tuple[float, ...]] | None = None
         self._interaction_positions: dict[int, tuple[float, ...]] | None = None
 
@@ -114,13 +113,6 @@ class Network:
     @graph.setter
     def graph(self, value: nx.Graph) -> None:
         self._graph = value
-
-    @property
-    def digraph(self) -> nx.DiGraph:
-        """Get the simple directed graph associated to the network."""
-        if self._digraph is None:
-            self._digraph = self.graph.to_directed()
-        return self._digraph
 
     @property
     def vertices(self) -> list[int]:

@@ -12,9 +12,11 @@ public:
     FiniteHypergraphModel(const std::vector<double> &parameters_in, const uint32_t seed);
     std::tuple<FiniteHypergraph, MarkPositionList, MarkPositionList> generate_network() const;
 
+protected:
+    const bool weighted_;
+
 private:
     bool rectangle_points_surely_connect(const Rectangle &vertex_rectangle, const Rectangle &interaction_rectangle) const override;
-    const bool weighted_;
 };
 
 #endif

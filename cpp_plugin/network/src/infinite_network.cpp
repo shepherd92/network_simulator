@@ -13,6 +13,7 @@ InfiniteNetwork::InfiniteNetwork(
       marks_{marks},
       neighbors_{static_cast<uint32_t>(max_dimension_) + 1U, std::nullopt}
 {
+    assert(marks.size() == vertices_.size() && "Marks size must match vertices size");
 }
 
 InfiniteNetwork::InfiniteNetwork(InfiniteNetwork &&other) noexcept

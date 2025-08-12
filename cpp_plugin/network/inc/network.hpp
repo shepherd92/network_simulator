@@ -20,7 +20,7 @@ public:
         typedef float Filtration_value;
         typedef uint32_t Simplex_key;
         static const bool store_key = true;
-        static const bool store_filtration = false; // change to true if weighted
+        static const bool store_filtration = true; // change to true if weighted
         static const bool contiguous_vertices = false;
         static const bool link_nodes_by_label = false;
         static const bool stable_simplex_handles = false;
@@ -72,9 +72,7 @@ protected:
     PersistentCohomology *persistent_cohomology_;
 
 private:
-    void create_simplex_tree();
     bool is_simplex_tree_valid() const;
-    void add_vertices_to_simplex_tree();
     virtual void fill_simplex_tree() = 0;
     void calc_persistent_cohomology();
 

@@ -83,7 +83,21 @@ std::vector<uint32_t> InfiniteHypergraph::calc_vertex_interaction_degree_distrib
 SimplexList InfiniteHypergraph::calc_neighbors(const Dimension dimension)
 {
     // typical vertex is implicitly included in the neighbors
-    return dimension == 0U ? SimplexList{} : interactions_.faces(dimension - 1);
+    if (dimension == 0U)
+    {
+        return SimplexList{}; // no neighbors for dimension 0
+    }
+    if (dimension == 1U)
+    {
+        std::vector<Simplex> result{};
+        result.reserve(vertices_.size());
+        for (const auto &vertex : vertices_)
+        {
+            result.emplace_back(Simplex({vertex}));
+        }
+        return {std::move(result)};
+    }
+    return interactions_.faces(dimension - 1);
 }
 
 std::vector<Dimension> InfiniteHypergraph::calc_interaction_dimension_distribution() const

@@ -28,11 +28,12 @@ public:
     FiniteHypergraph(FiniteHypergraph &&other) noexcept;
     FiniteHypergraph &operator=(FiniteHypergraph &&other) noexcept;
 
-    std::vector<std::vector<std::pair<float, float>>> calc_persistence_intervals();
+    std::vector<std::vector<std::pair<int32_t, int32_t>>> calc_persistence_intervals();
     std::vector<ISimplexList> calc_persistence_pairs();
     std::vector<uint32_t> calc_simplex_interaction_degree_sequence(
         const Dimension simplex_dimension) override;
     std::vector<uint32_t> calc_vertex_interaction_degree_distribution() const override;
+    bool is_weighted() const;
 
     FiniteHypergraph filter(const PointIdList &vertices);
 

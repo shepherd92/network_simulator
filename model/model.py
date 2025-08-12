@@ -14,7 +14,7 @@ from tqdm import tqdm
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetworkSet
+from network.infinite_hypergraph import InfiniteNetworkSet
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
 

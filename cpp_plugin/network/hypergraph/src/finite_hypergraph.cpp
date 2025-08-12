@@ -87,53 +87,25 @@ std::vector<uint32_t> FiniteHypergraph::calc_vertex_interaction_degree_distribut
     return counts;
 }
 
-std::vector<std::vector<std::pair<float, float>>> FiniteHypergraph::calc_persistence_intervals()
+std::vector<std::vector<std::pair<int32_t, int32_t>>> FiniteHypergraph::calc_persistence_intervals()
 {
     // assumption: filtration is decreasing, i.e. the weight of the simplices is decreasing
     // we use this custom function instead of Gudhi since we want to have the weights of the vertices as well
     assert_persistence_cohomology_is_calculated();
     const auto &persistent_pairs{persistent_cohomology_->get_persistent_pairs()};
-    std::vector<std::vector<std::pair<float, float>>> intervals{
+    std::vector<std::vector<std::pair<int32_t, int32_t>>> intervals{
         static_cast<size_t>(max_dimension_),
-        std::vector<std::pair<float, float>>{}};
+        std::vector<std::pair<int32_t, int32_t>>{}};
 
-    std::mutex mutex{};
-    const auto total{persistent_pairs.size()};
-    std::atomic<uint32_t> counter{0U};
-
-    std::unordered_map<Simplex, uint32_t, SimplexHash> simplex_interaction_map{};
-
-    for (Dimension dimension{0}; dimension <= max_dimension_; ++dimension)
+    for (const auto &persistent_interval : persistent_pairs)
     {
-        const auto interaction_degree_map_for_dimension{interactions_.calc_degree_sequence(dimension)};
-        simplex_interaction_map.insert(
-            interaction_degree_map_for_dimension.begin(),
-            interaction_degree_map_for_dimension.end());
+        const Dimension dimension{simplex_tree_->dimension(std::get<0>(persistent_interval))};
+        const float birth_weight{simplex_tree_->filtration(std::get<0>(persistent_interval))};
+        const float death_weight{simplex_tree_->filtration(std::get<1>(persistent_interval))};
+        intervals[dimension].emplace_back(
+            birth_weight == 0 ? 0 : static_cast<int32_t>(1. / birth_weight),
+            std::isinf(death_weight) ? -1 : static_cast<int32_t>(1. / death_weight));
     }
-
-    std::for_each(
-        execution_policy,
-        persistent_pairs.begin(),
-        persistent_pairs.end(),
-        [&](const auto &persistent_interval)
-        {
-            const Simplex birth_simplex{get_simplex_vertices_simplex_tree(std::get<0>(persistent_interval))};
-            const Simplex death_simplex{get_simplex_vertices_simplex_tree(std::get<1>(persistent_interval))};
-            assert(simplex_interaction_map.contains(birth_simplex.vertices()));
-            const auto birth_weight{simplex_interaction_map[birth_simplex]};
-            const auto death_weight{
-                simplex_interaction_map.contains(death_simplex.vertices())
-                    ? simplex_interaction_map[death_simplex.vertices()]
-                    : 0U};
-            log_progress(++counter, total, 1000U, "Calc persistence pairs");
-            if (birth_weight == death_weight)
-            {
-                return;
-            }
-
-            std::lock_guard<std::mutex> lock{mutex};
-            intervals[birth_simplex.dimension()].push_back({birth_weight, death_weight});
-        });
 
     return intervals;
 }
@@ -194,8 +166,13 @@ void FiniteHypergraph::fill_simplex_tree()
         std::atomic<uint32_t> counter{0U};
         for (auto i{0U}; i < simplices.size(); ++i)
         {
-            simplex_tree_->insert_simplex_and_subfaces(
-                simplices[i].vertices(), 0.);
+            const auto degrees{
+                weighted_
+                    ? calc_simplex_interaction_degree_sequence(dimension)
+                    : std::vector<uint32_t>{}};
+            simplex_tree_->insert_simplex(
+                simplices[i].vertices(),
+                weighted_ ? 1. / degrees[i] : 0.);
             log_progress(++counter, total, 1000U, "Insert simplices");
         }
     }
@@ -229,4 +206,9 @@ FiniteHypergraph FiniteHypergraph::filter(const PointIdList &vertices)
 {
     SimplexList filtered_interactions{interactions_.filter(vertices)};
     return FiniteHypergraph{max_dimension_, vertices, std::move(filtered_interactions), weighted_};
+}
+
+bool FiniteHypergraph::is_weighted() const
+{
+    return weighted_;
 }

@@ -208,6 +208,8 @@ class EmpiricalDistribution(Distribution):
     @value_sequence.setter
     def value_sequence(self, value_sequence: npt.NDArray[np.int_ | np.float64]) -> None:
         self._value_sequence = value_sequence
+        self.domain.min_ = min(value_sequence)
+        self.domain.max_ = max(value_sequence)
 
     @property
     def empty(self) -> bool:

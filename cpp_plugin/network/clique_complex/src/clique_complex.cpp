@@ -55,10 +55,12 @@ ConnectionList CliqueComplex::filter_edges(const PointIdList &vertices) const
 
 void CliqueComplex::fill_simplex_tree()
 {
+    assert_simplex_tree_is_initialized();
+    simplex_tree_->insert_batch_vertices(vertices_);
     for (const auto &edge : edges_)
     {
         // insert edges as simplices
-        simplex_tree_->insert_simplex_and_subfaces({edge.first, edge.second});
+        simplex_tree_->insert_simplex({edge.first, edge.second});
     }
     expand();
 }

@@ -11,7 +11,7 @@ import networkx as nx
 import pandas as pd
 
 # pylint: disable=no-name-in-module
-from cpp_plugin.build.release.cpp_plugin import InfiniteNetwork as CppInfiniteNetwork
+from cpp_plugin.build.release.cpp_plugin import InfiniteHypergraph as CppInfiniteHypergraph
 # pylint: enable=no-name-in-module
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.network import Network
@@ -19,15 +19,15 @@ from network.property import BaseNetworkProperty
 from tools.logging_helper import log_function_name
 
 
-class InfiniteNetworkSet:
+class InfiniteHypergraphSet:
     """A set of infinite network."""
 
-    def __init__(self, infinite_networks: list[InfiniteNetwork]) -> None:
+    def __init__(self, infinite_networks: list[InfiniteHypergraph]) -> None:
         """Construct an empty network."""
         self._infinite_networks = infinite_networks
 
     @log_function_name
-    def get_largest_network(self) -> InfiniteNetwork | None:
+    def get_largest_network(self) -> InfiniteHypergraph | None:
         """Return the largest infinite network."""
         if len(self._infinite_networks) == 0:
             return None
@@ -78,10 +78,10 @@ class InfiniteNetworkSet:
         }
 
 
-class InfiniteNetwork(Network):
+class InfiniteHypergraph(Network):
     """Represent an "infinite network" in which network size effects do not play a role."""
 
-    def __init__(self, cpp_network: CppInfiniteNetwork) -> None:
+    def __init__(self, cpp_network: CppInfiniteHypergraph) -> None:
         """Construct an empty network."""
         super().__init__()
         self._cpp_network = cpp_network

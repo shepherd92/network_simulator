@@ -10,7 +10,7 @@ import networkx as nx
 from data_set.data_set import DataSet
 from model.model import Model
 from network.finite_network import FiniteNetwork
-from network.infinite_network import InfiniteNetworkSet
+from network.infinite_hypergraph import InfiniteNetworkSet
 from network.property import BaseNetworkProperty
 
 
@@ -53,7 +53,6 @@ class ErdosRenyiModel(Model):
 
         network = FiniteNetwork(self._parameters.max_dimension)
         network.graph = graph
-        network.digraph = graph.to_directed()
         network.generate_simplicial_complex_from_graph()
         network.interactions = graph.edges
 
