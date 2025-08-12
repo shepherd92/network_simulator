@@ -7,12 +7,12 @@ from pathlib import Path
 
 # pylint: disable-next=no-name-in-module
 from cpp_plugin.build.release.cpp_plugin import FiniteHypergraph as CppFiniteHypergraph
-from network.finite_network import FiniteNetwork
+from network.finite_hypergraph import FiniteHypergraph
 from network.property import DerivedNetworkProperty
 from tools.logging_helper import log_function_name
 
 
-class DataSet(FiniteNetwork):
+class DataSet(FiniteHypergraph):
     """Base class representing a data set."""
 
     class Type(Enum):

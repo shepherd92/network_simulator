@@ -22,7 +22,7 @@ from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
-from network.infinite_hypergraph import InfiniteNetwork
+from network.infinite_hypergraph import InfiniteHypergraph
 from network.network import Network
 from tools.logging_helper import log_function_name
 
@@ -178,7 +178,7 @@ def plot_hypergraph(network: Network, determined_positions: bool, save_path: Pat
     axes.axhline(y=1., color='black', linestyle='-', linewidth=0.3)
     # axes.axvline(x=0., color='black', linestyle='-', linewidth=0.3)
 
-    if isinstance(network, InfiniteNetwork):
+    if isinstance(network, InfiniteHypergraph):
         axes.scatter(
             [0],
             [network.cpp_network.typical_mark()],

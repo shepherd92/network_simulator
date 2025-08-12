@@ -13,8 +13,8 @@ from tqdm import tqdm
 
 from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
-from network.finite_network import FiniteNetwork
-from network.infinite_hypergraph import InfiniteNetworkSet
+from network.finite_hypergraph import FiniteHypergraph
+from network.infinite_hypergraph import InfiniteHypergraphSet
 from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
 
@@ -100,11 +100,11 @@ class Model:
 
         return {name: EmpiricalDistribution(values) for name, values in scalar_properties.items()}
 
-    def generate_finite_network(self, seed: int) -> FiniteNetwork:
+    def generate_finite_network(self, seed: int) -> FiniteHypergraph:
         """Build a network of the model."""
         raise NotImplementedError
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteHypergraphSet:
         """Generate a set of "infinite" networks."""
         raise NotImplementedError
 

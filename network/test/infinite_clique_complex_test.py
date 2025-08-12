@@ -3,7 +3,6 @@
 
 import unittest
 
-from distribution.empirical_distribution import EmpiricalDistribution
 from network.infinite_clique_complex import InfiniteCliqueComplex, CppInfiniteCliqueComplex
 from network.property import BaseNetworkProperty
 

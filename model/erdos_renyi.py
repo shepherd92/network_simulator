@@ -9,8 +9,8 @@ import networkx as nx
 
 from data_set.data_set import DataSet
 from model.model import Model
-from network.finite_network import FiniteNetwork
-from network.infinite_hypergraph import InfiniteNetworkSet
+from network.finite_clique_complex import FiniteCliqueComplex
+from network.infinite_clique_complex import InfiniteCliqueComplexSet
 from network.property import BaseNetworkProperty
 
 
@@ -43,7 +43,7 @@ class ErdosRenyiModel(Model):
         # pylint: enable=attribute-defined-outside-init
         self._parameters.edge_probability = edge_probability_guess
 
-    def generate_finite_network(self, seed: int | None = None) -> FiniteNetwork:
+    def generate_finite_network(self, seed: int | None = None) -> FiniteCliqueComplex:
         """Build a network of the model."""
         graph: nx.Graph = nx.erdos_renyi_graph(
             self._parameters.network_size,
@@ -51,14 +51,14 @@ class ErdosRenyiModel(Model):
             seed=seed
         )
 
-        network = FiniteNetwork(self._parameters.max_dimension)
+        network = FiniteCliqueComplex(self._parameters.max_dimension)
         network.graph = graph
         network.generate_simplicial_complex_from_graph()
         network.interactions = graph.edges
 
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteCliqueComplexSet:
         raise NotImplementedError
 
     @property

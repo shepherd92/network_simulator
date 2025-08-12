@@ -164,6 +164,7 @@
         "fontsize",
         "fontweight",
         "frameon",
+        "fsolve",
         "Gudhi",
         "Hinnant",
         "hlines",

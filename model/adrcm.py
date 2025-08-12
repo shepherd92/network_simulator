@@ -19,7 +19,7 @@ from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
 from model.model import Model
 from network.finite_clique_complex import FiniteCliqueComplex
-from network.infinite_hypergraph import InfiniteNetwork, InfiniteNetworkSet
+from network.infinite_clique_complex import InfiniteCliqueComplex, InfiniteCliqueComplexSet
 from network.property import BaseNetworkProperty
 
 
@@ -93,13 +93,16 @@ class AdrcmModel(Model):
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteCliqueComplexSet:
         """Generate a list of infinite networks."""
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = InfiniteAdrcmModel(self._parameters.to_numpy(), seed)
-        networks: list[InfiniteNetwork] = cpp_model.generate_networks()
-        infinite_network_set = InfiniteNetworkSet(networks)
+        networks: list[InfiniteCliqueComplex] = [
+            InfiniteCliqueComplex(cpp_network)
+            for cpp_network in cpp_model.generate_networks(num_of_networks)
+        ]
+        infinite_network_set = InfiniteCliqueComplexSet(networks)
 
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed} done.')
         return infinite_network_set

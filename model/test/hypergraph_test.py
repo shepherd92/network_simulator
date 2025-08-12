@@ -3,18 +3,19 @@
 
 import unittest
 
-from model.adrcm import AdrcmModel
+from model.hypergraph import HypergraphModel
+from network.property import BaseNetworkProperty
 
-class AdrcmModelTest(unittest.TestCase):
+class HypergraphModelTest(unittest.TestCase):
     def setUp(self) -> None:
-        parameters = AdrcmModel.Parameters(
+        parameters = HypergraphModel.Parameters(
             max_dimension=2,
             network_size=10.,
             alpha=0.5,
             beta=1.,
             gamma=0.5
         )
-        self.model = AdrcmModel()
+        self.model = HypergraphModel()
         self.model.parameters = parameters
         self.seed = 1
 

@@ -22,8 +22,8 @@ from data_set.data_set import DataSet
 from distribution.approximation import guess_power_law_exponent
 from distribution.empirical_distribution import EmpiricalDistribution
 from model.model import Model
-from network.finite_network import FiniteNetwork
-from network.infinite_hypergraph import InfiniteNetwork, InfiniteNetworkSet
+from network.finite_hypergraph import FiniteHypergraph
+from network.infinite_hypergraph import InfiniteHypergraph, InfiniteHypergraphSet
 from network.property import BaseNetworkProperty
 
 
@@ -120,46 +120,46 @@ class HypergraphModel(Model):
 
         print(self)
 
-    def generate_finite_network(self, seed: int) -> FiniteNetwork:
+    def generate_finite_network(self, seed: int) -> FiniteHypergraph:
         """Build a finite network of the model."""
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = FiniteHypergraphModel(self._parameters.to_numpy(), seed)
         cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network()
-        network = FiniteNetwork(cpp_network)
+        network = FiniteHypergraph(cpp_network)
         network.vertex_positions = self._create_point_positions_dict(vertex_positions)
         network.interaction_positions = self._create_point_positions_dict(interaction_positions)
 
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
-    def generate_infinite_network(self, typical_mark: float, seed: int) -> InfiniteNetwork:
+    def generate_infinite_network(self, typical_mark: float, seed: int) -> InfiniteHypergraph:
         """Build an infinite network of the model."""
         info(f'Generating infinite network ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = InfiniteHypergraphModel(self._parameters.to_numpy(), seed)
         cpp_network, vertex_positions, interaction_positions = cpp_model.generate_network(typical_mark)
-        network = InfiniteNetwork(cpp_network)
+        network = InfiniteHypergraph(cpp_network)
         network.vertex_positions = self._create_point_positions_dict(vertex_positions)
         network.interaction_positions = self._create_point_positions_dict(interaction_positions)
 
         info(f'Generating infinite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteHypergraphSet:
         """Build infinite networks of the model."""
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = InfiniteHypergraphModel(self._parameters.to_numpy(), seed)
         cpp_networks = cpp_model.generate_networks(num_of_networks)
 
-        infinite_networks: list[InfiniteNetwork] = []
+        infinite_networks: list[InfiniteHypergraph] = []
         for cpp_network, vertex_positions, interaction_positions in cpp_networks:
-            infinite_network = InfiniteNetwork(cpp_network)
+            infinite_network = InfiniteHypergraph(cpp_network)
             infinite_network.vertex_positions = self._create_point_positions_dict(vertex_positions)
             infinite_network.interaction_positions = self._create_point_positions_dict(interaction_positions)
             infinite_networks.append(infinite_network)
-        return InfiniteNetworkSet(infinite_networks)
+        return InfiniteHypergraphSet(infinite_networks)
 
     def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
         """Convert a tuple to ModelParamters. Used for model optimization."""

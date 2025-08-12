@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from config_files.distribution_fitting_params import POWER_LAW_FITTING_MINIMUM_VALUE_DATA
-from network.finite_network import FiniteNetwork
+from network.finite_hypergraph import FiniteHypergraph
 from network.property import BaseNetworkProperty
 from reports.finite_network_analysis import (
     report_vertex_edge_degree_distribution,
@@ -29,7 +29,7 @@ from tools.logging_helper import log_function_name
 
 @log_function_name
 def analyze_data_set_network(
-    network: FiniteNetwork,
+    network: FiniteHypergraph,
     calculated_properties: list[BaseNetworkProperty],
     plot: bool,
     save_directory: Path,

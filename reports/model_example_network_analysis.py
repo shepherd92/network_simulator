@@ -22,8 +22,8 @@ from reports.finite_network_analysis import (
     report_vertices_by_component,
     report_persistence_diagram,
 )
-from network.finite_network import FiniteNetwork
-from network.infinite_hypergraph import InfiniteNetwork, InfiniteNetworkSet
+from network.finite_hypergraph import FiniteHypergraph
+from network.infinite_hypergraph import InfiniteHypergraph, InfiniteHypergraphSet
 from network.property import BaseNetworkProperty
 from reports.plotting_helper import (
     plot_hypergraph,
@@ -38,7 +38,7 @@ PLOT_HYPERGRAPH_DETERMINED_POSITIONS = False
 
 
 def analyze_model_example_finite_network(
-    network: FiniteNetwork,
+    network: FiniteHypergraph,
     calculated_properties: list[BaseNetworkProperty],
     plot: bool,
     save_directory: Path,
@@ -152,7 +152,7 @@ def analyze_model_example_finite_network(
 
 
 def analyze_model_example_infinite_network_set(
-    network_set: InfiniteNetworkSet,
+    network_set: InfiniteHypergraphSet,
     calculated_properties: list[BaseNetworkProperty],
     save_directory: Path
 ) -> None:
@@ -203,7 +203,7 @@ def analyze_model_example_infinite_network_set(
     info('Infinite network analysis finished.')
 
 
-def create_infinite_network_plots(network: InfiniteNetwork, save_path: Path) -> None:
+def create_infinite_network_plots(network: InfiniteHypergraph, save_path: Path) -> None:
     plot_network(network, False, save_path / 'infinite_network.png')
     plot_network(network, True, save_path / 'infinite_network_fixed_vertex_positions.png')
     plot_hypergraph(network, True, save_path / 'infinite_hypergraph_fixed_positions.png')
