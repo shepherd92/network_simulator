@@ -13,12 +13,12 @@ FiniteHypergraphModel::FiniteHypergraphModel(const std::vector<double> &paramete
 
 std::tuple<FiniteHypergraph, MarkPositionList, MarkPositionList> FiniteHypergraphModel::generate_network() const
 {
-    const auto num_of_vertices{std::poisson_distribution<uint32_t>(lambda() * torus_size())(random_number_generator_)};
+    const auto num_of_vertices{std::poisson_distribution<uint32_t>(lambda() * torus_size)(random_number_generator_)};
     const auto vertices{create_points(num_of_vertices)};
     const auto vertex_ids{convert_to_id_list(vertices)};
     auto vertex_mark_position_pairs{convert_to_mark_position_pairs(vertices)};
 
-    const auto num_of_interactions{std::poisson_distribution<uint32_t>(lambda_prime() * torus_size())(random_number_generator_)};
+    const auto num_of_interactions{std::poisson_distribution<uint32_t>(lambda_prime() * torus_size)(random_number_generator_)};
     const auto interactions{create_points(num_of_interactions)};
     const auto interaction_ids{convert_to_id_list(interactions)};
     auto interaction_mark_position_pairs{convert_to_mark_position_pairs(interactions)};
@@ -50,10 +50,10 @@ bool FiniteHypergraphModel::rectangle_points_surely_connect(const Rectangle &ver
     }
 
     // all points connect wrapping around the torus
-    if (torus_size() - fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
-        torus_size() - fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
-        torus_size() - fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
-        torus_size() - fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
+    if (torus_size - fabs(vtl.position() - itl.position()) < vtl.mark() * itl.mark() &&
+        torus_size - fabs(vtl.position() - itr.position()) < vtl.mark() * itr.mark() &&
+        torus_size - fabs(vtr.position() - itl.position()) < vtr.mark() * itl.mark() &&
+        torus_size - fabs(vtr.position() - itr.position()) < vtr.mark() * itr.mark())
     {
         return true;
     }

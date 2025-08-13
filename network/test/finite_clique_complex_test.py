@@ -74,7 +74,7 @@ class FiniteCliqueComplexTest(unittest.TestCase):
         self.assertEqual(dimension_list.count(2), 4)
         self.assertEqual(dimension_list.count(3), 1)
 
-    def test_Betti_numbers(self) -> None:
+    def test_betti_numbers(self) -> None:
         betti_numbers = self.network.calc_base_property(BaseNetworkProperty.betti_numbers)
         self.assertEqual(betti_numbers, [3, 1, 0])
 

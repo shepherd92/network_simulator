@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Unittest for InfiniteCliqueComplex."""
+"""Unittest for InfiniteNetwork."""
 
 import unittest
 
-from network.infinite_clique_complex import InfiniteCliqueComplex, CppInfiniteCliqueComplex
+from network.infinite_network import CppInfiniteCliqueComplex, InfiniteNetwork
 from network.property import BaseNetworkProperty
 
 class InfiniteCliqueComplexTest(unittest.TestCase):
@@ -27,7 +27,7 @@ class InfiniteCliqueComplexTest(unittest.TestCase):
             0.45, # typical_mark
             [0.7, 0.5, 0.5, 0.6, 0.8, 0.3, 0.9, 0.8], # mark_list
         )
-        self.network = InfiniteCliqueComplex(cpp_network)
+        self.network = InfiniteNetwork(cpp_network)
 
     def test_number_of_simplices(self) -> None:
         # typical vertex is not included in the simplices

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Represent the highest level base class for distributions."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Self
 
 import numpy as np
 import numpy.typing as npt
@@ -21,7 +20,7 @@ class Distribution:
         min_: float
         max_: float
 
-        def intersect(self, other: Distribution.Domain) -> Distribution.Domain:
+        def intersect(self, other: Self) -> Self:
             """Return the intersection of two domains."""
             domain_min = max(self.min_, other.min_)
             domain_max = min(self.max_, other.max_)
@@ -90,14 +89,14 @@ class Distribution:
         raise NotImplementedError
 
     def calc_confidence_interval(self, confidence: float) -> list[float]:
-        """Calculcte the confidence interval of the distribution."""
+        """Calculate the confidence interval of the distribution."""
         assert confidence < 1., f'The confidence level is {confidence} but it must be less than 1.'
         lower_quantile = 0.5 * (1. - confidence)
         upper_quantile = 1. - lower_quantile
         confidence_interval = self.calc_quantiles(np.array([lower_quantile, upper_quantile]))
         return confidence_interval.tolist()
 
-    def kolmogorov_smirnov(self, other: Distribution, x_values: npt.NDArray[np.float64]) -> float:
+    def kolmogorov_smirnov(self, other: Self, x_values: npt.NDArray[np.float64]) -> float:
         """Calculate the Kolmogorov-Smirnov statistic of two degree distributions."""
         if not self.valid or not other.valid:
             # only calculate the statistic if both distributions are valid
@@ -142,11 +141,11 @@ class Distribution:
         data_frame.to_csv(save_path, index=False)
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
-        """Return the PDF of the distribution evaluted at the given x_values."""
+        """PDF evaluated at the given x_values."""
         raise NotImplementedError
 
     def _cdf_in_domain(self, x_values: npt.NDArray[np.float64 | np.int_]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """CDF evaluated at the given x_values."""
         pdf_in_domain = self._pdf_in_domain(x_values)
         return pdf_in_domain.cumsum()
 

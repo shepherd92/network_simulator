@@ -4,14 +4,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import NewType
 
 import networkx as nx
 
 from data_set.data_set import DataSet
 from model.model import Model
 from network.finite_clique_complex import FiniteCliqueComplex
-from network.infinite_clique_complex import InfiniteCliqueComplexSet
 from network.property import BaseNetworkProperty
+
+
+InfiniteNetworkSet = NewType('InfiniteNetworkSet', None)
 
 
 class ErdosRenyiModel(Model):
@@ -37,11 +40,13 @@ class ErdosRenyiModel(Model):
         ))
         edge_probability_guess = num_of_edges / (num_of_nodes * (num_of_nodes - 1) / 2)
 
-        # pylint: disable=attribute-defined-outside-init
-        self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.network_size = num_of_nodes
-        # pylint: enable=attribute-defined-outside-init
-        self._parameters.edge_probability = edge_probability_guess
+        self._parameters = ErdosRenyiModel.Parameters(
+            max_dimension=data_set.max_dimension,
+            network_size=num_of_nodes,
+            edge_probability=edge_probability_guess,
+        )
+
+        print(self)
 
     def generate_finite_network(self, seed: int | None = None) -> FiniteCliqueComplex:
         """Build a network of the model."""
@@ -58,7 +63,7 @@ class ErdosRenyiModel(Model):
 
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteCliqueComplexSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         raise NotImplementedError
 
     @property

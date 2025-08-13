@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 """Represent an empirical distribution based on sample values."""
 
-from __future__ import annotations
-
 from enum import Enum, auto
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Self
 
 import numpy as np
 import numpy.typing as npt
@@ -57,14 +55,14 @@ class EmpiricalDistribution(Distribution):
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Calculate the inverse CDF at the given values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
-            f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
+            f'Quantiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
 
         if self.empty:
             return np.full(quantiles_to_calculate.shape, np.nan)
 
         return np.quantile(self.value_sequence, quantiles_to_calculate)
 
-    def standardize(self) -> EmpiricalDistribution:
+    def standardize(self) -> Self:
         """Return the standardized empirical distribution."""
         value_sequence = self.value_sequence
         mu = self.mean

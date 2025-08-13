@@ -6,13 +6,16 @@ from __future__ import annotations
 from dataclasses import astuple, dataclass
 from enum import Enum, auto
 from logging import warning
+from typing import NewType, Self
 
 import numpy as np
 import numpy.typing as npt
 from scipy.stats import norm
 
-from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class NormalDistribution(TheoreticalDistribution):
@@ -54,9 +57,9 @@ class NormalDistribution(TheoreticalDistribution):
         self._parameters = NormalDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """CDF evaluated at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
-            f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
+            f'Quantiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return norm.ppf(quantiles_to_calculate, *astuple(self.parameters))
 
     def info(self) -> dict[str, int | float]:
@@ -132,16 +135,16 @@ class NormalDistribution(TheoreticalDistribution):
         return NormalDistribution.DistributionParameters(mean, std)
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the PDF of the distribution evaluted at the given x_values."""
+        """PDF evaluated at the given x_values."""
         pdf_values = norm.pdf(x_values, *astuple(self._parameters))
         return pdf_values
 
     def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """CDF evaluated at the given x_values."""
         cdf_values = norm.cdf(x_values, *astuple(self._parameters))
         return cdf_values
 
     @property
-    def parameters(self) -> NormalDistribution.DistributionParameters:
+    def parameters(self) -> Self.DistributionParameters:
         """Return the parameters of the distribution."""
         return self._parameters

@@ -3,8 +3,8 @@
 
 import unittest
 
-from distribution.empirical_distribution import EmpiricalDistribution
-from network.infinite_hypergraph import InfiniteHypergraph, CppInfiniteHypergraph
+from network.infinite_hypergraph import InfiniteHypergraph
+from network.infinite_network import CppInfiniteHypergraph
 from network.property import BaseNetworkProperty
 
 class InfiniteHypergraphTest(unittest.TestCase):
@@ -33,7 +33,7 @@ class InfiniteHypergraphTest(unittest.TestCase):
 
     def test_degree_distribution_0_1(self) -> None:
         degrees: list[int] = self.network.calc_base_property(BaseNetworkProperty.vertex_edge_degree_distribution)
-        self.assertEqual(sorted(degrees), [8])
+        self.assertEqual(sorted(degrees), [7])
 
     def test_degree_distribution_1_2(self) -> None:
         degrees: list[int] = self.network.calc_base_property(BaseNetworkProperty.edge_triangle_degree_distribution)

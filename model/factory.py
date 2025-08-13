@@ -16,7 +16,7 @@ def create_model(model_type: Model.Type) -> Model:
     model = Model()
     if model_type == Model.Type.ERDOS_RENYI:
         model = ErdosRenyiModel()
-    elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
+    elif model_type == Model.Type.ADRCM:
         model = AdrcmModel()
     elif model_type == Model.Type.HYPERGRAPH:
         model = HypergraphModel()
@@ -31,7 +31,7 @@ def load_default_parameters(model_type: Model.Type) -> Model.Parameters:
     parameters: Model.Parameters = Model.Parameters()
     if model_type == Model.Type.ERDOS_RENYI:
         parameters = ERDOS_RENYI_MODEL_PARAMETERS
-    elif model_type == Model.Type.AGE_DEPENDENT_RANDOM_SIMPLEX:
+    elif model_type == Model.Type.ADRCM:
         parameters = ADRCM_MODEL_PARAMETERS
     elif model_type == Model.Type.HYPERGRAPH:
         parameters = HYPERGRAPH_MODEL_PARAMETERS

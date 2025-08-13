@@ -19,24 +19,31 @@ class DataSetConfig(NamedTuple):
     """Data set configuration."""
 
     type_: DataSet.Type = DataSet.Type.ARXIV
+
+    # plotting
     plot: bool = True
+    plot_entire_network: bool = True
+    plot_network_giant_component: bool = True
+    plot_network_determined_positions: bool = True
+    power_law_fitting_minimum_value: bool = True
+
     properties_to_calculate: list[BaseNetworkProperty] = [
         BaseNetworkProperty.num_of_vertices,
-        # BaseNetworkProperty.num_of_edges,
-        # BaseNetworkProperty.num_of_triangles,
+        BaseNetworkProperty.num_of_edges,
+        BaseNetworkProperty.num_of_triangles,
         BaseNetworkProperty.num_of_interactions,
-        # BaseNetworkProperty.mean_degree,
-        # BaseNetworkProperty.max_degree,
-        # BaseNetworkProperty.interaction_vertex_degree_distribution,
-        # BaseNetworkProperty.simplex_dimension_distribution,
-        # BaseNetworkProperty.vertex_interaction_degree_distribution,
-        # BaseNetworkProperty.edge_interaction_degree_distribution,
-        # BaseNetworkProperty.vertex_edge_degree_distribution,
-        # BaseNetworkProperty.edge_triangle_degree_distribution,
-        # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-        # BaseNetworkProperty.betti_numbers,
-        # BaseNetworkProperty.betti_numbers_by_component,
-        # BaseNetworkProperty.num_of_vertices_by_component,
+        BaseNetworkProperty.mean_degree,
+        BaseNetworkProperty.max_degree,
+        BaseNetworkProperty.interaction_vertex_degree_distribution,
+        BaseNetworkProperty.simplex_dimension_distribution,
+        BaseNetworkProperty.vertex_interaction_degree_distribution,
+        BaseNetworkProperty.edge_interaction_degree_distribution,
+        BaseNetworkProperty.vertex_edge_degree_distribution,
+        BaseNetworkProperty.edge_triangle_degree_distribution,
+        BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+        BaseNetworkProperty.betti_numbers,
+        BaseNetworkProperty.betti_numbers_by_component,
+        BaseNetworkProperty.num_of_vertices_by_component,
         # BaseNetworkProperty.persistence_intervals,
         # BaseNetworkProperty.persistence_pairs,
     ]

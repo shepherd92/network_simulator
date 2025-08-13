@@ -20,7 +20,7 @@ public:
         typedef float Filtration_value;
         typedef uint32_t Simplex_key;
         static const bool store_key = true;
-        static const bool store_filtration = true; // change to true if weighted
+        static const bool store_filtration = false; // change to true if weighted
         static const bool contiguous_vertices = false;
         static const bool link_nodes_by_label = false;
         static const bool stable_simplex_handles = false;

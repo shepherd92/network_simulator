@@ -6,13 +6,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto
 from logging import error
+from typing import NewType
 
 import numpy as np
 import numpy.typing as npt
 
 from distribution.distribution import Distribution
-from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class PowerLawDistribution(TheoreticalDistribution):
@@ -84,9 +87,9 @@ class PowerLawDistribution(TheoreticalDistribution):
         self._parameters = PowerLawDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """Return the CDF of the distribution evaluated at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
-            f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
+            f'Quantiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         quantiles = self.domain.min_ * (1. - quantiles_to_calculate)**(1. / (1 - self._parameters.exponent))
         return quantiles
 
@@ -252,7 +255,7 @@ class PowerLawDistribution(TheoreticalDistribution):
         if len(x_values) < 3:
             error(f'Value counts is {len(x_values)} in domain [{self.domain.min_}, {self.domain.max_}].')
             return np.nan
-        assert (x_values > 0.).all(), 'Non positive values occured in power law distribution.'
+        assert (x_values > 0.).all(), 'Non positive values occurred in power law distribution.'
 
         coefficients = np.polyfit(np.log(x_values), np.log(y_values), 1)
 
@@ -265,20 +268,21 @@ class PowerLawDistribution(TheoreticalDistribution):
 
         self._domain.min_ = guess
         self._parameters.exponent = self._estimate_exponent_mle(empirical_distribution)
-        self._valid = True  # pylint: disable=attribute-defined-outside-init
+        # pylint: disable-next=attribute-defined-outside-init
+        self._valid = True
 
         ks_statistic = self.kolmogorov_smirnov(empirical_distribution, x_values)
         return ks_statistic
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the PDF of the distribution evaluted at the given x_values."""
+        """PDF evaluated at the given x_values."""
         x_min = self.domain.min_
         exponent = self._parameters.exponent
         pdf_values = (exponent - 1.) / x_min * (x_values / x_min)**(-exponent)
         return pdf_values
 
     def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """CDF evaluated at the given x_values."""
         cdf_values = 1. - (x_values / self.domain.min_)**(1 - self.parameters.exponent)
         return cdf_values
 

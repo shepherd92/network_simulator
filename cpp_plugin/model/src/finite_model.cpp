@@ -23,7 +23,7 @@ PointList FiniteModel::create_points(const size_t num_of_points) const
 PositionList FiniteModel::generate_positions(const size_t num_of_points) const
 {
     std::uniform_real_distribution<Position> uniform_distribution(
-        -torus_size() / 2., +torus_size() / 2.);
+        -torus_size / 2., +torus_size / 2.);
 
     PositionList positions(num_of_points, 0.0);
     for (auto i{0U}; i < num_of_points; ++i)
@@ -38,6 +38,6 @@ float FiniteModel::distance(const Point &first, const Point &second) const
 {
     const auto distance_inside{fabs(first.position() - second.position())};
     const auto distance{
-        distance_inside < 0.5 * torus_size() ? distance_inside : torus_size() - distance_inside};
+        distance_inside < 0.5 * torus_size ? distance_inside : torus_size - distance_inside};
     return distance;
 }

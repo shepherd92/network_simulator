@@ -12,7 +12,7 @@ FiniteAdrcmModel::FiniteAdrcmModel(const std::vector<double> &parameters_in, con
 std::tuple<FiniteCliqueComplex, MarkPositionList> FiniteAdrcmModel::generate_network() const
 {
     const auto num_of_vertices{std::poisson_distribution<uint32_t>(
-        lambda() * torus_size())(random_number_generator_)};
+        lambda() * torus_size)(random_number_generator_)};
     const auto vertices{create_points(num_of_vertices)};
     const auto connections{generate_connections(vertices)};
 

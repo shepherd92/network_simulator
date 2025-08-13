@@ -5,14 +5,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from logging import info
-from typing import Any
+from typing import Any, NewType
 
 import numpy as np
 import numpy.typing as npt
 from scipy import integrate
 from scipy.optimize import fsolve
 
-import config_files.model_config as model_config
 # pylint: disable-next=no-name-in-module
 from cpp_plugin.build.release.cpp_plugin import (  # type: ignore
     FiniteHypergraphModel,
@@ -20,11 +19,14 @@ from cpp_plugin.build.release.cpp_plugin import (  # type: ignore
 )
 from data_set.data_set import DataSet
 from distribution.approximation import guess_power_law_exponent
-from distribution.empirical_distribution import EmpiricalDistribution
 from model.model import Model
 from network.finite_hypergraph import FiniteHypergraph
-from network.infinite_hypergraph import InfiniteHypergraph, InfiniteHypergraphSet
+from network.infinite_hypergraph import InfiniteHypergraph
+from network.infinite_network import InfiniteNetworkSet
 from network.property import BaseNetworkProperty
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class HypergraphModel(Model):
@@ -103,22 +105,19 @@ class HypergraphModel(Model):
         )
         beta_guess = 0.5 * average_vertex_interaction_degree * (1. - gamma) * (1. - gamma_prime) / interaction_intensity
 
-        # pylint: disable=attribute-defined-outside-init
-        self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.network_size = network_size
-        self._parameters.interaction_intensity = interaction_intensity
-        self._parameters.beta = beta_guess
-        self._parameters.gamma = gamma
-        self._parameters.gamma_prime = gamma_prime
-        # pylint: enable=attribute-defined-outside-init
-
-        model_config.HYPERGRAPH_MODEL_PARAMETERS.max_dimension = data_set.max_dimension
-        model_config.HYPERGRAPH_MODEL_PARAMETERS.network_size = network_size
-        model_config.HYPERGRAPH_MODEL_PARAMETERS.interaction_intensity = interaction_intensity
-        model_config.HYPERGRAPH_MODEL_PARAMETERS.gamma = gamma
-        model_config.HYPERGRAPH_MODEL_PARAMETERS.gamma_prime = gamma_prime
+        self._parameters = HypergraphModel.Parameters(
+            max_dimension=data_set.max_dimension,
+            network_size=network_size,
+            interaction_intensity=interaction_intensity,
+            beta=beta_guess,
+            gamma=gamma,
+            gamma_prime=gamma_prime,
+            weighted=self._parameters.weighted,
+            interactions_enough=self._parameters.interactions_enough,
+        )
 
         print(self)
+
 
     def generate_finite_network(self, seed: int) -> FiniteHypergraph:
         """Build a finite network of the model."""
@@ -146,7 +145,7 @@ class HypergraphModel(Model):
         info(f'Generating infinite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteHypergraphSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Build infinite networks of the model."""
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
 
@@ -159,11 +158,7 @@ class HypergraphModel(Model):
             infinite_network.vertex_positions = self._create_point_positions_dict(vertex_positions)
             infinite_network.interaction_positions = self._create_point_positions_dict(interaction_positions)
             infinite_networks.append(infinite_network)
-        return InfiniteHypergraphSet(infinite_networks)
-
-    def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
-        """Convert a tuple to ModelParamters. Used for model optimization."""
-        self.parameters = HypergraphModel.Parameters(*parameters_tuple)
+        return InfiniteNetworkSet(infinite_networks)
 
     def calc_base_property(
         self,

@@ -6,16 +6,21 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum, auto, unique
 from pathlib import Path
-from typing import Any
+from typing import Any, NewType
 
 import pandas as pd
 from tqdm import tqdm
 
-from data_set.data_set import DataSet
 from distribution.empirical_distribution import EmpiricalDistribution
-from network.finite_hypergraph import FiniteHypergraph
-from network.infinite_hypergraph import InfiniteHypergraphSet
-from network.property import BaseNetworkProperty, DerivedNetworkProperty
+
+
+# forward declarations
+BaseNetworkProperty = NewType('BaseNetworkProperty', None)
+DataSet = NewType('DataSet', None)
+DerivedNetworkProperty = NewType('DerivedNetworkProperty', None)
+FiniteHypergraph = NewType('FiniteHypergraph', None)
+InfiniteNetworkSet = NewType('InfiniteNetworkSet', None)
+InfiniteNetwork = NewType('InfiniteNetwork', None)
 
 
 class Model:
@@ -28,7 +33,7 @@ class Model:
         ERDOS_RENYI = auto()
         PREFERENTIAL_ATTACHMENT = auto()
         NETWORK_GEOMETRY_WITH_FLAVOR = auto()
-        AGE_DEPENDENT_RANDOM_SIMPLEX = auto()
+        ADRCM = auto()
         HYPERGRAPH = auto()
         INVALID = auto()
 
@@ -104,8 +109,12 @@ class Model:
         """Build a network of the model."""
         raise NotImplementedError
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteHypergraphSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Generate a set of "infinite" networks."""
+        raise NotImplementedError
+
+    def generate_infinite_network(self, typical_mark: float, seed: int) -> InfiniteNetwork:
+        """Generate one "infinite" network."""
         raise NotImplementedError
 
     def calc_base_property(

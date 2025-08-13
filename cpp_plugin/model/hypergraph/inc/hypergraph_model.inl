@@ -31,7 +31,7 @@ float HypergraphModel::gamma_prime() const
 
 float HypergraphModel::lambda() const
 {
-    return parameters_.interaction_intensity;
+    return parameters_.network_size;
 }
 
 float HypergraphModel::lambda_prime() const

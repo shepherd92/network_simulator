@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 """Base class for theoretical distributions."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, astuple
 from enum import Enum, auto
 from logging import warning
+from typing import NewType
 
 import numpy as np
 
 from distribution.distribution import Distribution
-from distribution.empirical_distribution import EmpiricalDistribution
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class TheoreticalDistribution(Distribution):
@@ -55,7 +56,8 @@ class TheoreticalDistribution(Distribution):
         if len(empirical_distribution.value_sequence) < 2:
             warning(
                 f'Empirical degree distribution contains {len(empirical_distribution.value_sequence)} in the domain.')
-            self._valid = False  # pylint: disable=attribute-defined-outside-init
+            # pylint: disable-next=attribute-defined-outside-init
+            self._valid = False
             return
 
         self._fit_domain(empirical_distribution, fitting_parameters.domain_calculation)
@@ -63,7 +65,8 @@ class TheoreticalDistribution(Distribution):
             return
 
         self._fit_parameters(empirical_distribution, fitting_parameters.parameter_fitting)
-        self._valid = not any(  # pylint: disable=attribute-defined-outside-init
+        # pylint: disable-next=attribute-defined-outside-init
+        self._valid = not any(
             np.isnan(x)
             for x in astuple(self._parameters)
         ) and self.domain.valid

@@ -22,12 +22,13 @@ from distribution.approximation import DistributionApproximation
 from distribution.distribution import Distribution
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+from network.finite_hypergraph import FiniteHypergraph
 from network.infinite_hypergraph import InfiniteHypergraph
 from network.network import Network
 from tools.logging_helper import log_function_name
 
 
-PLOT_SIZE = (20, 20)  # inches
+PLOT_SIZE = (5, 5)  # inches
 PLOT_DPI = 1200
 
 
@@ -64,6 +65,7 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
         }
     else:
         vertex_positions = _determine_node_positions(network.graph)
+
     interactions_to_plot = _determine_interactions_to_plot(network.interactions)
     debug(f'Number of interactions to plot: {len(interactions_to_plot)}')
 
@@ -104,7 +106,6 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
             edgecolors=('black',),
             linewidths=(0.0000001,)
         )
-
         axes.add_collection(polygon_collection)
 
     axes.set_xlim([
@@ -116,8 +117,10 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
         max([coordinates[1] for coordinates in vertex_positions.values()]),
     ])
 
+    debug('Checkpoint: nx shit.')
     nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=1e-6)
     nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.0001, alpha=1e-6)
+    debug('Checkpoint: nx shit finished.')
 
     axes.set_axis_off()
     figure.savefig(save_path, dpi=PLOT_DPI)
@@ -674,12 +677,12 @@ def check_calculated(title: str):
     Use as a decorator.
     """
     def wrapper_outer(plotter_function: Callable):
-        def wrapper_inner(data_to_plot: Any, axes: plt.Axes, save_directory: Path, **kwargs):
+        def wrapper_inner(class_, data_to_plot: Any, axes: plt.Axes, **kwargs):
             axes.set_title(title)
             if data_to_plot is None:
                 _print_not_calculated(axes)
             else:
-                plotter_function(data_to_plot, axes, save_directory, **kwargs)
+                plotter_function(class_, data_to_plot, axes, **kwargs)
         return wrapper_inner
     return wrapper_outer
 

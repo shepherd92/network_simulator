@@ -5,13 +5,16 @@ from __future__ import annotations
 
 from dataclasses import astuple, dataclass
 from enum import Enum, auto
+from typing import NewType
 
 import numpy as np
 import numpy.typing as npt
 from scipy.stats import uniform
 
-from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class UniformDistribution(TheoreticalDistribution):
@@ -43,9 +46,9 @@ class UniformDistribution(TheoreticalDistribution):
         self._parameters = UniformDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """Return the CDF of the distribution evaluated at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
-            f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
+            f'Quantiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         return uniform.ppf(quantiles_to_calculate, *astuple(self.parameters))
 
     def info(self) -> dict[str, int | float]:
@@ -78,12 +81,12 @@ class UniformDistribution(TheoreticalDistribution):
             assert False, f'Unknown fitting method: {parameter_fitting_parameters.method}.'
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the PDF of the distribution evaluted at the given x_values."""
+        """PDF evaluated at the given x_values."""
         pdf_values = uniform.pdf(x_values, *astuple(self._parameters))
         return pdf_values
 
     def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """CDF evaluated at the given x_values."""
         cdf_values = uniform.cdf(x_values, *astuple(self._parameters))
         return cdf_values
 

@@ -15,9 +15,7 @@ protected:
     PointList create_points(const size_t num_of_nodes) const;
     PositionList generate_positions(const size_t num_of_points) const;
     float distance(const Point &first, const Point &second) const override;
-    constexpr static float torus_size();
+    static constexpr float torus_size{TORUS_SIZE};
 };
-
-#include "finite_model.inl"
 
 #endif

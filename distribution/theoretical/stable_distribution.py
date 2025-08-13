@@ -6,6 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass, astuple
 from enum import Enum, auto
 from logging import warning
+from typing import NewType, Self
 
 import numpy as np
 import numpy.typing as npt
@@ -14,8 +15,10 @@ from scipy.stats import levy_stable
 from scipy.stats._warnings_errors import FitError
 
 from distribution.distribution import Distribution
-from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.theoretical.theoretical_distribution import TheoreticalDistribution
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class StableDistribution(TheoreticalDistribution):
@@ -54,9 +57,9 @@ class StableDistribution(TheoreticalDistribution):
         self._parameters = StableDistribution.DistributionParameters()
 
     def calc_quantiles(self, quantiles_to_calculate: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """Return the CDF of the distribution evaluated at the given x_values."""
         assert ((quantiles_to_calculate >= 0.) & (quantiles_to_calculate <= 1.)).all(), \
-            f'Quntiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
+            f'Quantiles to calculate must be in [0, 1], but they are {quantiles_to_calculate}'
         quantiles = levy_stable.ppf(quantiles_to_calculate, *astuple(self._parameters))
         return quantiles
 
@@ -152,7 +155,8 @@ class StableDistribution(TheoreticalDistribution):
             return result
 
         value_sequence = empirical_distribution.get_value_sequence_in_domain(self.domain)
-        estimated_parameters = pconv(*levy_stable._fitstart(value_sequence))  # pylint: disable=protected-access
+        # pylint: disable-next=protected-access
+        estimated_parameters = pconv(*levy_stable._fitstart(value_sequence))
         return estimated_parameters
 
     def _estimate_parameters_optimization(
@@ -199,13 +203,13 @@ class StableDistribution(TheoreticalDistribution):
         )
         self._valid = False
 
-        fitted_prameters = StableDistribution.DistributionParameters(*result.x)
-        return fitted_prameters
+        fitted_parameters = StableDistribution.DistributionParameters(*result.x)
+        return fitted_parameters
 
     @staticmethod
     def _objective_function_for_fitting(
         guess: npt.NDArray[np.float64],
-        theoretical_distribution: StableDistribution,
+        theoretical_distribution: Self,
         empirical_distribution: EmpiricalDistribution
     ) -> float:
         parameters = StableDistribution.DistributionParameters(*tuple(guess.tolist()))
@@ -223,12 +227,12 @@ class StableDistribution(TheoreticalDistribution):
         return kolmogorov_smirnov_statistic
 
     def _pdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the PDF of the distribution evaluted at the given x_values."""
+        """PDF evaluated at the given x_values."""
         pdf_values = levy_stable.pdf(x_values, *astuple(self._parameters))
         return pdf_values
 
     def _cdf_in_domain(self, x_values: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        """Return the CDF of the distribution evaluted at the given x_values."""
+        """CDF evaluated at the given x_values."""
         cdf_values = levy_stable.cdf(x_values, *astuple(self._parameters))
         return cdf_values
 

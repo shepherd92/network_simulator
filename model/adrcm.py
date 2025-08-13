@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from logging import info
+from typing import NewType
 
 import numpy as np
 import numpy.typing as npt
@@ -16,11 +17,13 @@ from cpp_plugin.build.release.cpp_plugin import (
 )
 from data_set.data_set import DataSet
 from distribution.approximation import guess_power_law_exponent
-from distribution.empirical_distribution import EmpiricalDistribution
 from model.model import Model
 from network.finite_clique_complex import FiniteCliqueComplex
-from network.infinite_clique_complex import InfiniteCliqueComplex, InfiniteCliqueComplexSet
+from network.infinite_network import InfiniteNetwork, InfiniteNetworkSet
 from network.property import BaseNetworkProperty
+
+
+EmpiricalDistribution = NewType('EmpiricalDistribution', None)
 
 
 class AdrcmModel(Model):
@@ -60,12 +63,16 @@ class AdrcmModel(Model):
         gamma_guess = 1. / (exponent_guess - 1.)
         beta_guess = (1. - gamma_guess) * average_degree
 
-        # pylint: disable=attribute-defined-outside-init
-        self._parameters.max_dimension = data_set.max_dimension
-        self._parameters.network_size = num_of_nodes
-        # pylint: enable=attribute-defined-outside-init
         self._parameters.beta = beta_guess
         self._parameters.gamma = gamma_guess
+
+        self._parameters = AdrcmModel.Parameters(
+            max_dimension=data_set.max_dimension,
+            network_size=num_of_nodes,
+            alpha=self._parameters.alpha,
+            beta=beta_guess,
+            gamma=gamma_guess,
+        )
 
         print(self)
 
@@ -93,23 +100,19 @@ class AdrcmModel(Model):
         info(f'Generating finite network ({self.__class__.__name__}) with seed {seed} done.')
         return network
 
-    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteCliqueComplexSet:
+    def generate_infinite_network_set(self, num_of_networks: int, seed: int) -> InfiniteNetworkSet:
         """Generate a list of infinite networks."""
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed}.')
 
         cpp_model = InfiniteAdrcmModel(self._parameters.to_numpy(), seed)
-        networks: list[InfiniteCliqueComplex] = [
-            InfiniteCliqueComplex(cpp_network)
+        networks: list[InfiniteNetwork] = [
+            InfiniteNetwork(cpp_network)
             for cpp_network in cpp_model.generate_networks(num_of_networks)
         ]
-        infinite_network_set = InfiniteCliqueComplexSet(networks)
+        infinite_network_set = InfiniteNetworkSet(networks)
 
         info(f'Generating infinite network set ({self.__class__.__name__}) with seed {seed} done.')
         return infinite_network_set
-
-    def set_model_parameters_from_tuple(self, parameters_tuple: tuple[int]) -> None:
-        """Convert a tuple to Model.Parameters. Used for model optimization."""
-        self.parameters = AdrcmModel.Parameters(*parameters_tuple)
 
     def _create_point_positions_dict(self, vertex_positions: list[tuple[float, float]]) -> dict[int, tuple[float, ...]]:
         vertex_ids = list(range(len(vertex_positions)))
