@@ -164,5 +164,6 @@ void Network::calc_persistent_cohomology()
     persistent_cohomology_ = new PersistentCohomology{*simplex_tree_};
     persistent_cohomology_->init_coefficients(2);
     persistent_cohomology_->compute_persistent_cohomology();
-    std::cout << "done" << std::flush;
+    std::cout << "done" << std::endl
+              << std::flush;
 }

@@ -63,6 +63,14 @@ class ModelConfig:
             enable: bool = True
             plot: bool = True
             typical_mark: float = 0.1
+            properties_to_calculate: list[BaseNetworkProperty] = [
+                # BaseNetworkProperty.vertex_edge_degree_distribution,
+                # BaseNetworkProperty.edge_triangle_degree_distribution,
+                # BaseNetworkProperty.vertex_interaction_degree_distribution,
+                # BaseNetworkProperty.edge_interaction_degree_distribution,
+                # BaseNetworkProperty.triangle_interaction_degree_distribution,
+                # BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+            ]
 
         finite: Finite = Finite()
         infinite: Infinite = Infinite()

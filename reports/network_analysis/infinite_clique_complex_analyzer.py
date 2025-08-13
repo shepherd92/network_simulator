@@ -1,60 +1,36 @@
 #!/usr/bin/env python3
 """This module is responsible for analyzing a simplicial complex."""
 
-from dataclasses import dataclass
 from logging import info
-from pathlib import Path
 
 import matplotlib.pyplot as plt
+
 from network.infinite_hypergraph import InfiniteHypergraph
 from network.infinite_network import InfiniteNetworkSet
 from network.property import BaseNetworkProperty
-from reports.network_analyzer import NetworkAnalyzer
-from reports.plotting_helper import (
-    plot_network,
-)
+from reports.network_analysis.infinite_network_analyzer import InfiniteNetworkAnalyzer
+from reports.plotting_helper import plot_network
 
 
-class InfiniteHypergraphAnalyzer(NetworkAnalyzer):
+class InfiniteCliqueComplexAnalyzer(InfiniteNetworkAnalyzer):
     """Class to analyze finite hypergraph models."""
 
-    @dataclass
-    class Parameters(NetworkAnalyzer.Parameters):
-        """Parameters for the network analysis."""
-        plot_entire_network: bool
-        plot_network_determined_positions: bool
+    def plot_infinite_network(self, network: InfiniteHypergraph):
 
-    def __init__(self, parameters: Parameters):
-        """Initialize the network analyzer with given parameters."""
-        self._parameters = parameters
+        if self._parameters.plot_entire_network:
+            plot_network(network, False, self.save_directory / 'infinite_network.png')
+        if self._parameters.plot_network_determined_positions:
+            plot_network(network, True, self.save_directory / 'infinite_network_fixed_vertex_positions.png')
 
-    def analyze_infinite_hypergraph_set(
-        self,
-        network: InfiniteNetworkSet,
-        calculated_properties: list[BaseNetworkProperty]
-    ) -> None:
-        """Analyze the given infinite network set."""
-        info('Infinite network set analysis started.')
-
-        self.analyze_infinite_hypergraph(network, calculated_properties)
-
-        info('Infinite network set analysis finished.')
-
-    def analyze_infinite_hypergraph(
+    def analyze_infinite_network(
         self,
         network: InfiniteHypergraph | InfiniteNetworkSet,
         calculated_properties: list[BaseNetworkProperty]
     ) -> None:
         """Analyze the given infinite network set."""
-        info('Infinite hypergraph analysis started.')
+        info('Infinite clique complex analysis started.')
 
         plt.rcParams["text.usetex"] = False
-
-        if self._parameters.plot:
-            if self._parameters.plot_entire_network:
-                plot_network(network, False, self.save_directory / 'infinite_network.png')
-            if self._parameters.plot_network_determined_positions:
-                plot_network(network, True, self.save_directory / 'infinite_network_fixed_vertex_positions.png')
 
         summary = network.calc_network_summary(calculated_properties)
 
@@ -86,4 +62,4 @@ class InfiniteHypergraphAnalyzer(NetworkAnalyzer):
         figure.savefig(self.save_directory / 'whole_report_infinite_network.png')
         figure.clf()
 
-        info('Infinite hypergraph analysis finished.')
+        info('Infinite clique complex analysis finished.')

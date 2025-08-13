@@ -26,7 +26,6 @@ class NetworkAnalyzer:
     @dataclass
     class Parameters:
         """Parameters for the network analysis."""
-        plot: bool
         save_directory: Path
         power_law_fitting_minimum_value : float
 

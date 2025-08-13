@@ -31,15 +31,15 @@ from network.property import (
     DerivedNetworkProperty,
     ScalarNetworkPropertyReport,
 )
-from reports.finite_hypergraph_analyzer import FiniteHypergraphAnalyzer
-from reports.infinite_hypergraph_analyzer import InfiniteHypergraphAnalyzer
+from reports.network_analysis.finite_hypergraph_analyzer import FiniteHypergraphAnalyzer
+from reports.network_analysis.infinite_hypergraph_analyzer import InfiniteHypergraphAnalyzer
 from reports.model_testing import create_model_test_report
 
 
 class Mode(Enum):
     """Mode in which the program runs."""
 
-    ANALYSIS = 'analysis'  # to analyze a data set
+    DATASET_ANALYSIS = 'analysis'  # to analyze a data set
     TESTING = 'testing'  # to analyze model properties
     EXAMPLE = 'example'  # to analyze an example network from the model
 
@@ -50,7 +50,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
     model_type = configuration.model.type_
     seed = configuration.general.seed if configuration.general.seed else random.randint(0, 2**31 - 1)
 
-    if mode == Mode.ANALYSIS:
+    if mode == Mode.DATASET_ANALYSIS:
         data_set = load_data(data_set_type)
         (configuration.general.output_dir / 'data').mkdir(parents=True, exist_ok=True)
         analysis_parameters = FiniteHypergraphAnalyzer.Parameters(
@@ -145,13 +145,14 @@ def main(mode: Mode, configuration: Configuration) -> None:
             typical_finite_network = model.generate_finite_network(seed)
             analysis_parameters = FiniteHypergraphAnalyzer.Parameters(
                 save_directory=model_analysis_save_dir,
-                plot=configuration.model.analysis.plot,
                 plot_entire_network=configuration.model.analysis.plot_entire_network,
                 plot_network_giant_component=configuration.model.analysis.plot_network_giant_component,
                 plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
                 power_law_fitting_minimum_value=configuration.model.analysis.power_law_fitting_minimum_value,
             )
             network_analyzer = FiniteHypergraphAnalyzer(analysis_parameters)
+            if configuration.model.analysis.plot:
+                network_analyzer.plot_finite_network(typical_finite_network)
             network_analyzer.analyze_finite_hypergraph(
                 typical_finite_network,
                 configuration.model.analysis.finite.properties_to_calculate
@@ -168,15 +169,16 @@ def main(mode: Mode, configuration: Configuration) -> None:
 
             analysis_parameters = InfiniteHypergraphAnalyzer.Parameters(
                 save_directory=model_analysis_save_dir,
-                plot=configuration.model.analysis.plot,
                 plot_entire_network=configuration.model.analysis.plot_entire_network,
                 plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
                 power_law_fitting_minimum_value=configuration.model.analysis.power_law_fitting_minimum_value,
             )
             network_analyzer = InfiniteHypergraphAnalyzer(analysis_parameters)
+            if configuration.model.analysis.plot:
+                network_analyzer.plot_infinite_network(typical_infinite_network)
             network_analyzer.analyze_infinite_hypergraph(
                 typical_infinite_network,
-                configuration.model.analysis.finite.properties_to_calculate
+                configuration.model.analysis.infinite.properties_to_calculate
             )
 
         if configuration.model.analysis.infinite_set.enable:
@@ -187,12 +189,17 @@ def main(mode: Mode, configuration: Configuration) -> None:
                 configuration.model.analysis.infinite_set.num_of_infinite_networks,
                 seed=seed,
             )
-            analyze_hypergraph_model_infinite_example(
-                typical_infinite_network_set,
-                configuration.model.analysis.properties_to_calculate_infinite,
-                model_analysis_save_dir,
+            analysis_parameters = InfiniteHypergraphAnalyzer.Parameters(
+                save_directory=model_analysis_save_dir,
+                plot_entire_network=configuration.model.analysis.plot_entire_network,
+                plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
+                power_law_fitting_minimum_value=configuration.model.analysis.power_law_fitting_minimum_value,
             )
-
+            network_analyzer = InfiniteHypergraphAnalyzer(analysis_parameters)
+            network_analyzer.analyze_infinite_hypergraph(
+                typical_infinite_network_set,
+                configuration.model.analysis.infinite_set.properties_to_calculate
+            )
         info('Model analysis finished.')
 
     else:
@@ -204,7 +211,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
 def data_set_required(mode: Mode, configuration: Configuration) -> bool:
     """Check if loading of a data set is required."""
     return \
-        mode == Mode.ANALYSIS or \
+        mode == Mode.DATASET_ANALYSIS or \
         (
             mode == Mode.TESTING and
             configuration.model.set_params_from_data_set
@@ -255,7 +262,7 @@ def main_wrapper(params: argparse.Namespace) -> None:
         )
         tracer.runfunc(main, configuration)
         tracer_results = tracer.results()
-        tracer_results.write_results(show_missing=True, coverdir=".")
+        tracer_results.write_results(show_missing=True, coverdir='.')
 
     else:
         main(params.mode, configuration)

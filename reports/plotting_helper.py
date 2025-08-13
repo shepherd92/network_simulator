@@ -50,7 +50,11 @@ def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
 
 
 @log_function_name
-def plot_network(network: Network, determined_vertex_positions: bool, save_path: Path) -> None:
+def plot_network(
+    network: FiniteHypergraph | InfiniteHypergraph,
+    determined_vertex_positions: bool,
+    save_path: Path
+) -> None:
     """Plot a simplicial complex on the given axis."""
     plt.rcParams["text.usetex"] = False
 
@@ -97,7 +101,7 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
 
     figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
 
-    if len(interactions_to_plot) > 0:
+    if len(convex_hulls) > 0:
         face_colors = _get_simplex_colors(interactions_to_plot, color_map_name)
 
         polygon_collection = PolyCollection(
@@ -117,10 +121,8 @@ def plot_network(network: Network, determined_vertex_positions: bool, save_path:
         max([coordinates[1] for coordinates in vertex_positions.values()]),
     ])
 
-    debug('Checkpoint: nx shit.')
     nx.draw_networkx_edges(network.graph, vertex_positions, ax=axes, edge_color='black', width=0.0001, alpha=1e-6)
     nx.draw_networkx_nodes(network.graph, vertex_positions, ax=axes, node_color='black', node_size=0.0001, alpha=1e-6)
-    debug('Checkpoint: nx shit finished.')
 
     axes.set_axis_off()
     figure.savefig(save_path, dpi=PLOT_DPI)
