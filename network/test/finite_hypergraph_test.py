@@ -25,7 +25,7 @@ class FiniteHypergraphTest(unittest.TestCase):
                 [1, 5],
                 [6, 7],
             ], # interactions
-            True, # weighted
+            False, # weighted
         )
         self.network = FiniteHypergraph(cpp_network)
 

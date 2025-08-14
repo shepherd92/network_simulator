@@ -31,8 +31,8 @@ from network.property import (
     DerivedNetworkProperty,
     ScalarNetworkPropertyReport,
 )
-from reports.network_analysis.finite_hypergraph_analyzer import FiniteHypergraphAnalyzer
-from reports.network_analysis.infinite_hypergraph_analyzer import InfiniteHypergraphAnalyzer
+from reports.network_analysis.finite_network_analyzer import FiniteNetworkAnalyzer
+from reports.network_analysis.infinite_network_analyzer import InfiniteNetworkAnalyzer
 from reports.model_testing import create_model_test_report
 
 
@@ -53,7 +53,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
     if mode == Mode.DATASET_ANALYSIS:
         data_set = load_data(data_set_type)
         (configuration.general.output_dir / 'data').mkdir(parents=True, exist_ok=True)
-        analysis_parameters = FiniteHypergraphAnalyzer.Parameters(
+        analysis_parameters = FiniteNetworkAnalyzer.Parameters(
             save_directory=configuration.general.output_dir / 'data',
             plot=configuration.data_set_analysis.plot,
             plot_entire_network=configuration.data_set_analysis.plot_entire_network,
@@ -61,7 +61,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
             plot_network_determined_positions=configuration.data_set_analysis.plot_network_determined_positions,
             power_law_fitting_minimum_value=configuration.data_set_analysis.power_law_fitting_minimum_value,
         )
-        network_analyzer = FiniteHypergraphAnalyzer(analysis_parameters)
+        network_analyzer = FiniteNetworkAnalyzer(analysis_parameters)
         network_analyzer.analyze_finite_hypergraph(
             data_set,
             configuration.data_set_analysis.properties_to_calculate
@@ -143,63 +143,55 @@ def main(mode: Mode, configuration: Configuration) -> None:
             model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_finite'
             model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
             typical_finite_network = model.generate_finite_network(seed)
-            analysis_parameters = FiniteHypergraphAnalyzer.Parameters(
+            analysis_parameters = FiniteNetworkAnalyzer.Parameters(
                 save_directory=model_analysis_save_dir,
                 plot_entire_network=configuration.model.analysis.plot_entire_network,
                 plot_network_giant_component=configuration.model.analysis.plot_network_giant_component,
                 plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
-                power_law_fitting_minimum_value=configuration.model.analysis.power_law_fitting_minimum_value,
+                power_law_fitting_minimum_value=configuration.distribution_fitting.power_law_fitting_minimum_value_model,
             )
-            network_analyzer = FiniteHypergraphAnalyzer(analysis_parameters)
+            network_analyzer = FiniteNetworkAnalyzer(analysis_parameters)
             if configuration.model.analysis.plot:
-                network_analyzer.plot_finite_network(typical_finite_network)
+                if configuration.model.type_ == Model.Type.HYPERGRAPH:
+                    network_analyzer.plot(typical_finite_network)
+                else:
+                    raise NotImplementedError(
+                        f'Network plotting is not implemented for model type {model_type.name}. '
+                        + 'Turn off the plot switch in the configuration.'
+                    )
             network_analyzer.analyze_finite_hypergraph(
                 typical_finite_network,
                 configuration.model.analysis.finite.properties_to_calculate
             )
 
         if configuration.model.analysis.infinite.enable:
-            model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_infinite'
-            model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
-
-            typical_infinite_network = model.generate_infinite_network(
-                configuration.model.analysis.infinite.typical_mark,
-                seed
-            )
-
-            analysis_parameters = InfiniteHypergraphAnalyzer.Parameters(
-                save_directory=model_analysis_save_dir,
-                plot_entire_network=configuration.model.analysis.plot_entire_network,
-                plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
-                power_law_fitting_minimum_value=configuration.model.analysis.power_law_fitting_minimum_value,
-            )
-            network_analyzer = InfiniteHypergraphAnalyzer(analysis_parameters)
-            if configuration.model.analysis.plot:
-                network_analyzer.plot_infinite_network(typical_infinite_network)
-            network_analyzer.analyze_infinite_hypergraph(
-                typical_infinite_network,
-                configuration.model.analysis.infinite.properties_to_calculate
-            )
-
-        if configuration.model.analysis.infinite_set.enable:
-            assert configuration.model.analysis.infinite_set.num_of_infinite_networks > 0
+            assert configuration.model.analysis.infinite.num_of_infinite_networks > 0
             model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_infinite_set'
             model_analysis_save_dir.mkdir(parents=True, exist_ok=True)
             typical_infinite_network_set = model.generate_infinite_network_set(
-                configuration.model.analysis.infinite_set.num_of_infinite_networks,
+                configuration.model.analysis.infinite.num_of_infinite_networks,
                 seed=seed,
             )
-            analysis_parameters = InfiniteHypergraphAnalyzer.Parameters(
+            analysis_parameters = InfiniteNetworkAnalyzer.Parameters(
                 save_directory=model_analysis_save_dir,
                 plot_entire_network=configuration.model.analysis.plot_entire_network,
                 plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
-                power_law_fitting_minimum_value=configuration.model.analysis.power_law_fitting_minimum_value,
+                power_law_fitting_minimum_value=configuration.distribution_fitting.power_law_fitting_minimum_value_model,
             )
-            network_analyzer = InfiniteHypergraphAnalyzer(analysis_parameters)
-            network_analyzer.analyze_infinite_hypergraph(
+            network_analyzer = InfiniteNetworkAnalyzer(analysis_parameters)
+            network_analyzer.analyze_infinite_network_set(
                 typical_infinite_network_set,
-                configuration.model.analysis.infinite_set.properties_to_calculate
+                configuration.model.analysis.infinite.properties_to_calculate
             )
+            if configuration.model.analysis.plot:
+                if configuration.model.type_ == Model.Type.HYPERGRAPH:
+                    largest_infinite_network = typical_infinite_network_set.get_largest_network()
+                    network_analyzer.plot(largest_infinite_network)
+                else:
+                    raise NotImplementedError(
+                        f'Network plotting is not implemented for model type {model_type.name}. '
+                        + 'Turn off the plot switch in the configuration.'
+                    )
         info('Model analysis finished.')
 
     else:

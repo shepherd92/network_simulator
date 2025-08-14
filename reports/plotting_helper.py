@@ -50,7 +50,7 @@ def save_axes_as_separate_figure(file_path: Path, axes: plt.axes) -> None:
 
 
 @log_function_name
-def plot_network(
+def plot_hypergraph(
     network: FiniteHypergraph | InfiniteHypergraph,
     determined_vertex_positions: bool,
     save_path: Path
@@ -132,76 +132,6 @@ def plot_network(
         debug('Plotting simplicial complex with fixed positions finished.')
     else:
         debug('Plotting simplicial complex finished.')
-
-
-@log_function_name
-def plot_hypergraph(network: Network, determined_positions: bool, save_path: Path) -> None:
-    """Plot a hypergraph complex on the given axis."""
-    plt.rcParams["text.usetex"] = False
-    if determined_positions:
-        debug('Plotting hypergraph fixed positions started.')
-        print('\rPlot hypergraph fixed positions...', end='')
-        assert network.vertex_positions is not None
-        assert network.interaction_positions is not None
-        vertex_positions = network.vertex_positions
-        interaction_positions = network.interaction_positions
-    else:
-        raise NotImplementedError('Determining positions is not implemented yet.')
-
-    figure, axes = plt.subplots(1, 1, figsize=PLOT_SIZE)
-
-    # create the hypergraph network
-    interactions = network.interactions
-    num_of_interactions = len(interactions)
-    hypergraph_edges = []
-    for interaction_id, interaction in enumerate(network.interactions):
-        hypergraph_edges.extend(list(zip(
-            [interaction_id] * len(interaction),
-            [vertex_id + num_of_interactions for vertex_id in interaction]
-        )))
-
-    # increment the vertex id-s by the number of interactions
-    vertex_positions_shifted_id = {key + len(interactions): value for key, value in vertex_positions.items()}
-    hypergraph_vertex_positions = interaction_positions | vertex_positions_shifted_id
-    hypergraph = nx.Graph()
-    hypergraph.add_nodes_from(hypergraph_vertex_positions.keys())
-    hypergraph.add_edges_from(hypergraph_edges)
-
-    nx.draw_networkx_edges(hypergraph, hypergraph_vertex_positions, ax=axes,
-                           edge_color='black', width=0.2, alpha=1)
-    axes.scatter(
-        [position[0] for position in vertex_positions.values()],
-        [position[1] for position in vertex_positions.values()],
-        c='blue', s=1
-    )
-    axes.scatter(
-        [position[0] for position in interaction_positions.values()],
-        [position[1] for position in interaction_positions.values()],
-        c='red', s=1
-    )
-    axes.axhline(y=0., color='black', linestyle='-', linewidth=0.3)
-    axes.axhline(y=1., color='black', linestyle='-', linewidth=0.3)
-    # axes.axvline(x=0., color='black', linestyle='-', linewidth=0.3)
-
-    if isinstance(network, InfiniteHypergraph):
-        axes.scatter(
-            [0],
-            [network.cpp_network.typical_mark()],
-            c='green', s=5
-        )
-
-    width_of_torus = 1.05 * max(
-        [np.abs(position[0]) for position in interaction_positions.values()] +
-        [np.abs(position[0]) for position in vertex_positions.values()]
-    )
-    axes.set_xlim(-width_of_torus, +width_of_torus)
-    axes.set_ylim(-0.05, 1.05)
-
-    figure.savefig(save_path, dpi=PLOT_DPI)
-    figure.clf()
-
-    if determined_positions:
-        debug('Plotting hypergraph fixed positions finished.')
 
 
 @log_function_name

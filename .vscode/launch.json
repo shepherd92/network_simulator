@@ -62,24 +62,6 @@
             }
         },
         {
-            "name": "Model Fitting",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "console": "integratedTerminal",
-            "justMyCode": true,
-            "cwd": "${workspaceFolder}",
-            "args": [
-                "--mode",
-                "fitting",
-                "--config_dir",
-                "config_files"
-            ],
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"
-            }
-        },
-        {
             "name": "Model Example",
             "type": "debugpy",
             "request": "launch",

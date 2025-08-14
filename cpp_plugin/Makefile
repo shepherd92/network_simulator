@@ -40,25 +40,9 @@ $(addsuffix /$(INCDIRNAME),\
 $(eval path :=)
 endef
 
-###################################################################
-###################################################################
-ifndef TARGETDIR  # set target directory to debug or release
-###################################################################
-
-# set target directory
-TARGETDIR := $(BLDDIR)/debug
-release callgrind: TARGETDIR := $(BLDDIR)/release
-
-# export variables set to be used by child make processes (TARGETDIR must be exported)
-.EXPORT_ALL_VARIABLES :
-
-# for each target run make again (now target directory is set)
-$(TARGETS) :
-	@${MAKE} $@
-
-###################################################################
-else
-###################################################################
+# set target directory based on the goal
+GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),$(.DEFAULT_GOAL))
+TARGETDIR := $(BLDDIR)/$(if $(filter release callgrind,$(GOALS)),release,debug)
 
 # compiler and linker settings
 CXX      := g++
@@ -161,8 +145,3 @@ $(TARGETDIR)/%.$(OBJEXT) : %.$(SRCEXT)
 
 clean :
 	@rm -rf *~ core $(BLDDIR)
-
-###################################################################
-endif  # TARGETDIR
-###################################################################
-###################################################################

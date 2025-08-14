@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """This module is responsible for generating a report for a model."""
 
+from matplotlib import pyplot as plt
 from matplotlib.pyplot import Axes
 from matplotlib.figure import Figure
 
@@ -17,7 +18,7 @@ def create_model_test_report(scalar_property_reports: list[ScalarNetworkProperty
     axes_grid_height = len(scalar_property_reports)
     axes_grid_width = 2
 
-    figure = Figure('Model test report', figsize=(axes_grid_width * 10, axes_grid_height * 10))
+    figure = plt.figure('Model test report', figsize=(axes_grid_width * 10, axes_grid_height * 10))
     axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
 
     for index, property_report in enumerate(scalar_property_reports):

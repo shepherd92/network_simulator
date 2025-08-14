@@ -15,7 +15,7 @@ FiniteHypergraph::FiniteHypergraph(
 {
     if (weighted_)
     {
-        assert(SimplexTreeOptions::store_filtration);
+        assert(SimplexTreeOptions::store_filtration && "Weighted hypergraphs require filtration to be stored in the simplex tree");
     }
 }
 

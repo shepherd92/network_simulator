@@ -51,7 +51,6 @@ class NetworkAnalyzer:
         approximation.save(self.save_directory / 'total_degree_distribution')
         plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
 
-
     @check_calculated('Edge--triangle degree distribution')
     def report_edge_triangle_degree_distribution(
         self,
@@ -68,7 +67,6 @@ class NetworkAnalyzer:
 
         approximation.save(self.save_directory / 'ho_degree_distribution_1')
         plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
-
 
     @check_calculated('Triangle--tetrahedron degree distribution')
     def report_triangle_tetrahedron_degree_distribution(
@@ -87,7 +85,6 @@ class NetworkAnalyzer:
         approximation.save(self.save_directory / 'ho_degree_distribution_2')
         plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
 
-
     @check_calculated('Simplex dimension distribution')
     def report_simplex_dimension_distribution(
         self,
@@ -104,6 +101,57 @@ class NetworkAnalyzer:
 
         approximation.save(self.save_directory / 'simplex_dimension_distribution')
         plot_value_counts(empirical_distribution.calc_value_counts(), axes)
+
+    @check_calculated('Vertex--interaction degree distribution')
+    def report_vertex_interaction_degree_distribution(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        axes: plt.Axes,
+    ) -> None:
+        """Report vertex--interaction degree distribution."""
+        approximation = DistributionApproximation(
+            empirical_distribution,
+            TheoreticalDistribution.Type.POWER_LAW
+        )
+        fitting_parameters = create_power_law_fitting_parameters(self.power_law_fitting_minimum_value)
+        approximation.fit(fitting_parameters)
+
+        approximation.save(self.save_directory / 'vertex_interaction_degree_distribution')
+        plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
+
+    @check_calculated('Edge--interaction degree distribution')
+    def report_edge_interaction_degree_distribution(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        axes: plt.Axes,
+    ) -> None:
+        """Report edge--interaction degree distribution."""
+        approximation = DistributionApproximation(
+            empirical_distribution,
+            TheoreticalDistribution.Type.POWER_LAW
+        )
+        fitting_parameters = create_power_law_fitting_parameters(self.power_law_fitting_minimum_value)
+        approximation.fit(fitting_parameters)
+
+        approximation.save(self.save_directory / 'edge_interaction_degree_distribution')
+        plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
+
+    @check_calculated('Interaction--vertex degree distribution')
+    def report_interaction_dimension_distribution(
+        self,
+        empirical_distribution: EmpiricalDistribution,
+        axes: plt.Axes,
+    ) -> None:
+        """Report interaction--vertex degree distribution."""
+        approximation = DistributionApproximation(
+            empirical_distribution,
+            TheoreticalDistribution.Type.POWER_LAW
+        )
+        fitting_parameters = create_power_law_fitting_parameters(self.power_law_fitting_minimum_value)
+        approximation.fit(fitting_parameters)
+
+        approximation.save(self.save_directory / 'interaction_dimension_distribution')
+        plot_approximation_value_counts_log(approximation, np.nan, PaddingSide.NONE, axes)
 
     @property
     def save_directory(self) -> Path:

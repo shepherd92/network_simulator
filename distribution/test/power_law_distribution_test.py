@@ -6,7 +6,6 @@ import unittest
 import numpy as np
 from scipy.stats import pareto
 
-from config_files.distribution_fitting_params import POWER_LAW_FITTING_MINIMUM_VALUE_MODEL
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import create_power_law_fitting_parameters
@@ -34,7 +33,7 @@ class PowerLawDistributionTest(unittest.TestCase):
     def test_fitting(self):
         """Test if the fitting method gives a reasonably good fit."""
         approximation = DistributionApproximation(self.empirical_distribution, TheoreticalDistribution.Type.POWER_LAW)
-        fitting_parameters = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_MODEL)
+        fitting_parameters = create_power_law_fitting_parameters(10.)
         approximation.fit(fitting_parameters)
 
         self.assertAlmostEqual(approximation.theoretical.parameters.exponent, 2.5, delta=0.2)

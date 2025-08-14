@@ -8,7 +8,6 @@ import numpy as np
 import numpy.typing as npt
 from scipy.stats import levy_stable
 
-from config_files.distribution_fitting_params import POWER_LAW_FITTING_MINIMUM_VALUE_MODEL
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
@@ -49,7 +48,7 @@ class PlottingHelperTest(unittest.TestCase):
         axes_power_law.set_title('Power law Distribution')
         type_ = TheoreticalDistribution.Type.POWER_LAW
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
-        fitting_params = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_MODEL)
+        fitting_params = create_power_law_fitting_parameters(10.)
         approximation.fit(fitting_params)
         plot_distribution_approximation(approximation, data_set_value, axes_power_law)
 

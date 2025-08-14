@@ -3,10 +3,7 @@
 
 import numpy as np
 
-from config_files.distribution_fitting_params import (
-    POWER_LAW_FITTING_MINIMUM_VALUE_DATA,
-    POWER_LAW_FITTING_MINIMUM_VALUE_MODEL,
-)
+from config_files.distribution_fitting_config import DistributionFittingConfig
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
@@ -22,80 +19,75 @@ from network.property import BaseNetworkProperty, DerivedNetworkProperty
 
 
 FINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
-    # 'vertex_degree_exponent',
-    # 'edge_degree_exponent',
-    # 'vertex_interaction_degree_exponent',
-    # 'edge_interaction_degree_exponent',
-    # 'triangle_interaction_degree_exponent',
-    # 'interaction_vertex_degree_exponent',
-    # 'triangle_degree_exponent',
-    # 'average_interaction_degree_normal_mle',
-    # 'num_of_isolated_vertices_normal_mle',
+    'vertex_degree_exponent',
+    'edge_degree_exponent',
+    'triangle_degree_exponent',
+    'num_of_isolated_vertices_normal_mle',
     'num_of_edges_normal_mle',
     'num_of_edges_normal_match_quantile',
     'num_of_edges_stable',
     'num_of_triangles_normal_mle',
     'num_of_triangles_normal_match_quantile',
     'num_of_triangles_stable',
-    # 'betti_number_0_normal',
-    # 'betti_number_0_stable',
-    # 'betti_number_1_normal',
-    # 'betti_number_1_stable',
-    # 'betti_number_2_normal',
-    # 'betti_number_2_stable',
+    'betti_number_0_normal',
+    'betti_number_0_stable',
+    'betti_number_1_normal',
+    'betti_number_1_stable',
+    'betti_number_2_normal',
+    'betti_number_2_stable',
+    # Below properties are only available for hypergraphs
+    'vertex_interaction_degree_exponent',
+    'edge_interaction_degree_exponent',
+    'triangle_interaction_degree_exponent',
+    'interaction_vertex_degree_exponent',
+    'average_interaction_degree_normal_mle',
 ]
 
 
 INFINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
-    # 'vertex_degree_exponent',
-    # 'edge_degree_exponent',
-    # 'vertex_interaction_degree_exponent',
-    # 'vertex_interaction_degree_exponent_direct',
-    # 'edge_interaction_degree_exponent',
-    # 'triangle_interaction_degree_exponent',
-    # 'interaction_vertex_degree_exponent',
-    # 'triangle_degree_exponent',
-    # 'average_interaction_degree_normal_mle',
-    # 'num_of_edges_normal_mle',
-    # 'num_of_edges_normal_match_quantile',
-    # 'num_of_edges_stable',
-    # 'num_of_triangles_normal_mle',
-    # 'num_of_triangles_normal_match_quantile',
-    # 'num_of_triangles_stable',
+    'vertex_degree_exponent',
+    'edge_degree_exponent',
+    'triangle_degree_exponent',
+    'num_of_edges_normal_mle',
+    'num_of_edges_normal_match_quantile',
+    'num_of_edges_stable',
+    'num_of_triangles_normal_mle',
+    'num_of_triangles_normal_match_quantile',
+    'num_of_triangles_stable',
+    # Below properties are only available for hypergraphs
+    'vertex_interaction_degree_exponent',
+    'vertex_interaction_degree_exponent_direct',
+    'edge_interaction_degree_exponent',
+    'triangle_interaction_degree_exponent',
+    'interaction_vertex_degree_exponent',
+    'average_interaction_degree_normal_mle',
 ]
 
 
-def _get_power_law_exponent_model(empirical_distribution: EmpiricalDistribution) -> float:
+def _get_power_law_exponent(
+    empirical_distribution: EmpiricalDistribution,
+    power_law_minimum_value: float
+) -> float:
     approximation = DistributionApproximation(
         empirical_distribution,
         TheoreticalDistribution.Type.POWER_LAW
     )
-    fitting_params = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_MODEL)
+    fitting_params = create_power_law_fitting_parameters(power_law_minimum_value)
     approximation.fit(fitting_params)
     # print(approximation.info()['empirical_values_in_theoretical_domain'])
     assert isinstance(approximation.theoretical, PowerLawDistribution)
     return approximation.theoretical.parameters.exponent
 
 
-def _get_power_law_exponent_data_set(empirical_distribution: EmpiricalDistribution) -> float:
-    approximation = DistributionApproximation(
-        empirical_distribution,
-        TheoreticalDistribution.Type.POWER_LAW
+def _get_power_law_exponent_infinite(
+    list_of_degree_sets: list[list[int]],
+    power_law_minimum_value: float
+) -> float:
+    flat_list = [degree for degree_set in list_of_degree_sets for degree in degree_set]
+    return _get_power_law_exponent(
+        EmpiricalDistribution(flat_list),
+        power_law_minimum_value
     )
-    fitting_params = create_power_law_fitting_parameters(POWER_LAW_FITTING_MINIMUM_VALUE_DATA)
-    approximation.fit(fitting_params)
-    assert isinstance(approximation.theoretical, PowerLawDistribution)
-    return approximation.theoretical.parameters.exponent
-
-
-def _get_power_law_exponent_infinite_model_model(list_of_degree_sets: list[list[int]]) -> float:
-    flat_list = [degree for degree_set in list_of_degree_sets for degree in degree_set]
-    return _get_power_law_exponent_model(EmpiricalDistribution(flat_list))
-
-
-def _get_power_law_exponent_infinite_model_data_set(list_of_degree_sets: list[list[int]]) -> float:
-    flat_list = [degree for degree_set in list_of_degree_sets for degree in degree_set]
-    return _get_power_law_exponent_data_set(EmpiricalDistribution(flat_list))
 
 
 def _get_poisson_parameter(empirical_distribution: EmpiricalDistribution) -> float:
@@ -116,190 +108,228 @@ def _get_mean_infinite(list_of_value_sets: list[list[int]]) -> float:
 def get_finite_scalar_property_params(gamma: float) -> list[DerivedNetworkProperty]:
     """Return the scalar property params to test for finite networks."""
     all_properties = (
-        DerivedNetworkProperty(name='vertex_degree_exponent',
-                               source_base_property=BaseNetworkProperty.vertex_edge_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='edge_degree_exponent',
-                               source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='triangle_degree_exponent',
-                               source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='average_interaction_degree_normal_mle',
-                               source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_mean,
-                               calculator_data_set=_get_mean),
-        DerivedNetworkProperty(name='vertex_interaction_degree_exponent',
-                               source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='edge_interaction_degree_exponent',
-                               source_base_property=BaseNetworkProperty.edge_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='triangle_interaction_degree_exponent',
-                               source_base_property=BaseNetworkProperty.triangle_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='interaction_vertex_degree_exponent',
-                               source_base_property=BaseNetworkProperty(
-                                   BaseNetworkProperty.interaction_vertex_degree_distribution
-                                ),
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_model,
-                               calculator_data_set=_get_power_law_exponent_data_set),
-        DerivedNetworkProperty(name='num_of_isolated_vertices_normal_mle',
-                               source_base_property=BaseNetworkProperty(
-                                   BaseNetworkProperty.vertex_interaction_degree_distribution),
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=lambda degree_distribution:
-                                   degree_distribution.calc_value_counts()[0, 1]),
-        DerivedNetworkProperty(name='num_of_edges_normal_mle',
-                               source_base_property=BaseNetworkProperty.num_of_edges,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal()),
-        DerivedNetworkProperty(name='num_of_edges_normal_match_quantile',
-                               source_base_property=BaseNetworkProperty.num_of_edges,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=NormalDistribution.FittingParameters(
-                                   NormalDistribution.DomainCalculation(),
-                                   NormalDistribution.ParameterFittingMatchQuantile(
-                                       NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
-                                       NormalDistribution.DistributionParameters(),
-                                       quantile=0.025,
-                                   ),
-                               )),
-        DerivedNetworkProperty(name='num_of_edges_stable',
-                               source_base_property=BaseNetworkProperty.num_of_edges,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           # alpha=np.nan,
-                                           beta=1.,
-                                           location=np.nan,
-                                           scale=np.nan,
-                                       ),
-                                   ),
-                               )),
-        DerivedNetworkProperty(name='num_of_triangles_normal_mle',
-                               source_base_property=BaseNetworkProperty.num_of_triangles,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal()),
-        DerivedNetworkProperty(name='num_of_triangles_normal_match_quantile',
-                               source_base_property=BaseNetworkProperty.num_of_triangles,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=NormalDistribution.FittingParameters(
-                                   NormalDistribution.DomainCalculation(),
-                                   NormalDistribution.ParameterFittingMatchQuantile(
-                                       NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
-                                       NormalDistribution.DistributionParameters(),
-                                       quantile=0.025,
-                                   ),
-                               )),
-        DerivedNetworkProperty(name='num_of_triangles_stable',
-                               source_base_property=BaseNetworkProperty.num_of_triangles,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           # alpha=np.nan,
-                                           beta=1.,
-                                           location=np.nan,
-                                           scale=np.nan
-                                       ),
-                                   ),
-                               )),
-        DerivedNetworkProperty(name='betti_number_0_normal',
-                               source_base_property=BaseNetworkProperty.betti_numbers,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=lambda betti_numbers: betti_numbers[0]),
-        DerivedNetworkProperty(name='betti_number_0_stable',
-                               source_base_property=BaseNetworkProperty.betti_numbers,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           # alpha=np.nan,
-                                           beta=-1.,
-                                           location=np.nan,
-                                           scale=np.nan
-                                       ),
-                                   ),
-                               ),
-                               calculator_default=lambda betti_numbers: betti_numbers[0]),
-        DerivedNetworkProperty(name='betti_number_1_normal',
-                               source_base_property=BaseNetworkProperty.betti_numbers,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=lambda betti_numbers: betti_numbers[1]),
-        DerivedNetworkProperty(name='betti_number_1_stable',
-                               source_base_property=BaseNetworkProperty.betti_numbers,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           # alpha=np.nan,
-                                           beta=-1.,
-                                           location=np.nan,
-                                           scale=np.nan
-                                       ),
-                                   ),
-                               ),
-                               calculator_default=lambda betti_numbers: betti_numbers[1]),
-        DerivedNetworkProperty(name='betti_number_2_normal',
-                               source_base_property=BaseNetworkProperty.betti_numbers,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=lambda betti_numbers: betti_numbers[2]),
-        DerivedNetworkProperty(name='betti_number_2_stable',
-                               source_base_property=BaseNetworkProperty.betti_numbers,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           beta=-1.,
-                                           location=np.nan,
-                                           scale=np.nan
-                                       ),
-                                   ),
-                               ),
-                               calculator_default=lambda betti_numbers: betti_numbers[2]),
+        DerivedNetworkProperty(
+            name='vertex_degree_exponent',
+            source_base_property=BaseNetworkProperty.vertex_edge_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='edge_degree_exponent',
+            source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='triangle_degree_exponent',
+            source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='average_interaction_degree_normal_mle',
+            source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=_get_mean,
+            calculator_data_set=_get_mean,
+        ),
+        DerivedNetworkProperty(
+            name='vertex_interaction_degree_exponent',
+            source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='edge_interaction_degree_exponent',
+            source_base_property=BaseNetworkProperty.edge_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='triangle_interaction_degree_exponent',
+            source_base_property=BaseNetworkProperty.triangle_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='interaction_vertex_degree_exponent',
+            source_base_property=BaseNetworkProperty(BaseNetworkProperty.interaction_vertex_degree_distribution),
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_isolated_vertices_normal_mle',
+            source_base_property=BaseNetworkProperty(BaseNetworkProperty.num_of_vertices_by_component),
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda degree_distribution: (degree_distribution == 1).sum(),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_edges_normal_mle',
+            source_base_property=BaseNetworkProperty.num_of_edges,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_edges_normal_match_quantile',
+            source_base_property=BaseNetworkProperty.num_of_edges,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=NormalDistribution.FittingParameters(
+                NormalDistribution.DomainCalculation(),
+                NormalDistribution.ParameterFittingMatchQuantile(
+                    NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
+                    NormalDistribution.DistributionParameters(),
+                    quantile=0.025,
+                ),
+            ),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_edges_stable',
+            source_base_property=BaseNetworkProperty.num_of_edges,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        # alpha=np.nan,
+                        beta=1.,
+                        location=np.nan,
+                        scale=np.nan,
+                    ),
+                ),
+            ),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_triangles_normal_mle',
+            source_base_property=BaseNetworkProperty.num_of_triangles,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_triangles_normal_match_quantile',
+            source_base_property=BaseNetworkProperty.num_of_triangles,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=NormalDistribution.FittingParameters(
+                NormalDistribution.DomainCalculation(),
+                NormalDistribution.ParameterFittingMatchQuantile(
+                    NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
+                    NormalDistribution.DistributionParameters(),
+                    quantile=0.025,
+                ),
+            ),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_triangles_stable',
+            source_base_property=BaseNetworkProperty.num_of_triangles,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        # alpha=np.nan,
+                        beta=1.,
+                        location=np.nan,
+                        scale=np.nan
+                    ),
+                ),
+            ),
+        ),
+        DerivedNetworkProperty(
+            name='betti_number_0_normal',
+            source_base_property=BaseNetworkProperty.betti_numbers,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda betti_numbers: betti_numbers[0],
+        ),
+        DerivedNetworkProperty(
+            name='betti_number_0_stable',
+            source_base_property=BaseNetworkProperty.betti_numbers,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        # alpha=np.nan,
+                        beta=-1.,
+                        location=np.nan,
+                        scale=np.nan
+                    ),
+                ),
+            ),
+            calculator_default=lambda betti_numbers: betti_numbers[0],
+        ),
+        DerivedNetworkProperty(
+            name='betti_number_1_normal',
+            source_base_property=BaseNetworkProperty.betti_numbers,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda betti_numbers: betti_numbers[1] if len(betti_numbers) > 1 else [],
+        ),
+        DerivedNetworkProperty(
+            name='betti_number_1_stable',
+            source_base_property=BaseNetworkProperty.betti_numbers,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        # alpha=np.nan,
+                        beta=-1.,
+                        location=np.nan,
+                        scale=np.nan
+                    ),
+                ),
+            ),
+            calculator_default=lambda betti_numbers: betti_numbers[1] if len(betti_numbers) > 1 else [],
+        ),
+        DerivedNetworkProperty(
+            name='betti_number_2_normal',
+            source_base_property=BaseNetworkProperty.betti_numbers,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda betti_numbers: betti_numbers[2] if len(betti_numbers) > 2 else [],
+        ),
+        DerivedNetworkProperty(
+            name='betti_number_2_stable',
+            source_base_property=BaseNetworkProperty.betti_numbers,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        beta=-1.,
+                        location=np.nan,
+                        scale=np.nan
+                    ),
+                ),
+            ),
+            calculator_default=lambda betti_numbers: betti_numbers[2] if len(betti_numbers) > 2 else [],
+        ),
     )
     return [property_ for property_ in all_properties if property_.name in FINITE_SCALAR_PROPERTY_NAMES_TO_TEST]
 
@@ -307,128 +337,158 @@ def get_finite_scalar_property_params(gamma: float) -> list[DerivedNetworkProper
 def get_infinite_scalar_property_params(gamma: float) -> list[DerivedNetworkProperty]:
     """Return the scalar property params to test for infinite networks."""
     all_properties = (
-        DerivedNetworkProperty(name='vertex_degree_exponent',
-                               source_base_property=BaseNetworkProperty.vertex_edge_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='edge_degree_exponent',
-                               source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='triangle_degree_exponent',
-                               source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='average_interaction_degree_normal_mle',
-                               source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_mean_infinite,
-                               calculator_data_set=_get_mean_infinite),
-        DerivedNetworkProperty(name='vertex_interaction_degree_exponent',
-                               source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='vertex_interaction_degree_exponent_direct',
-                               source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set,
-                               directly_calculated_from_model=True),
-        DerivedNetworkProperty(name='edge_interaction_degree_exponent',
-                               source_base_property=BaseNetworkProperty.edge_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='triangle_interaction_degree_exponent',
-                               source_base_property=BaseNetworkProperty.triangle_interaction_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='interaction_vertex_degree_exponent',
-                               source_base_property=BaseNetworkProperty.interaction_vertex_degree_distribution,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=_get_power_law_exponent_infinite_model_model,
-                               calculator_data_set=_get_power_law_exponent_infinite_model_data_set),
-        DerivedNetworkProperty(name='num_of_edges_normal_mle',
-                               source_base_property=BaseNetworkProperty.num_of_edges,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=sum,),
-        DerivedNetworkProperty(name='num_of_edges_normal_match_quantile',
-                               source_base_property=BaseNetworkProperty.num_of_edges,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=NormalDistribution.FittingParameters(
-                                   NormalDistribution.DomainCalculation(),
-                                   NormalDistribution.ParameterFittingMatchQuantile(
-                                       NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
-                                       NormalDistribution.DistributionParameters(),
-                                       quantile=0.025,
-                                   ),
-                               ),
-                               calculator_default=sum,),
-        DerivedNetworkProperty(name='num_of_edges_stable',
-                               source_base_property=BaseNetworkProperty.num_of_edges,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           # alpha=np.nan,
-                                           beta=1.,
-                                           location=np.nan,
-                                           scale=np.nan
-                                       ),
-                                   ),
-                               ),
-                               calculator_default=sum,),
-        DerivedNetworkProperty(name='num_of_triangles_normal_mle',
-                               source_base_property=BaseNetworkProperty.num_of_triangles,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=create_fitting_parameters_normal(),
-                               calculator_default=sum),
-        DerivedNetworkProperty(name='num_of_triangles_normal_match_quantile',
-                               source_base_property=BaseNetworkProperty.num_of_triangles,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
-                               fitting_parameters=NormalDistribution.FittingParameters(
-                                   NormalDistribution.DomainCalculation(),
-                                   NormalDistribution.ParameterFittingMatchQuantile(
-                                       NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
-                                       NormalDistribution.DistributionParameters(),
-                                       quantile=0.025,
-                                   ),
-                               ),
-                               calculator_default=sum),
-        DerivedNetworkProperty(name='num_of_triangles_stable',
-                               source_base_property=BaseNetworkProperty.num_of_triangles,
-                               theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
-                               fitting_parameters=StableDistribution.FittingParameters(
-                                   StableDistribution.DomainCalculation(),
-                                   StableDistribution.ParameterFitting(
-                                       StableDistribution.ParameterFitting.Method.MLE_SCIPY,
-                                       StableDistribution.DistributionParameters(
-                                           alpha=min(1 / gamma, 2.),
-                                           # alpha=np.nan,
-                                           beta=1.,
-                                           location=np.nan,
-                                           scale=np.nan
-                                       ),
-                                   ),
-                               ),
-                               calculator_default=sum),
+        DerivedNetworkProperty(
+            name='vertex_degree_exponent',
+            source_base_property=BaseNetworkProperty.vertex_edge_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='edge_degree_exponent',
+            source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='triangle_degree_exponent',
+            source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='average_interaction_degree_normal_mle',
+            source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=_get_mean_infinite,
+            calculator_data_set=_get_mean_infinite,
+        ),
+        DerivedNetworkProperty(
+            name='vertex_interaction_degree_exponent',
+            source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='vertex_interaction_degree_exponent_direct',
+            source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            directly_calculated_from_model=True,
+        ),
+        DerivedNetworkProperty(
+            name='edge_interaction_degree_exponent',
+            source_base_property=BaseNetworkProperty.edge_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='triangle_interaction_degree_exponent',
+            source_base_property=BaseNetworkProperty.triangle_interaction_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='interaction_vertex_degree_exponent',
+            source_base_property=BaseNetworkProperty.interaction_vertex_degree_distribution,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
+            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+        ),
+        DerivedNetworkProperty(
+            name='num_of_edges_normal_mle',
+            source_base_property=BaseNetworkProperty.num_of_edges,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=sum,
+        ),
+        DerivedNetworkProperty(
+            name='num_of_edges_normal_match_quantile',
+            source_base_property=BaseNetworkProperty.num_of_edges,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=NormalDistribution.FittingParameters(
+                NormalDistribution.DomainCalculation(),
+                NormalDistribution.ParameterFittingMatchQuantile(
+                    NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
+                    NormalDistribution.DistributionParameters(),
+                    quantile=0.025,
+                ),
+            ),
+            calculator_default=sum,
+        ),
+        DerivedNetworkProperty(
+            name='num_of_edges_stable',
+            source_base_property=BaseNetworkProperty.num_of_edges,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        # alpha=np.nan,
+                        beta=1.,
+                        location=np.nan,
+                        scale=np.nan
+                    ),
+                ),
+            ),
+            calculator_default=sum,
+        ),
+        DerivedNetworkProperty(
+            name='num_of_triangles_normal_mle',
+            source_base_property=BaseNetworkProperty.num_of_triangles,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=create_fitting_parameters_normal(),
+            calculator_default=sum,
+        ),
+        DerivedNetworkProperty(
+            name='num_of_triangles_normal_match_quantile',
+            source_base_property=BaseNetworkProperty.num_of_triangles,
+            theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
+            fitting_parameters=NormalDistribution.FittingParameters(
+                NormalDistribution.DomainCalculation(),
+                NormalDistribution.ParameterFittingMatchQuantile(
+                    NormalDistribution.ParameterFitting.Method.MATCH_QUANTILE,
+                    NormalDistribution.DistributionParameters(),
+                    quantile=0.025,
+                ),
+            ),
+            calculator_default=sum,
+        ),
+        DerivedNetworkProperty(
+            name='num_of_triangles_stable',
+            source_base_property=BaseNetworkProperty.num_of_triangles,
+            theoretical_approximation_type=TheoreticalDistribution.Type.STABLE,
+            fitting_parameters=StableDistribution.FittingParameters(
+                StableDistribution.DomainCalculation(),
+                StableDistribution.ParameterFitting(
+                    StableDistribution.ParameterFitting.Method.MLE_SCIPY,
+                    StableDistribution.DistributionParameters(
+                        alpha=min(1 / gamma, 2.),
+                        # alpha=np.nan,
+                        beta=1.,
+                        location=np.nan,
+                        scale=np.nan
+                    ),
+                ),
+            ),
+            calculator_default=sum,
+        ),
     )
     return [property_ for property_ in all_properties if property_.name in INFINITE_SCALAR_PROPERTY_NAMES_TO_TEST]

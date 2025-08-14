@@ -1,4 +1,0 @@
-"""Parameters for fitting distributions."""
-
-POWER_LAW_FITTING_MINIMUM_VALUE_DATA = 10.
-POWER_LAW_FITTING_MINIMUM_VALUE_MODEL = 10.
