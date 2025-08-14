@@ -3,7 +3,8 @@
 
 import numpy as np
 
-from config_files.distribution_fitting_config import DistributionFittingConfig
+from config_files.dataset_config import DatasetConfig
+from config_files.model_config import ModelConfig
 from distribution.approximation import DistributionApproximation
 from distribution.empirical_distribution import EmpiricalDistribution
 from distribution.factory import (
@@ -64,6 +65,10 @@ INFINITE_SCALAR_PROPERTY_NAMES_TO_TEST = [
 ]
 
 
+POWER_LAW_MINIMUM_DATASET = DatasetConfig.power_law_fitting_minimum_value
+POWER_LAW_MINIMUM_MODEL = ModelConfig.power_law_fitting_minimum_value
+
+
 def _get_power_law_exponent(
     empirical_distribution: EmpiricalDistribution,
     power_law_minimum_value: float
@@ -113,24 +118,24 @@ def get_finite_scalar_property_params(gamma: float) -> list[DerivedNetworkProper
             source_base_property=BaseNetworkProperty.vertex_edge_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='edge_degree_exponent',
             source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='triangle_degree_exponent',
             source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='average_interaction_degree_normal_mle',
@@ -138,39 +143,39 @@ def get_finite_scalar_property_params(gamma: float) -> list[DerivedNetworkProper
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
             calculator_default=_get_mean,
-            calculator_data_set=_get_mean,
+            calculator_dataset=_get_mean,
         ),
         DerivedNetworkProperty(
             name='vertex_interaction_degree_exponent',
             source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='edge_interaction_degree_exponent',
             source_base_property=BaseNetworkProperty.edge_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='triangle_interaction_degree_exponent',
             source_base_property=BaseNetworkProperty.triangle_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='interaction_vertex_degree_exponent',
             source_base_property=BaseNetworkProperty(BaseNetworkProperty.interaction_vertex_degree_distribution),
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='num_of_isolated_vertices_normal_mle',
@@ -342,24 +347,24 @@ def get_infinite_scalar_property_params(gamma: float) -> list[DerivedNetworkProp
             source_base_property=BaseNetworkProperty.vertex_edge_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='edge_degree_exponent',
             source_base_property=BaseNetworkProperty.edge_triangle_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='triangle_degree_exponent',
             source_base_property=BaseNetworkProperty.triangle_tetrahedra_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='average_interaction_degree_normal_mle',
@@ -367,23 +372,23 @@ def get_infinite_scalar_property_params(gamma: float) -> list[DerivedNetworkProp
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
             calculator_default=_get_mean_infinite,
-            calculator_data_set=_get_mean_infinite,
+            calculator_dataset=_get_mean_infinite,
         ),
         DerivedNetworkProperty(
             name='vertex_interaction_degree_exponent',
             source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='vertex_interaction_degree_exponent_direct',
             source_base_property=BaseNetworkProperty.vertex_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
             directly_calculated_from_model=True,
         ),
         DerivedNetworkProperty(
@@ -391,24 +396,24 @@ def get_infinite_scalar_property_params(gamma: float) -> list[DerivedNetworkProp
             source_base_property=BaseNetworkProperty.edge_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='triangle_interaction_degree_exponent',
             source_base_property=BaseNetworkProperty.triangle_interaction_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='interaction_vertex_degree_exponent',
             source_base_property=BaseNetworkProperty.interaction_vertex_degree_distribution,
             theoretical_approximation_type=TheoreticalDistribution.Type.NORMAL,
             fitting_parameters=create_fitting_parameters_normal(),
-            calculator_default=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_model),
-            calculator_data_set=lambda x: _get_power_law_exponent_infinite(x, DistributionFittingConfig.power_law_fitting_minimum_value_data),
+            calculator_default=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_MODEL),
+            calculator_dataset=lambda x: _get_power_law_exponent_infinite(x, POWER_LAW_MINIMUM_DATASET),
         ),
         DerivedNetworkProperty(
             name='num_of_edges_normal_mle',

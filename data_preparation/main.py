@@ -34,7 +34,7 @@ def main() -> None:
     output_path_root.mkdir(parents=True, exist_ok=True)
 
     prepare_data_analysis_data(data_analysis_directories, hypothesis_testing_directories, output_path_root)
-    prepare_model_sample_for_data_sets_data(model_sample_for_data_directories, output_path_root)
+    prepare_model_sample_for_datasets_data(model_sample_for_data_directories, output_path_root)
     # prepare_model_analysis_sample_plot(model_sample_directory_plot, output_path_root)
     prepare_model_sample_data(model_sample_directory, output_path_root)
     prepare_simulation_degree_distribution_data(degree_distribution_directories, output_path_root)
@@ -86,9 +86,9 @@ def copy_persistence_data(directories: dict[str, Path], output_dir: Path) -> Non
         persistence.to_csv(out_file_name, index=False)
 
 
-def prepare_model_sample_for_data_sets_data(directories: dict[str, Path], output_dir: Path) -> None:
+def prepare_model_sample_for_datasets_data(directories: dict[str, Path], output_dir: Path) -> None:
     """Prepare all information related to the data analysis."""
-    _copy_model_samples_for_data_sets_network_plots(directories, output_dir)
+    _copy_model_samples_for_datasets_network_plots(directories, output_dir)
 
 
 def prepare_model_sample_data(directory: Path, output_dir: Path) -> None:
@@ -413,7 +413,7 @@ def _copy_data_network_plots(directories: dict[str, Path], output_path: Path) ->
             copyfile(file_name, output_path / 'data' / f'{dataset_name}_network.jpg')
 
 
-def _copy_model_samples_for_data_sets_network_plots(
+def _copy_model_samples_for_datasets_network_plots(
     directories: dict[str, Path],
     output_path: Path
 ) -> None:

@@ -137,7 +137,7 @@ def plot_hypergraph(
 @log_function_name
 def plot_distribution_approximation(
     distribution_pair: DistributionApproximation,
-    data_set_value: float,
+    dataset_value: float,
     axes: plt.Axes,
 ) -> None:
     """Plot the distribution and its approximation on a given axes."""
@@ -146,7 +146,7 @@ def plot_distribution_approximation(
         plot_approximation_histogram(
             distribution_pair,
             EmpiricalDistribution.HistogramType.INTEGERS,
-            data_set_value,
+            dataset_value,
             PaddingSide.RIGHT,
             axes
         )
@@ -154,7 +154,7 @@ def plot_distribution_approximation(
         plot_approximation_histogram_standardized(
             distribution_pair,
             EmpiricalDistribution.HistogramType.LINEAR,
-            data_set_value,
+            dataset_value,
             PaddingSide.BOTH,
             axes
         )
@@ -162,7 +162,7 @@ def plot_distribution_approximation(
         plot_approximation_histogram_log(
             distribution_pair,
             EmpiricalDistribution.HistogramType.INTEGERS,
-            data_set_value,
+            dataset_value,
             PaddingSide.NONE,
             axes
         )
@@ -170,7 +170,7 @@ def plot_distribution_approximation(
         plot_approximation_histogram_standardized(
             distribution_pair,
             EmpiricalDistribution.HistogramType.LINEAR,
-            data_set_value,
+            dataset_value,
             PaddingSide.BOTH,
             axes
         )
@@ -210,7 +210,7 @@ def _get_simplex_colors(simplices: list[list[int]], color_map_name: str):
 def plot_approximation_histogram(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
-    data_set_value: float,
+    dataset_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> None:
@@ -232,12 +232,12 @@ def plot_approximation_histogram(
         theoretical_x_values, theoretical_pdf = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
-    test_result = distribution_pair.run_test(data_set_value)
-    _plot_point_value(data_set_value, axes)
+    test_result = distribution_pair.run_test(dataset_value)
+    _plot_point_value(dataset_value, axes)
 
     # merge all values to be plotted
     _set_linear_scale_limits(
-        x_values=np.r_[bins, theoretical_x_values, data_set_value],
+        x_values=np.r_[bins, theoretical_x_values, dataset_value],
         y_values=np.r_[histogram, theoretical_pdf],
         axes=axes
     )
@@ -249,7 +249,7 @@ def plot_approximation_histogram(
 def plot_approximation_histogram_standardized(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
-    data_set_value: float,
+    dataset_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | None:
@@ -275,15 +275,15 @@ def plot_approximation_histogram_standardized(
         standardized_theoretical_x_values, standardized_theoretical_pdf = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
-    test_result = distribution_pair.run_test(data_set_value)
-    _plot_point_value((data_set_value - mu) / std, axes)
+    test_result = distribution_pair.run_test(dataset_value)
+    _plot_point_value((dataset_value - mu) / std, axes)
 
     # merge all coordinates to be plotted
     _set_linear_scale_limits(
         x_values=np.r_[
             standardized_bins,
             standardized_theoretical_x_values,
-            (data_set_value - mu) / std,
+            (dataset_value - mu) / std,
         ],
         y_values=np.r_[
             standardized_histogram,
@@ -320,7 +320,7 @@ def plot_value_counts_log(
 @log_function_name
 def plot_approximation_value_counts_log(
     distribution_pair: DistributionApproximation,
-    data_set_value: float,
+    dataset_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | None:
@@ -354,15 +354,15 @@ def plot_approximation_value_counts_log(
         theoretical_x_values, theoretical_pdf_to_plot = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
-    test_result = distribution_pair.run_test(data_set_value)
-    _plot_point_value(data_set_value, axes)
+    test_result = distribution_pair.run_test(dataset_value)
+    _plot_point_value(dataset_value, axes)
 
     # merge all values to be plotted
     _set_logarithmic_scale_limits(
         x_values=np.r_[
             value_counts[:, 0],
             theoretical_x_values,
-            data_set_value,
+            dataset_value,
         ],
         y_values=np.r_[
             value_counts[:, 1],
@@ -382,7 +382,7 @@ def plot_approximation_value_counts_log(
 def plot_approximation_histogram_log(
     distribution_pair: DistributionApproximation,
     histogram_type: EmpiricalDistribution.HistogramType,
-    data_set_value: float,
+    dataset_value: float,
     padding: PaddingSide,
     axes: plt.Axes
 ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | None:
@@ -414,12 +414,12 @@ def plot_approximation_histogram_log(
         theoretical_x_values, theoretical_pdf_to_plot = np.empty((0,)), np.empty((0,))
         warning('Theoretical distribution to be plotted is invalid.')
 
-    test_result = distribution_pair.run_test(data_set_value)
-    _plot_point_value(data_set_value, axes)
+    test_result = distribution_pair.run_test(dataset_value)
+    _plot_point_value(dataset_value, axes)
 
     # merge all values to be plotted
     _set_logarithmic_scale_limits(
-        x_values=np.r_[bins, theoretical_x_values, data_set_value],
+        x_values=np.r_[bins, theoretical_x_values, dataset_value],
         y_values=np.r_[histogram, theoretical_pdf_to_plot],
         axes=axes
     )

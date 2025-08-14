@@ -6,25 +6,25 @@ import unittest
 
 import numpy as np
 
-from data_set.data_set import DataSet
-from data_set.test_data_set import TestDataSet
+from dataset.dataset import Dataset
+from dataset.test_dataset import TestDataset
 from distribution.empirical_distribution import EmpiricalDistribution
 from network.property import BaseNetworkProperty
 
 
-class DataSetTest(unittest.TestCase):
+class DatasetTest(unittest.TestCase):
     """Test case for testing the StableDistribution class."""
 
     def setUp(self):
         """Set up test case."""
-        data_set_properties = DataSet.Parameters(
+        data_set_properties = Dataset.Parameters(
             location=Path(),
             max_dimension=3,
             max_simplex_dimension=3,
             component_index_from_largest=-1,
             weighted=False,
         )
-        self.data_set = TestDataSet(data_set_properties)
+        self.data_set = TestDataset(data_set_properties)
 
     def test_degree_distribution(self):
         """Test if the higher order degree distribution is correct."""

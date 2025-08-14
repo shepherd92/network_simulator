@@ -3,6 +3,7 @@
 
 from dataclasses import dataclass
 from logging import info
+from typing import Any
 
 import matplotlib.pyplot as plt
 
@@ -55,48 +56,48 @@ class InfiniteNetworkAnalyzer(NetworkAnalyzer):
         axes_grid = figure.add_gridspec(axes_grid_height, axes_grid_width)
         subfigure_row_index = 0
 
-        distribution = summary.get(BaseNetworkProperty.vertex_edge_degree_distribution)
-        if distribution is not None:
-            self.report_vertex_edge_degree_distribution(
-                EmpiricalDistribution([element[0] for element in distribution]),
-                figure.add_subplot(axes_grid[subfigure_row_index, 0]),
-            )
-        distribution = summary.get(BaseNetworkProperty.edge_triangle_degree_distribution)
-        if distribution is not None:
-            self.report_edge_triangle_degree_distribution(
-                EmpiricalDistribution([value for element in distribution for value in element]),
-                figure.add_subplot(axes_grid[subfigure_row_index, 1]),
-            )
-        distribution = summary.get(BaseNetworkProperty.triangle_tetrahedra_degree_distribution)
-        if distribution is not None:
-            self.report_triangle_tetrahedron_degree_distribution(
-                EmpiricalDistribution([value for element in distribution for value in element]),
-                figure.add_subplot(axes_grid[subfigure_row_index, 2]),
-            )
+        distribution = self._flatten_distribution(summary.get(BaseNetworkProperty.vertex_edge_degree_distribution))
+        self.report_vertex_edge_degree_distribution(
+            distribution,
+            figure.add_subplot(axes_grid[subfigure_row_index, 0]),
+        )
+        distribution = self._flatten_distribution(summary.get(BaseNetworkProperty.edge_triangle_degree_distribution))
+        self.report_edge_triangle_degree_distribution(
+            distribution,
+            figure.add_subplot(axes_grid[subfigure_row_index, 1]),
+        )
+        distribution = self._flatten_distribution(summary.get(BaseNetworkProperty.triangle_tetrahedra_degree_distribution))
+        self.report_triangle_tetrahedron_degree_distribution(
+            distribution,
+            figure.add_subplot(axes_grid[subfigure_row_index, 2]),
+        )
 
         subfigure_row_index += 1
 
-        distribution = summary.get(BaseNetworkProperty.vertex_interaction_degree_distribution)
-        if distribution is not None:
-            self.report_vertex_interaction_degree_distribution(
-                EmpiricalDistribution([value for element in distribution for value in element]),
-                figure.add_subplot(axes_grid[subfigure_row_index, 0])
-            )
-        distribution = summary.get(BaseNetworkProperty.edge_interaction_degree_distribution)
-        if distribution is not None:
-            self.report_edge_interaction_degree_distribution(
-                EmpiricalDistribution([value for element in distribution for value in element]),
-                figure.add_subplot(axes_grid[subfigure_row_index, 1])
-            )
-        distribution = summary.get(BaseNetworkProperty.triangle_interaction_degree_distribution)
-        if distribution is not None:
-            self.report_interaction_dimension_distribution(
-                EmpiricalDistribution([value for element in distribution for value in element]),
-                figure.add_subplot(axes_grid[subfigure_row_index, 2])
-            )
+        distribution = self._flatten_distribution(summary.get(BaseNetworkProperty.vertex_interaction_degree_distribution))
+        self.report_vertex_interaction_degree_distribution(
+            distribution,
+            figure.add_subplot(axes_grid[subfigure_row_index, 0])
+        )
+        distribution = self._flatten_distribution(summary.get(BaseNetworkProperty.edge_interaction_degree_distribution))
+        self.report_edge_interaction_degree_distribution(
+            distribution,
+            figure.add_subplot(axes_grid[subfigure_row_index, 1])
+        )
+        distribution = self._flatten_distribution(summary.get(BaseNetworkProperty.triangle_interaction_degree_distribution))
+        self.report_interaction_dimension_distribution(
+            distribution,
+            figure.add_subplot(axes_grid[subfigure_row_index, 2])
+        )
     
         figure.tight_layout()
         figure.savefig(self.save_directory / 'whole_report_infinite_network.png')
         figure.clf()
 
         info('Infinite hypergraph analysis finished.')
+
+    @staticmethod
+    def _flatten_distribution(distribution: list[list[Any]] | None) -> EmpiricalDistribution:
+        """Flatten a nested list of integers."""
+        return EmpiricalDistribution([value for element in distribution for value in element]) \
+            if distribution is not None else None

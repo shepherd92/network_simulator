@@ -3,21 +3,21 @@
 
 from dataclasses import dataclass
 
-from data_set.data_set import DataSet
+from dataset.dataset import Dataset
 
 
-class TestDataSet(DataSet):
+class TestDataset(Dataset):
     """This class represents the "Bianconi Data Set"."""
 
     @dataclass
-    class Parameters(DataSet.Parameters):
+    class Parameters(Dataset.Parameters):
         """Properties to load the test data set."""
 
     def _read_data(self) -> None:
         """Load data from the disk for further processing."""
         return
 
-    def _get_interactions(self) -> list[list[int]]:
+    def _get_interactions_from_data(self) -> list[list[int]]:
         """Interactions of the loaded data."""
         return [
             # [0, 1, 2, 3], [1, 2, 3, 4],

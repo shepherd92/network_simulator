@@ -17,7 +17,7 @@ from cpp_plugin.build.release.cpp_plugin import (  # type: ignore
     FiniteHypergraphModel,
     InfiniteHypergraphModel,
 )
-from data_set.data_set import DataSet
+from dataset.dataset import Dataset
 from distribution.approximation import guess_power_law_exponent
 from model.model import Model
 from network.finite_hypergraph import FiniteHypergraph
@@ -61,12 +61,12 @@ class HypergraphModel(Model):
         self._parameters = HypergraphModel.Parameters()
         self._random_number_generator = np.random.default_rng()
 
-    def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
+    def set_relevant_parameters_from_dataset(self, dataset: Dataset) -> None:
         """Set the model parameters based ona a data set."""
-        num_of_vertices: int = data_set.calc_base_property(BaseNetworkProperty.num_of_vertices)
-        num_of_interactions: int = data_set.calc_base_property(BaseNetworkProperty.num_of_interactions)
+        num_of_vertices: int = dataset.calc_base_property(BaseNetworkProperty.num_of_vertices)
+        num_of_interactions: int = dataset.calc_base_property(BaseNetworkProperty.num_of_interactions)
 
-        vertex_interaction_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
+        vertex_interaction_degree_distribution: EmpiricalDistribution = dataset.calc_base_property(
             BaseNetworkProperty.vertex_interaction_degree_distribution
         )
         vertex_interaction_exponent = guess_power_law_exponent(vertex_interaction_degree_distribution)
@@ -74,7 +74,7 @@ class HypergraphModel(Model):
         gamma = 1. / (vertex_interaction_exponent - 1.)
         assert gamma > 0. and gamma < 1., f'gamma_guess = {gamma}'
 
-        document_degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
+        document_degree_distribution: EmpiricalDistribution = dataset.calc_base_property(
             BaseNetworkProperty.interaction_vertex_degree_distribution
         )
         interaction_vertex_exponent = guess_power_law_exponent(document_degree_distribution)
@@ -106,7 +106,7 @@ class HypergraphModel(Model):
         beta_guess = 0.5 * average_vertex_interaction_degree * (1. - gamma) * (1. - gamma_prime) / interaction_intensity
 
         self._parameters = HypergraphModel.Parameters(
-            max_dimension=data_set.max_dimension,
+            max_dimension=dataset.max_dimension,
             network_size=network_size,
             interaction_intensity=interaction_intensity,
             beta=beta_guess,

@@ -36,35 +36,35 @@ class PlottingHelperTest(unittest.TestCase):
         figure, ((axes_poisson, axes_power_law), (axes_normal, axes_stable)) = plt.subplots(2, 2)
         figure.set_size_inches(20, 10)
 
-        data_set_value = 3.
+        dataset_value = 3.
 
         axes_poisson.set_title('Poisson Distribution')
         type_ = TheoreticalDistribution.Type.POISSON
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
         fitting_params = create_fitting_parameters_poisson()
         approximation.fit(fitting_params)
-        plot_distribution_approximation(approximation, data_set_value, axes_poisson)
+        plot_distribution_approximation(approximation, dataset_value, axes_poisson)
 
         axes_power_law.set_title('Power law Distribution')
         type_ = TheoreticalDistribution.Type.POWER_LAW
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
         fitting_params = create_power_law_fitting_parameters(10.)
         approximation.fit(fitting_params)
-        plot_distribution_approximation(approximation, data_set_value, axes_power_law)
+        plot_distribution_approximation(approximation, dataset_value, axes_power_law)
 
         axes_normal.set_title('Normal Distribution')
         type_ = TheoreticalDistribution.Type.NORMAL
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
         fitting_params = create_fitting_parameters_normal()
         approximation.fit(fitting_params)
-        plot_distribution_approximation(approximation, data_set_value, axes_normal)
+        plot_distribution_approximation(approximation, dataset_value, axes_normal)
 
         axes_stable.set_title('Stable Distribution')
         type_ = TheoreticalDistribution.Type.STABLE
         approximation = DistributionApproximation(PlottingHelperTest._get_empirical_dist(type_), type_)
         fitting_params = create_fitting_parameters_stable()
         approximation.fit(fitting_params)
-        plot_distribution_approximation(approximation, data_set_value, axes_stable)
+        plot_distribution_approximation(approximation, dataset_value, axes_stable)
 
         figure.tight_layout()
         plt.show()

@@ -15,7 +15,7 @@ from cpp_plugin.build.release.cpp_plugin import (
     FiniteAdrcmModel,
     InfiniteAdrcmModel,
 )
-from data_set.data_set import DataSet
+from dataset.dataset import Dataset
 from distribution.approximation import guess_power_law_exponent
 from model.model import Model
 from network.finite_clique_complex import FiniteCliqueComplex
@@ -52,11 +52,11 @@ class AdrcmModel(Model):
         super().__init__()
         self._parameters = AdrcmModel.Parameters()
 
-    def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
+    def set_relevant_parameters_from_dataset(self, dataset: Dataset) -> None:
         """Set the model parameters based ona a data set."""
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty.num_of_vertices)
-        average_degree: float = data_set.calc_base_property(BaseNetworkProperty.mean_degree)
-        degree_distribution: EmpiricalDistribution = data_set.calc_base_property(
+        num_of_nodes: int = dataset.calc_base_property(BaseNetworkProperty.num_of_vertices)
+        average_degree: float = dataset.calc_base_property(BaseNetworkProperty.mean_degree)
+        degree_distribution: EmpiricalDistribution = dataset.calc_base_property(
             BaseNetworkProperty.vertex_edge_degree_distribution
         )
         exponent_guess = guess_power_law_exponent(degree_distribution)
@@ -67,7 +67,7 @@ class AdrcmModel(Model):
         self._parameters.gamma = gamma_guess
 
         self._parameters = AdrcmModel.Parameters(
-            max_dimension=data_set.max_dimension,
+            max_dimension=dataset.max_dimension,
             network_size=num_of_nodes,
             alpha=self._parameters.alpha,
             beta=beta_guess,

@@ -15,14 +15,12 @@ from tools.logging_helper import log_function_name
 DerivedNetworkProperty = NewType('DerivedNetworkProperty', None)
 
 
-class DataSet(FiniteHypergraph):
+class Dataset(FiniteHypergraph):
     """Base class representing a data set."""
 
     class Type(Enum):
         """Represent the available data set types."""
 
-        BIANCONI = auto()
-        NATURE = auto()
         ARXIV = auto()
         TEST = auto()
         INVALID = auto()
@@ -42,8 +40,8 @@ class DataSet(FiniteHypergraph):
         """Create data set without loading data."""
         self._data_set_properties = data_set_properties
         self._read_data()
-        vertices = self._get_vertices() if self._get_vertices() is not None else []
-        interactions = self._get_interactions()
+        vertices = self._get_vertices_from_data()
+        interactions = self._get_interactions_from_data()
         cpp_network = CppFiniteHypergraph(
             data_set_properties.max_dimension,
             vertices, interactions,
@@ -77,14 +75,11 @@ class DataSet(FiniteHypergraph):
         raise NotImplementedError
 
     @log_function_name
-    def _get_vertices(self) -> list[int] | None:
-        """Return vertices of the loaded data.
-
-        If None is returned, the vertices are inferred from the interactions.
-        """
-        return None
+    def _get_vertices_from_data(self) -> list[int]:
+        """Return vertices of the loaded data."""
+        raise NotImplementedError
 
     @log_function_name
-    def _get_interactions(self) -> list[list[int]]:
-        """Get interactions."""
+    def _get_interactions_from_data(self) -> list[list[int]]:
+        """Get interactions from the data."""
         raise NotImplementedError

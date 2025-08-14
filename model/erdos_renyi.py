@@ -8,7 +8,7 @@ from typing import NewType
 
 import networkx as nx
 
-from data_set.data_set import DataSet
+from dataset.dataset import Dataset
 from model.model import Model
 from network.finite_clique_complex import FiniteCliqueComplex
 from network.property import BaseNetworkProperty
@@ -30,18 +30,18 @@ class ErdosRenyiModel(Model):
         """Create a network model with default parameters."""
         self._parameters = ErdosRenyiModel.Parameters()
 
-    def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
+    def set_relevant_parameters_from_dataset(self, dataset: Dataset) -> None:
         """Set the model parameters based ona a data set."""
-        num_of_nodes: int = data_set.calc_base_property(BaseNetworkProperty(
+        num_of_nodes: int = dataset.calc_base_property(BaseNetworkProperty(
             BaseNetworkProperty.num_of_vertices
         ))
-        num_of_edges: int = data_set.calc_base_property(BaseNetworkProperty(
+        num_of_edges: int = dataset.calc_base_property(BaseNetworkProperty(
             BaseNetworkProperty.num_of_edges
         ))
         edge_probability_guess = num_of_edges / (num_of_nodes * (num_of_nodes - 1) / 2)
 
         self._parameters = ErdosRenyiModel.Parameters(
-            max_dimension=data_set.max_dimension,
+            max_dimension=dataset.max_dimension,
             network_size=num_of_nodes,
             edge_probability=edge_probability_guess,
         )

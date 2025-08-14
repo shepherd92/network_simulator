@@ -77,7 +77,8 @@ class ModelConfig:
         num_of_infinite_networks: int = 100
 
     type_: Model.Type = Model.Type.HYPERGRAPH
-    set_params_from_data_set: bool = False
+    set_params_from_dataset: bool = False
+    power_law_fitting_minimum_value: float = 10.
     analysis = Analysis()
     network_testing = Testing()
 

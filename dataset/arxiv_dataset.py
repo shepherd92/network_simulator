@@ -7,16 +7,16 @@ from typing import Any
 
 import pandas as pd
 
-from data_set.data_set import DataSet
-from data_set.arxiv_categories import ArxivField, ArxivSubCategory
+from dataset.dataset import Dataset
+from dataset.arxiv_categories import ArxivField, ArxivSubCategory
 from tools.logging_helper import log_function_name
 
 
-class ArxivDataSet(DataSet):
+class ArxivDataset(Dataset):
     """This class represents the "Nature Data Set"."""
 
     @dataclass
-    class Parameters(DataSet.Parameters):
+    class Parameters(Dataset.Parameters):
         """Represent the necessary properties to load a dataset."""
 
         date_interval: tuple[pd.Timestamp, pd.Timestamp]
@@ -94,7 +94,8 @@ class ArxivDataSet(DataSet):
                 pd.Timestamp(self._data_set_properties.date_interval[0], tz='UTC')) &
             (filtered_documents['publish_time'] <
                 pd.Timestamp(self._data_set_properties.date_interval[1], tz='UTC')) &
-            (filtered_documents['authors'].map(len) <= self._data_set_properties.max_simplex_dimension)
+            (filtered_documents['authors'].map(len) <=
+                self._data_set_properties.max_simplex_dimension)
         ]
 
         assert len(filtered_documents) > 0, 'No data is available with the specified properties.'
@@ -105,7 +106,12 @@ class ArxivDataSet(DataSet):
         print(len(filtered_documents))
 
     @log_function_name
-    def _get_interactions(self) -> list[list[int]]:
+    def _get_vertices_from_data(self) -> list[int]:
+        """Return vertices of the loaded data."""
+        return sorted(list(set(self.documents['authors'].sum())))
+
+    @log_function_name
+    def _get_interactions_from_data(self) -> list[list[int]]:
         """Build a simplicial complex based on the loaded data."""
         assert not self._documents.empty, 'Data is not loaded.'
 

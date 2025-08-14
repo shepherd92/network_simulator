@@ -16,7 +16,7 @@ from distribution.empirical_distribution import EmpiricalDistribution
 
 # forward declarations
 BaseNetworkProperty = NewType('BaseNetworkProperty', None)
-DataSet = NewType('DataSet', None)
+Dataset = NewType('Dataset', None)
 DerivedNetworkProperty = NewType('DerivedNetworkProperty', None)
 FiniteHypergraph = NewType('FiniteHypergraph', None)
 InfiniteNetworkSet = NewType('InfiniteNetworkSet', None)
@@ -50,7 +50,7 @@ class Model:
         max_dimension: int = 2
         network_size: float = 1000.
 
-    def set_relevant_parameters_from_data_set(self, data_set: DataSet) -> None:
+    def set_relevant_parameters_from_dataset(self, dataset: Dataset) -> None:
         """Set the model parameters based ona a data set."""
         raise NotImplementedError
 

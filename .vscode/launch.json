@@ -26,7 +26,7 @@
             ],
         },
         {
-            "name": "Data Set Analysis",
+            "name": "Dataset Analysis",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",

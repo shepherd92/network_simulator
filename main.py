@@ -23,7 +23,7 @@ from config_files.properties_to_test import (
     get_finite_scalar_property_params,
     get_infinite_scalar_property_params,
 )
-from data_set.factory import load_data
+from dataset.factory import load_data
 from distribution.approximation import DistributionApproximation
 from model.model import Model
 from model.factory import create_model, load_default_parameters
@@ -46,25 +46,27 @@ class Mode(Enum):
 
 def main(mode: Mode, configuration: Configuration) -> None:
     """Run program - main function."""
-    data_set_type = configuration.data_set_analysis.type_
+    dataset_type = configuration.dataset_analysis.type_
     model_type = configuration.model.type_
     seed = configuration.general.seed if configuration.general.seed else random.randint(0, 2**31 - 1)
+    info(f'Seed: {seed}')
 
     if mode == Mode.DATASET_ANALYSIS:
-        data_set = load_data(data_set_type)
+        dataset = load_data(dataset_type)
         (configuration.general.output_dir / 'data').mkdir(parents=True, exist_ok=True)
         analysis_parameters = FiniteNetworkAnalyzer.Parameters(
             save_directory=configuration.general.output_dir / 'data',
-            plot=configuration.data_set_analysis.plot,
-            plot_entire_network=configuration.data_set_analysis.plot_entire_network,
-            plot_network_giant_component=configuration.data_set_analysis.plot_network_giant_component,
-            plot_network_determined_positions=configuration.data_set_analysis.plot_network_determined_positions,
-            power_law_fitting_minimum_value=configuration.data_set_analysis.power_law_fitting_minimum_value,
+            plot_entire_network=configuration.dataset_analysis.plot_entire_network,
+            plot_network_giant_component=configuration.dataset_analysis.plot_network_giant_component,
+            plot_network_determined_positions=False,
+            power_law_fitting_minimum_value=configuration.dataset_analysis.power_law_fitting_minimum_value,
         )
         network_analyzer = FiniteNetworkAnalyzer(analysis_parameters)
+        if configuration.dataset_analysis.plot:
+            network_analyzer.plot(dataset)
         network_analyzer.analyze_finite_hypergraph(
-            data_set,
-            configuration.data_set_analysis.properties_to_calculate
+            dataset,
+            configuration.dataset_analysis.properties_to_calculate
         )
 
     elif mode == Mode.TESTING:
@@ -73,9 +75,9 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
-        if configuration.model.set_params_from_data_set:
-            data_set = load_data(data_set_type)
-            model.set_relevant_parameters_from_data_set(data_set)
+        if configuration.model.set_params_from_dataset:
+            dataset = load_data(dataset_type)
+            model.set_relevant_parameters_from_dataset(dataset)
 
         scalar_property_params = get_finite_scalar_property_params(model.parameters.gamma) \
             if configuration.model.network_testing.mode == Model.Mode.FINITE \
@@ -99,17 +101,17 @@ def main(mode: Mode, configuration: Configuration) -> None:
 
             distribution_pair.fit(property_params.fitting_parameters)
 
-            data_set_value = data_set.calc_scalar_property(property_params) \
-                if configuration.model.set_params_from_data_set \
+            dataset_value = dataset.calc_scalar_property(property_params) \
+                if configuration.model.set_params_from_dataset \
                 else np.nan
 
-            test_results = distribution_pair.run_test(data_set_value)
+            test_results = distribution_pair.run_test(dataset_value)
 
             scalar_property_report = ScalarNetworkPropertyReport(
                 params=property_params,
                 distributions=distribution_pair,
                 test_results=test_results,
-                data_point=data_set_value,
+                data_point=dataset_value,
             )
 
             scalar_property_reports.append(scalar_property_report)
@@ -135,9 +137,9 @@ def main(mode: Mode, configuration: Configuration) -> None:
         model: Model = create_model(model_type)
         model.parameters = load_default_parameters(model_type)
 
-        if configuration.model.set_params_from_data_set:
-            data_set = load_data(data_set_type)
-            model.set_relevant_parameters_from_data_set(data_set)
+        if configuration.model.set_params_from_dataset:
+            dataset = load_data(dataset_type)
+            model.set_relevant_parameters_from_dataset(dataset)
 
         if configuration.model.analysis.finite.enable:
             model_analysis_save_dir = configuration.general.output_dir / 'model_analysis_finite'
@@ -148,7 +150,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
                 plot_entire_network=configuration.model.analysis.plot_entire_network,
                 plot_network_giant_component=configuration.model.analysis.plot_network_giant_component,
                 plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
-                power_law_fitting_minimum_value=configuration.distribution_fitting.power_law_fitting_minimum_value_model,
+                power_law_fitting_minimum_value=configuration.model.power_law_fitting_minimum_value,
             )
             network_analyzer = FiniteNetworkAnalyzer(analysis_parameters)
             if configuration.model.analysis.plot:
@@ -176,7 +178,7 @@ def main(mode: Mode, configuration: Configuration) -> None:
                 save_directory=model_analysis_save_dir,
                 plot_entire_network=configuration.model.analysis.plot_entire_network,
                 plot_network_determined_positions=configuration.model.analysis.plot_network_determined_positions,
-                power_law_fitting_minimum_value=configuration.distribution_fitting.power_law_fitting_minimum_value_model,
+                power_law_fitting_minimum_value=configuration.model.power_law_fitting_minimum_value,
             )
             network_analyzer = InfiniteNetworkAnalyzer(analysis_parameters)
             network_analyzer.analyze_infinite_network_set(
@@ -200,13 +202,13 @@ def main(mode: Mode, configuration: Configuration) -> None:
     print('\nDone.')
 
 
-def data_set_required(mode: Mode, configuration: Configuration) -> bool:
+def dataset_required(mode: Mode, configuration: Configuration) -> bool:
     """Check if loading of a data set is required."""
     return \
         mode == Mode.DATASET_ANALYSIS or \
         (
             mode == Mode.TESTING and
-            configuration.model.set_params_from_data_set
+            configuration.model.set_params_from_dataset
         )
 
 
